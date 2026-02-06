@@ -11,6 +11,10 @@ h1 {
     color: #1976d2;
 }
 
+input {
+    padding: 0 6px;
+}
+
 .subtitle {
     color: #666;
     margin-bottom: 2rem;
