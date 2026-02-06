@@ -18,67 +18,8 @@ import { forkJoin } from 'rxjs';
     UserSearchComponent,
     GameLibraryComponent,
   ],
-  template: `
-    <mat-toolbar color="primary" class="app-toolbar">
-      <mat-icon>sports_esports</mat-icon>
-      <span>Steam Game Recommender</span>
-    </mat-toolbar>
-
-    <main class="main-content">
-      <app-user-search 
-        #searchComponent
-        (search)="onSearch($event)"
-      ></app-user-search>
-
-      <app-game-library
-        [library]="library"
-        [profile]="profile"
-        [isLoading]="isLoading"
-      ></app-game-library>
-    </main>
-
-    <footer class="app-footer">
-      <p>Built with Angular + Node.js | Steam Web API</p>
-    </footer>
-  `,
-  styles: [`
-    :host {
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-    }
-
-    .app-toolbar {
-      gap: 0.5rem;
-    }
-
-    .app-toolbar mat-icon {
-      font-size: 28px;
-    }
-
-    .main-content {
-      flex: 1;
-      padding: 2rem;
-      max-width: 1400px;
-      margin: 0 auto;
-      width: 100%;
-      box-sizing: border-box;
-    }
-
-    .app-footer {
-      text-align: center;
-      padding: 1rem;
-      background-color: #f5f5f5;
-      color: #666;
-      font-size: 0.875rem;
-    }
-
-    @media (max-width: 600px) {
-      .main-content {
-        padding: 1rem;
-      }
-    }
-  `]
+  templateUrl: "./app.html",
+  styleUrl:"./app.css"
 })
 export class App {
   @ViewChild('searchComponent') searchComponent!: UserSearchComponent;
