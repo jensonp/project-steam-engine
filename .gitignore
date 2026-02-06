@@ -43,3 +43,5 @@ data/raw/*.csv
 data/raw/*.json
 data/processed/*.csv
 data/processed/*.json
+backend/data/raw/
+backend/data/processed/
