@@ -1,0 +1,57 @@
+# Dependencies (large, rarely needed for context)
+node_modules/
+
+# Build outputs
+dist/
+build/
+.angular/
+out-tsc/
+bazel-out/
+*.tsbuildinfo
+*.js.map
+
+# Environment & secrets
+.env
+.env.*
+!.env.example
+
+# Lock files (large, low context value)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# IDE & editor
+.idea/
+.vscode/
+.history/
+*.swp
+*.swo
+*.sublime-*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs & debug
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Testing & coverage
+coverage/
+.nyc_output/
+__screenshots__/
+
+# Data files (often large)
+data/raw/
+data/processed/
+*.csv
+
+
+
+# Misc
+.sass-cache/
+tmp/
+.cache/

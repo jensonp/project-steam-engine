@@ -1,0 +1,45 @@
+# Environment variables
+.env
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build outputs
+dist/
+build/
+*.js.map
+
+# TypeScript
+*.tsbuildinfo
+
+# Angular
+.angular/
+.sass-cache/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*.sublime-*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Testing
+coverage/
+.nyc_output/
+
+# Data files
+data/raw/*.csv
+data/raw/*.json
+data/processed/*.csv
+data/processed/*.json
