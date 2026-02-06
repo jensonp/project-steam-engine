@@ -42,12 +42,8 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
 // Start server
 app.listen(config.port, () => {
   console.log(`
-╔════════════════════════════════════════════════════╗
-║     Steam Recommendation API                       ║
-╠════════════════════════════════════════════════════╣
-║  Server running at: http://localhost:${config.port}          ║
-║  API Key configured: ${config.steamApiKey ? 'Yes' : 'No'}                         ║
-╚════════════════════════════════════════════════════╝
+    Server running at: http://localhost:${config.port}
+    API Key configured: ${config.steamApiKey ? 'Yes' : 'No'}
   `);
 });
 
