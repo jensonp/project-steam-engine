@@ -1,0 +1,54 @@
+@if (profile) {
+    <div class="library-header">
+    <div class="profile-info">
+        @if (profile.avatar) {
+        <img [src]="profile.avatar" [alt]="profile.personaName" class="avatar" />
+        }
+        <div class="profile-details">
+        <h2>{{ profile.personaName }}</h2>
+        <p>{{ library?.gameCount || 0 }} games in library</p>
+        </div>
+    </div>
+
+    <div class="controls">
+        <mat-form-field appearance="outline" class="sort-select">
+        <mat-label>Sort by</mat-label>
+        <mat-select [(ngModel)]="sortBy" (selectionChange)="sortGames()">
+            <mat-option value="playtime">Most Played</mat-option>
+            <mat-option value="name">Name (A-Z)</mat-option>
+            <mat-option value="recent">Recently Played</mat-option>
+        </mat-select>
+        </mat-form-field>
+
+        <mat-button-toggle-group [(ngModel)]="viewMode" class="view-toggle">
+        <mat-button-toggle value="grid">
+            <mat-icon>grid_view</mat-icon>
+        </mat-button-toggle>
+        <mat-button-toggle value="list">
+            <mat-icon>view_list</mat-icon>
+        </mat-button-toggle>
+        </mat-button-toggle-group>
+    </div>
+    </div>
+}
+
+@if (isLoading) {
+    <div class="loading">
+    <mat-spinner diameter="48"></mat-spinner>
+    <p>Loading game library...</p>
+    </div>
+} @else if (sortedGames.length > 0) {
+    <div class="games-grid" [class.list-view]="viewMode === 'list'">
+    @for (game of sortedGames; track game.appId) {
+        <app-game-card 
+        [game]="game" 
+        [details]="gameDetails.get(game.appId)"
+        ></app-game-card>
+    }
+    </div>
+} @else if (library) {
+    <div class="empty-state">
+    <mat-icon>sports_esports</mat-icon>
+    <p>No games found in this library.</p>
+    </div>
+}

@@ -6,6 +6,7 @@
 
 .app-toolbar {
     gap: 0.5rem;
+    background-color: #f5f5f5;
 }
 
 .app-toolbar mat-icon {
@@ -27,6 +28,10 @@
     background-color: #f5f5f5;
     color: #666;
     font-size: 0.875rem;
+}
+
+#header-icon {
+    height: 28px;
 }
 
 @media (max-width: 600px) {
