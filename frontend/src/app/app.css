@@ -10,7 +10,7 @@
 }
 
 .app-toolbar mat-icon {
-    font-size: 28px;
+    font-size: 32px;
 }
 
 .main-content {
@@ -32,6 +32,10 @@
 
 #header-icon {
     height: 28px;
+}
+
+#header-title {
+    font-weight: bold;
 }
 
 @media (max-width: 600px) {

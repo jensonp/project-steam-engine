@@ -1,6 +1,6 @@
 <div class="search-container">
     <h1>Steam Game Library</h1>
-    <p class="subtitle">Enter the Steam ID of your account</p>
+    <p class="subtitle">Enter the Steam ID of your account. Find your Steam ID at <a href="https://steamid.io" class="url">steamid.io</a></p>
     
     <div class="search-form">
         <mat-form-field appearance="outline" class="search-field">
@@ -8,11 +8,10 @@
             <input 
                 matInput 
                 [(ngModel)]="steamID" 
-                placeholder="76561198012345678"
+                placeholder=""
                 (keyup.enter)="onSearch()"
                 [disabled]="isLoading"
             >
-            <mat-hint>Find your Steam ID at <a href="https://steamid.io" class="url">steamid.io</a></mat-hint>
         </mat-form-field>
         
         <button 
