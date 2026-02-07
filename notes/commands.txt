@@ -73,3 +73,35 @@ $ head -1 $GAMES_CSV | tr ',' $'
     38	Screenshots
     39	Movies
 
+=== Fri Feb  6 19:09:49 PST 2026 ===
+$ python3 -c "
+import csv
+with open('$GAMES_CSV') as f:
+    r = csv.DictReader(f)
+    for i, row in enumerate(r):
+        if i >= 10: break
+        print(f\"{row['AppID']:10} {row['DiscountDLC count']}\")
+"
+
+=== Fri Feb  6 19:10:02 PST 2026 ===
+$ python3 -c "
+import csv
+with open('$GAMES_CSV') as f:
+    r = csv.DictReader(f)
+    for i, row in enumerate(r):
+        if i >= 10: break
+        print(f\"{row['AppID']:10} {row['DiscountDLC count']}\")
+"
+
+=== Fri Feb  6 19:15:53 PST 2026 ===
+$ python3 -c "
+import json
+with open('backend/data/raw/games.json') as f:
+    data = json.load(f)
+    # Get first game's keys
+    first_app = list(data.keys())[0]
+    print('Available keys:')
+    for key in sorted(data[first_app].keys()):
+        print(f'  {key}')
+"
+
