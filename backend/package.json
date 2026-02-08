@@ -1,12 +1,11 @@
 {
-  "name": "steam-recommender-backend",
+  "name": "pse-backend",
   "version": "1.0.0",
   "description": "Steam Game Recommendation API",
-  "main": "dist/index.js",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
     "build": "tsc",
-    "start": "node dist/index.js",
+    "start": "node ./src/index.ts",
     "lint": "eslint src/**/*.ts",
     "data:download": "ts-node src/scripts/download-dataset.ts",
     "data:process": "ts-node src/scripts/process-dataset.ts",
