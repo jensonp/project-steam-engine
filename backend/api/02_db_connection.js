@@ -33,8 +33,6 @@ async function testConnection() {
         client.release();
     } catch (err) {
         console.error('❌ Connection failed:', err.message);
-    } finally {
-        await pool.end();
     }
 }
 

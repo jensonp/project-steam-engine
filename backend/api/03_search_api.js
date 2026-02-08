@@ -2,6 +2,23 @@
  * Lesson 3: Search API Endpoint
  * Run: node 03_search_api.js
  * Test: http://localhost:3000/api/search?q=survival
+ * 
+ * === HANDS-ON TESTS (Run in a new terminal) ===
+ * 
+ * 1. Basic Search (ILIKE):
+ *    $ curl "http://localhost:3000/api/search/basic?q=dragon"
+ * 
+ * 2. Full-Text Search (ts_rank):
+ *    $ curl "http://localhost:3000/api/search?q=survival%20horror"
+ *    $ curl "http://localhost:3000/api/search?q=co-op"
+ * 
+ * 3. Filtered Search:
+ *    $ curl "http://localhost:3000/api/search/filtered?q=&maxPrice=0&genre=RPG"
+ * 
+ * === MINI CHALLENGES ===
+ * 1. Modify the /api/search route to return ONLY games with positive_votes > 1000.
+ * 2. Add a new filter for 'minPrice' to the filtered search route.
+ * 3. Try searching for strict phrases like "'Dark Souls'" (what happens?).
  */
 
 const express = require('express');
