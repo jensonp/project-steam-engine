@@ -45,3 +45,5 @@ data/processed/*.csv
 data/processed/*.json
 backend/data/raw/
 backend/data/processed/
+*.pdf
+.envrc
