@@ -1,21 +1,18 @@
 import express from 'express';
-import cors from 'cors';
 import { config, validateConfig } from './config';
-import userRoutes from './routes/user.routes';
-import gameRoutes from './routes/game.routes';
-import recommendRoutes from './routes/recommend.routes';
+
 
 // Validate configuration on startup
 validateConfig();
 
-const app = express();
+var app = require('./app');
+var debug = require('debug')('webserver:server');
+var http = require('http');
 
-// Middleware
-app.use(cors());
-app.use(express.json());
+app.set('port', config.port);
 
 // Health check endpoint
-app.get('/api/health', (req, res) => {
+app.get('/api/health', (req: express.Request, res: express.Response) => {
   res.json({
     status: 'healthy',
     apiKeyConfigured: !!config.steamApiKey,
@@ -23,28 +20,55 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// API Routes
-app.use('/api/user', userRoutes);
-app.use('/api/game', gameRoutes);
-app.use('/api/recommend', recommendRoutes);
-
-// 404 handler
-app.use((req, res) => {
-  res.status(404).json({ error: 'Endpoint not found' });
-});
-
-// Error handler
-app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  console.error('Unhandled error:', err);
-  res.status(500).json({ error: 'Internal server error' });
-});
+// Create HTTP server
+var server = http.createServer(app);
+server.on('error', onError);
+server.on('listening', onListening);
 
 // Start server
-app.listen(config.port, () => {
+server.listen(config.port, () => {
   console.log(`
     Server running at: http://localhost:${config.port}
     API Key configured: ${config.steamApiKey ? 'Yes' : 'No'}
   `);
 });
 
-export default app;
+/*
+ * Event listener for HTTP server "error" event.
+ */
+
+function onError(error: any) {
+  if (error.syscall !== 'listen') {
+    throw error;
+  }
+
+  var bind = typeof config.port === 'string'
+    ? 'Pipe ' + config.port
+    : 'Port ' + config.port;
+
+  // handle specific listen errors with friendly messages
+  switch (error.code) {
+    case 'EACCES':
+      console.error(bind + ' requires elevated privileges');
+      process.exit(1);
+      break;
+    case 'EADDRINUSE':
+      console.error(bind + ' is already in use');
+      process.exit(1);
+      break;
+    default:
+      throw error;
+  }
+}
+
+/*
+ * Event listener for HTTP server "listening" event.
+ */
+
+function onListening() {
+  var addr = server.address();
+  var bind = typeof addr === 'string'
+    ? 'pipe ' + addr
+    : 'port ' + addr.port;
+  debug('Listening on ' + bind);
+}
