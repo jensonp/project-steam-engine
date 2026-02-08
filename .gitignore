@@ -1,5 +1,6 @@
 # Environment variables
 .env
+.envrc
 
 # Node.js
 node_modules/
@@ -46,4 +47,3 @@ data/processed/*.json
 backend/data/raw/
 backend/data/processed/
 *.pdf
-.envrc

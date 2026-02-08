@@ -8,12 +8,12 @@ import psycopg2
 from pathlib import Path
 
 # === CONFIGURATION ===
-JSON_PATH = Path.home() / "cs125/backend/data/raw/games.json"
+JSON_PATH = Path.home() / "Repositories/project-steam-engine/backend/data/raw/games.json"
 DB_CONFIG = {
-    "host": "localhost",
-    "port": 8080,
+    # "host": "localhost",  # Commented out to use Unix socket (peer auth)
+    # "port": 5432,         # Not needed for Unix socket
     "database": "steam_collab",  # Use existing database
-    "user": "postgres"
+    "user": "cherryquartzio"
 }
 
 def create_table(conn):
