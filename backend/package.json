@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
     "build": "tsc",
-    "start": "node ./src/app.ts",
+    "start": "node ./src/app.js",
     "lint": "eslint src/**/*.ts",
     "data:download": "ts-node src/scripts/download-dataset.ts",
     "data:process": "ts-node src/scripts/process-dataset.ts",
