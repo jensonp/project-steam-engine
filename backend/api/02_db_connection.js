@@ -11,10 +11,10 @@ const { Pool } = require('pg');
 // STEP 1: Configure Connection
 // ============================================
 const pool = new Pool({
-    host: 'localhost',
-    port: 8080,           // Your PostgreSQL port
+    host: '/var/run/postgresql',
+    // port: 8080,           // Your PostgreSQL port
     database: 'steam_collab',
-    user: 'postgres',
+    user: 'cherryquartzio'
     // password: 'your_password'  // Uncomment if needed
 });
 

@@ -3,6 +3,9 @@ import gameRoutes from './routes/game.routes';
 import recommendRoutes from './routes/recommend.routes';
 import express from 'express';
 
+const PORT = 3000;
+const API_KEY = process.env.STEAM_API_KEY;
+
 var createError = require('http-errors');
 var path = require('path');
 var cookieParser = require('cookie-parser');
@@ -12,9 +15,10 @@ var cors = require('cors');
 var indexRouter = require('./routes/index');
 
 var app = express();
+app.set('port', PORT);
 
 // middleware
-app.use(cors(['http://localhost:4200', 'http://localhost:5432'])); // allowed port for communication
+app.use(cors(['http://localhost:4200', 'http://localhost:5432'])); // allowed port for communication [angular, psql]
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -37,20 +41,19 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
   res.status(500).json({ error: 'Internal server error' });
 });
 
-// // catch 404 and forward to error handler
-// app.use(function(req, res, next) {
-//   next(createError(404));
-// });
+// Health check endpoint
+app.get('/api/health', (req: express.Request, res: express.Response) => {
+  res.json({
+    status: 'healthy',
+    apiKeyConfigured: Boolean(API_KEY),
+    timestamp: new Date().toISOString(),
+  });
+});
 
-// // error handler
-// app.use(function(err, req, res, next) {
-//   // set locals, only providing error in development
-//   res.locals.message = err.message;
-//   res.locals.error = req.app.get('env') === 'development' ? err : {};
-
-//   // render the error page
-//   res.status(err.status || 500);
-//   res.render('error');
-// });
-
-module.exports = app;
+// Start server
+app.listen(PORT, () => {
+  console.log(`
+    Backend server is running at: http://localhost:${PORT}
+    API Key configured: ${Boolean(API_KEY) ? 'Yes' : 'No'}
+  `);
+});

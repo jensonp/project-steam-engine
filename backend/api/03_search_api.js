@@ -31,10 +31,10 @@ const PORT = 3000;
 // Database Connection
 // ============================================
 const pool = new Pool({
-    host: 'localhost',
-    port: 8080,
+    host: '/var/run/postgresql',
+    // port: 8080,           // Your PostgreSQL port
     database: 'steam_collab',
-    user: 'postgres',
+    user: 'cherryquartzio'
 });
 
 // ============================================
