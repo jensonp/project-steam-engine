@@ -1,0 +1,50 @@
+<div class="search-container">
+    <h1>About your current thinking</h1>
+
+    <p class="subtitle">Give us some details on what kind of games you feel like playing at this moment</p>
+
+    <div class="dropdowns">
+
+        <mat-form-field appearance="outline">
+            <mat-label>Genre</mat-label>
+            <mat-select multiple [(ngModel)]="selected_genre">
+                @for (genre of genres; track genre) {
+                    <mat-option [value]="genre">{{ genre }}</mat-option>
+                }
+            </mat-select>
+
+            <mat-label>Player count</mat-label>
+            <mat-select [(ngModel)]="selected_player_count">
+                @for (player_count of player_counts; track player_count) {
+                    <mat-option [value]="player_count">{{ player_count }}</mat-option>
+                }
+            </mat-select>
+
+            <mat-label>Keywords</mat-label>
+            <input matInput [(ngModel)]="keyword_input" placeholder="" [disabled]="isLoading">
+            
+        </mat-form-field>
+    </div>
+    
+    <div class="search-form">
+        <mat-form-field appearance="outline" class="search-field">
+            
+        </mat-form-field>
+    </div>
+
+    <button mat-button (click)="onSearch()" [disabled]="isLoading" class="search-button">
+        @if (isLoading) {
+            <mat-spinner diameter="20"></mat-spinner>
+        }
+        @else {
+            <ng-container>Give me suggestions!</ng-container>
+        }
+    </button>
+
+    @if (error) {
+    <div class="error-message">
+        <mat-icon>error</mat-icon>
+        {{ error }}
+    </div>
+    }
+</div>

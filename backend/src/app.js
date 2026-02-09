@@ -1,5 +1,6 @@
 const os = require('os'); // OS specifications
 const { Pool } = require('pg'); // PSQL communication
+const { spawn } = require('child_process');
 const { loadEnvFile } = require('node:process');
 loadEnvFile('../../.envrc');
 
@@ -88,7 +89,7 @@ app.post("/query", (req, res) => {
 
   try {
     db_result = pool.query(`
-        SELECT game_name, positive_votes, short_description, long_description, price, positive_votes, negative_votes, genres
+        SELECT game_name, price, positive_votes, negative_votes, short_description, long_description, genres, tags, categories
         FROM games G
         WHERE G.genres IN ${genres.join(',')} AND G.long_description LIKE ${keywords}
         ${platform === 'win32' ? 'AND G.windows_support = true' : ''}
@@ -107,10 +108,34 @@ app.post("/query", (req, res) => {
       console.log(`  ${i+1}. ${row.game_name} (${row.positive_votes.toLocaleString()} votes)`);
   });
 
-  // STEP 4: ...
+  // ...
 })
 
 // Logging in with user's Steam API Key
 app.post("/login/:key", (req, res) => {
   api_key = req.params.key;
+
+  // Perform user's context indexing
+  
+})
+
+// Build the index
+app.post("/index", (req, res) => {
+  // Spawn the python process with the script path and arguments
+  const pythonProcess = spawn('python', ['../games_to_db.py']); // trigger python script to import
+
+  // Collect data from the script's standard output
+  pythonProcess.stdout.on('data', (data) => {
+      dataToSend += data.toString();
+  });
+
+  // Handle the child process closing
+  pythonProcess.on('close', (code) => {
+      console.log(`Child process exited with code ${code}`);
+  });
+
+  // Handle potential errors
+  pythonProcess.stderr.on('data', (data) => {
+      console.error(`stderr: ${data}`);
+  });
 })
