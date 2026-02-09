@@ -16,5 +16,13 @@ export const routes: Routes = [
             return import('./pages/result-screen/result-screen').then(m => m.ResultScreen);
         },
         title: 'Results'
+    },
+    {
+        path: 'config',
+        pathMatch: 'full',
+        loadComponent: () => {
+            return import('./pages/config-screen/config-screen').then(m => m.ConfigScreen);
+        },
+        title: 'Configuration'
     }
 ];
