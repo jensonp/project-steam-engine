@@ -77,7 +77,7 @@ app.post("/query", (req, res) => {
   });
 
   // STEP 2: Query the database synchronously with the user's query
-  const db_result = null;
+  const db_result = null; // list of row objects
   if (os_compat) {
     const platform = os.platform();
     console.log(`Filtering compatibility for the following platform: ${platform}`);
@@ -87,41 +87,17 @@ app.post("/query", (req, res) => {
   }
 
   try {
-    if (platform === 'win32') {
-      db_result = pool.query(`
-        SELECT game_name, positive_votes 
-        FROM steam_collab G
-        WHERE G.
-        ORDER BY positive_votes DESC 
-        LIMIT 5
+    db_result = pool.query(`
+        SELECT game_name, positive_votes, short_description, long_description, price, positive_votes, negative_votes, genres
+        FROM games G
+        WHERE G.genres IN ${genres.join(',')} AND G.long_description LIKE ${keywords}
+        ${platform === 'win32' ? 'AND G.windows_support = true' : ''}
+        ${platform === 'darwin' ? 'AND G.mac_support = true' : ''}
+        ${platform === 'linux' ? 'AND G.linux_support = true' : ''}
+        ORDER BY positive_votes DESC
     `);
-    }
-    else if (platform === 'darwin') {
-      db_result = pool.query(`
-        SELECT game_name, positive_votes 
-        FROM games 
-        ORDER BY positive_votes DESC 
-        LIMIT 5
-    `);
-    }
-    else if (platform === 'linux') {
-      db_result = pool.query(`
-        SELECT game_name, positive_votes 
-        FROM games 
-        ORDER BY positive_votes DESC 
-        LIMIT 5
-    `);
-    }
-    else { // Do not query for game OS compatibility
-      db_result = pool.query(`
-        SELECT game_name, positive_votes 
-        FROM games 
-        ORDER BY positive_votes DESC 
-        LIMIT 5
-    `);
-    }
-
-  } catch (err) {
+  } 
+  catch (err) {
     console.error('Error: Query failed:', err.message);
   }
 
@@ -135,6 +111,6 @@ app.post("/query", (req, res) => {
 })
 
 // Logging in with user's Steam API Key
-app.post("/login", (req, res) => {
-  let 
+app.post("/login/:key", (req, res) => {
+  api_key = req.params.key;
 })

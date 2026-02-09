@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
-"""
-Phase 4: Load Steam Games from JSON into PostgreSQL (OPTIMIZED)
-Memory-efficient version with batch inserts and streaming
-"""
+
 import json
 import psycopg2
 import psycopg2.extras
@@ -34,19 +31,16 @@ def create_table(conn):
             CREATE TABLE games (
                 app_id              INTEGER PRIMARY KEY,
                 game_name           VARCHAR(500) NOT NULL,
-                release_date        VARCHAR(50) NOT NULL,
                 estimated_owners    VARCHAR(50),
                 peak_ccu            INTEGER DEFAULT 0,
                 required_age        INTEGER DEFAULT 0,
                 price               DECIMAL(10,2) DEFAULT 0.00,
-                dlc_count           INTEGER DEFAULT 0,
                 long_description    TEXT, 
                 short_description   TEXT,
                 support_languages   TEXT,
                 full_audio_languages TEXT,
                 reviews             TEXT,
                 header_image        VARCHAR(500),
-                website             VARCHAR(500),
                 metacritic_score    INTEGER DEFAULT 0,
                 metacritic_url      VARCHAR(500),
                 user_score          INTEGER DEFAULT 0,
@@ -61,11 +55,14 @@ def create_table(conn):
                 publishers          VARCHAR(500),
                 categories          TEXT,
                 genres              TEXT,
-                tags                TEXT
+                tags                TEXT,
+                windows_support     BOOLEAN DEFAULT FALSE,
+                mac_support         BOOLEAN DEFAULT FALSE,
+                linux_support       BOOLEAN DEFAULT FALSE
             );
         """)
         conn.commit()
-        print("✅ Created games table")
+        print("[Success] Created games table")
 
 def parse_game(app_id, game):
     """Parse a single game entry into a tuple for batch insert."""
@@ -73,19 +70,16 @@ def parse_game(app_id, game):
         return (
             int(app_id),
             game.get('name', 'Unknown')[:500],
-            game.get('release_date', 'Unknown')[:50],
             game.get('estimated_owners', '')[:50],
             int(game.get('peak_ccu', 0) or 0),
             int(game.get('required_age', 0) or 0),
             float(game.get('price', 0) or 0),
-            int(game.get('dlc_count', 0) or 0),
             game.get('detailed_description', ''),
             game.get('short_description', ''),
             game.get('supported_languages', ''),
             game.get('full_audio_languages', ''),
             game.get('reviews', ''),
             game.get('header_image', '')[:500],
-            game.get('website', '')[:500] if game.get('website') else '',
             int(game.get('metacritic_score', 0) or 0),
             game.get('metacritic_url', '')[:500] if game.get('metacritic_url') else '',
             int(game.get('user_score', 0) or 0),
@@ -103,7 +97,7 @@ def parse_game(app_id, game):
             ','.join(game.get('tags', {}).keys()) if isinstance(game.get('tags'), dict) else ''
         )
     except Exception as e:
-        print(f"⚠️  Error parsing app {app_id}: {e}", file=sys.stderr)
+        print(f"[Error] Error parsing app {app_id}: {e}", file=sys.stderr)
         return None
 
 def load_games_batch(conn, limit=None):
@@ -127,15 +121,16 @@ def load_games_batch(conn, limit=None):
     
     insert_sql = """
         INSERT INTO games (
-            app_id, game_name, release_date, estimated_owners,
-            peak_ccu, required_age, price, dlc_count,
+            app_id, game_name, estimated_owners,
+            peak_ccu, required_age, price,
             long_description, short_description, support_languages,
-            full_audio_languages, reviews, header_image, website,
+            full_audio_languages, reviews, header_image,
             metacritic_score, metacritic_url, user_score,
             positive_votes, negative_votes, score_rank,
             achievements, recommendations, average_playtime,
             median_playtime, developers, publishers,
-            categories, genres, tags
+            categories, genres, tags, windows_support,
+            mac_support, linux_support
         ) VALUES %s
         ON CONFLICT (app_id) DO NOTHING
     """
@@ -174,7 +169,7 @@ def load_games_batch(conn, limit=None):
         
         conn.commit()
     
-    print(f"✅ Loaded {loaded:,} games ({skipped:,} skipped)")
+    print(f"Loaded {loaded:,} games ({skipped:,} skipped)")
     return loaded
 
 def load_games_streaming(conn, limit=None):
@@ -187,7 +182,7 @@ def load_games_streaming(conn, limit=None):
     try:
         import ijson
     except ImportError:
-        print("❌ ijson not installed. Run: pip install ijson")
+        print("[Error] ijson not installed. Run: pip install ijson")
         print("   Falling back to batch method...")
         return load_games_batch(conn, limit)
     
@@ -200,15 +195,16 @@ def load_games_streaming(conn, limit=None):
     
     insert_sql = """
         INSERT INTO games (
-            app_id, game_name, release_date, estimated_owners,
-            peak_ccu, required_age, price, dlc_count,
+            app_id, game_name, estimated_owners,
+            peak_ccu, required_age, price,
             long_description, short_description, support_languages,
-            full_audio_languages, reviews, header_image, website,
+            full_audio_languages, reviews, header_image,
             metacritic_score, metacritic_url, user_score,
             positive_votes, negative_votes, score_rank,
             achievements, recommendations, average_playtime,
             median_playtime, developers, publishers,
-            categories, genres, tags
+            categories, genres, tags, windows_support,
+            mac_support, linux_support
         ) VALUES %s
         ON CONFLICT (app_id) DO NOTHING
     """
@@ -247,7 +243,7 @@ def load_games_streaming(conn, limit=None):
             
             conn.commit()
     
-    print(f"✅ Loaded {loaded:,} games ({skipped:,} skipped)")
+    print(f"Loaded {loaded:,} games ({skipped:,} skipped)")
     return loaded
 
 def create_indexes(conn):
@@ -260,7 +256,7 @@ def create_indexes(conn):
             CREATE INDEX IF NOT EXISTS idx_games_metacritic ON games (metacritic_score);
         """)
         conn.commit()
-        print("✅ Created indexes")
+        print("Success: Created indexes")
 
 def show_stats(conn):
     """Show summary statistics."""
@@ -286,14 +282,14 @@ def show_stats(conn):
         print(f"   Total games: {total:,}")
         print(f"   Free games: {free:,} ({free*100//total if total > 0 else 0}%)")
         print(f"   Avg paid price: ${avg_price:.2f}" if avg_price else "   Avg paid price: N/A")
-        print(f"\n🎮 Top games by positive reviews:")
+        print(f"\nTop games by positive reviews:")
         for name, pos in top_games:
             print(f"   {name[:40]:40} {pos:,}")
 
 def main():
-    print("🚀 Phase 4: Loading Steam Games (OPTIMIZED)")
-    print(f"   JSON: {JSON_PATH}")
-    print(f"   Database: {DB_CONFIG['database']}")
+    print("Loading Steam Games... (OPTIMIZED)")
+    print(f"  JSON: {JSON_PATH}")
+    print(f"  Database: {DB_CONFIG['database']}")
     print()
     
     # Check file size
@@ -302,10 +298,10 @@ def main():
     
     # Choose method based on file size
     if file_size_mb > 500:
-        print("   ⚠️  Large file detected, using streaming method")
+        print("Attention: Large file detected, using streaming method")
         load_method = load_games_streaming
     else:
-        print("   Using batch insert method")
+        print("Using batch insert method")
         load_method = load_games_batch
     
     print()
@@ -330,7 +326,7 @@ def main():
     finally:
         conn.close()
     
-    print("\n✅ Phase 4 Complete!")
+    print("\nGames loaded successfully!")
 
 if __name__ == "__main__":
     main()
