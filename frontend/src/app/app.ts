@@ -3,10 +3,11 @@ import { CommonModule } from '@angular/common';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatIconModule } from '@angular/material/icon';
 import { UserSearchComponent } from './components/user-search/user-search.component';
-import { GameLibraryComponent } from './components/game-library/game-library.component';
+// import { GameLibraryComponent } from './components/game-library/game-library.component';
 import { SteamApiService } from './services/steam-api.service';
 import { UserLibrary, PlayerSummary } from './types/steam.types';
 import { forkJoin } from 'rxjs';
+import { RouterOutlet } from '@angular/router';
 
 @Component({
   selector: 'app-root',
@@ -15,9 +16,8 @@ import { forkJoin } from 'rxjs';
     CommonModule,
     MatToolbarModule,
     MatIconModule,
-    UserSearchComponent,
-    GameLibraryComponent,
-  ],
+    RouterOutlet
+],
   templateUrl: "./app.html",
   styleUrl:"./app.css"
 })

@@ -1,39 +1,25 @@
-<div class="search-container">
-    <h1>Steam ID</h1>
-    <p class="subtitle">Enter the Steam ID of your account. Find your Steam ID at <a href="https://steamid.io" class="url">steamid.io</a></p>
-    
-    <div class="search-form">
-        <mat-form-field appearance="outline" class="search-field">
-            <mat-label>Steam ID</mat-label>
-            <input 
-                matInput 
-                [(ngModel)]="steamID" 
-                placeholder=""
-                (keyup.enter)="onSearch()"
-                [disabled]="isLoading"
-            >
-        </mat-form-field>
-        
-        <button 
-            (click)="onSearch()"
-            [disabled]="!steamID || isLoading"
-            class="search-button"
-        >
-            @if (isLoading) {
-                <mat-spinner diameter="20"></mat-spinner>
-            }
-            @else {
-                <ng-container>
-                    Continue
-                </ng-container>
-            }
-        </button>
-    </div>
 
-    @if (error) {
-    <div class="error-message">
-        <mat-icon>error</mat-icon>
-        {{ error }}
-    </div>
-    }
+<div class="search-form">
+    <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Steam ID</mat-label>
+    <input 
+        matInput [(ngModel)]="steamID" placeholder="" (keyup.enter)="onSteamIdEnter()" [disabled]="isLoading"
+    >
+    </mat-form-field>
 </div>
+
+<button mat-button (click)="onSteamIdEnter()" [disabled]="isLoading" class="search-button">
+    @if (isLoading) {
+        <mat-spinner diameter="20"></mat-spinner>
+    }
+    @else {
+        <ng-container>Continue</ng-container>
+    }
+</button>
+
+@if (error) {
+<div class="error-message">
+    <mat-icon>error</mat-icon>
+    {{ error }}
+</div>
+}

@@ -1,15 +1,15 @@
 <mat-toolbar color="primary" class="app-toolbar">
     <img id="header-icon" src="gaben.jpg">
-    <!-- <mat-icon>sports_esports</mat-icon> -->
     <span id="header-title">Steam Game Recommender</span>
 </mat-toolbar>
 
 <main class="main-content">
-    <app-user-search #searchComponent (search)="onSearch($event)"></app-user-search>
+    <!-- <app-user-search #searchComponent (search)="onSearch($event)"></app-user-search> -->
+    <!-- <app-game-library [library]="library" [profile]="profile" [isLoading]="isLoading"></app-game-library> -->
 
-    <app-game-library [library]="library" [profile]="profile" [isLoading]="isLoading"></app-game-library>
+    <router-outlet/>
 </main>
 
 <footer class="app-footer">
-    <p>Team Steam Engine • Built with Angular + Node.js + PostgreSQL</p>
+    <p>Project Steam Engine • Built with Angular, Express.js and PostgreSQL</p>
 </footer>

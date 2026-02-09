@@ -29,7 +29,7 @@ export class UserSearchComponent {
   isLoading = false;
   error = '';
 
-  onSearch(): void {
+  onSteamIdEnter(): void {
     if (this.steamID.trim()) {
       this.error = '';
       this.search.emit(this.steamID.trim());
