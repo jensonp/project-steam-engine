@@ -112,8 +112,8 @@ app.post("/query", (req, res) => {
 })
 
 // Logging in with user's Steam API Key
-app.post("/login/:key", (req, res) => {
-  api_key = req.params.key;
+app.post("/login/:id", (req, res) => {
+  steamID = req.params.id;
 
   // Perform user's context indexing
   
