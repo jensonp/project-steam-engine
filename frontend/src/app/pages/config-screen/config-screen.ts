@@ -19,7 +19,7 @@ export class ConfigScreen {
   isIndexing: boolean = false;
 
   constructor(private backendService: BackendService) {
-    this.steamID = this.backendService.getSteamId() || 'none'; // Initialize local steamID from backend service
+    this.steamID = this.backendService.getSteamId() || 'None'; // Initialize local steamID from backend service
     this.apiKey_set = Boolean(this.backendService.getApiKey());
   }
 
