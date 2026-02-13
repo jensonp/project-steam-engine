@@ -7,13 +7,19 @@ import { Observable, throwError } from 'rxjs';
 })
 export class BackendService {
   backendUrl = 'http://localhost:3000';
+  private steamId: string = '';
+  private apiKey: string = '';
   
   constructor(private http: HttpClient) {}
 
   // Request backend to index user data based on the provided Steam ID
-  indexUser(steamId: string): void {
-    const url = `${this.backendUrl}/login/${encodeURIComponent(steamId)}`;
-    this.http.post(url, {}).subscribe({ // request backend to index the user given the steamId
+  // This should not be called without a valid Steam ID and API key set in the service, otherwise the backend will reject the request and log an error
+  indexUser(): void {
+    const url = `${this.backendUrl}/login/${encodeURIComponent(this.steamId)}`;
+    let params = new HttpParams();
+    params = params.set('apiKey', this.apiKey);
+
+    this.http.post(url, { params }).subscribe({ // request backend to index the user given the steamId
       next: (response) => {
         console.log('Indexing user data successful:', response);
       },
@@ -24,7 +30,7 @@ export class BackendService {
   }
 
   // Return list of recommended games for the user based on the query and their user data
-  getRecommendations(steamId: string, genres: string, keywords: string, os_compat: boolean): Observable<string[]> {
+  getRecommendations(genres: string, keywords: string, os_compat: boolean): Observable<string[]> {
     const url = `${this.backendUrl}/query`;
     let params = new HttpParams();
 
@@ -36,15 +42,24 @@ export class BackendService {
   }
 
   // Trigger the backend to index the Steam storefront dataset into PSQL
-  indexStorefront(): void {
+  indexStorefront(): Observable<unknown> {
     const url = `${this.backendUrl}/index`;
-    this.http.post(url, {}).subscribe({
-      next: (response) => {
-        console.log('Indexing storefront successful:', response);
-      },
-      error: (error) => {
-        console.error('Error indexing storefront:', error);
-      }
-    });
+    return this.http.post(url, {});
+  }
+
+  getSteamId(): string {
+    return this.steamId;
+  }
+
+  setSteamId(id: string): void {
+    this.steamId = id;
+  }
+
+  getApiKey(): string {
+    return this.apiKey;
+  }
+
+  setApiKey(key: string): void {
+    this.apiKey = key;
   }
 }

@@ -7,7 +7,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { UserSearchComponent } from '../../components/user-search/user-search.component';
 import { BackendService } from '../../services/backend-service';
 import { Router } from '@angular/router';
 
@@ -21,16 +20,12 @@ import { Router } from '@angular/router';
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    MatSelectModule,
-    UserSearchComponent
-],
+    MatSelectModule
+  ],
   templateUrl: './query-screen.html',
   styleUrl: './query-screen.css',
 })
 export class QueryScreen {
-
-  constructor(private backendService: BackendService, private router: Router) {}
-
   genres: string[] = [
     'Action',
     'Adventure',
@@ -55,14 +50,34 @@ export class QueryScreen {
   selected_genre: string = '';
   selected_player_count: string = '';
   keyword_input: string = '';
-  steamID = '';  
+  steamID_configured: boolean = false;
+  apiKey_configured: boolean = false;
   isLoading = false;
   error = '';
 
+  constructor(private backendService: BackendService, private router: Router) {
+    this.steamID_configured = Boolean(this.backendService.getSteamId());
+    this.apiKey_configured = Boolean(this.backendService.getApiKey());
+  }
+
   onQuery(): void {
+    this.isLoading = true;
     if (this.keyword_input.trim()) {
       this.error = '';
     }
+
+    this.backendService.getRecommendations(this.selected_genre, this.keyword_input, this.selected_player_count === 'Online').subscribe({
+      next: (response) => {
+        console.log('Received recommendations:', response);
+        this.isLoading = false;
+        this.router.navigate(['/results'], { state: { results: response } }); // Pass results to results page via router state
+      },
+      error: (error) => {
+        console.error('Error fetching recommendations:', error);
+        this.error = 'An error occurred while fetching recommendations. Please try again.';
+        this.isLoading = false;
+      }
+    });
 
     this.router.navigate(['/results']); // Go to results page immediately, results will load when backend responds
   }
@@ -73,10 +88,5 @@ export class QueryScreen {
 
   setError(error: string): void {
     this.error = error;
-  }
-
-  // This will be called by UserSearchComponent when a valid Steam ID is entered
-  onSteamIDReceived($event: string): void {
-    this.steamID = $event;
   }
 }

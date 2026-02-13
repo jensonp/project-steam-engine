@@ -115,6 +115,8 @@ app.get("/query", (req, res) => {
 app.post("/login/:id", (req, res) => {
   steamID = req.params.id;
 
+  let apiKey = req.query['apiKey'];
+
   // Perform user's context indexing
   
 })

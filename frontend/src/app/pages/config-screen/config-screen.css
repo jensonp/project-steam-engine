@@ -9,5 +9,38 @@ button {
     color: white;
     cursor: pointer;
     height: 48px;
-    min-width: 120px;
+    /* min-width: 120px; */
+}
+
+h1 {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    color: #171d25;
+}
+
+input {
+    padding: 0 6px;
+}
+
+.subtitle {
+    color: #666;
+    margin-bottom: 2rem;
+}
+
+.search-form {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    justify-content: center;
+}
+
+.search-field {
+    flex: 1;
+    max-width: 600px;
+}
+
+#back-button {
+    display: flex;
+    align-items: center;
+    margin-top: 100px;
 }

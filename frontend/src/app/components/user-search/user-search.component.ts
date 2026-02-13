@@ -18,28 +18,53 @@ import { BackendService } from '../../services/backend-service';
     MatInputModule,
     MatButtonModule,
     MatIconModule,
-    MatProgressSpinnerModule,
+    MatProgressSpinnerModule
   ],
   templateUrl: "./user-search.component.html",
   styleUrl: "./user-search.component.css"
 })
 export class UserSearchComponent {
   @Output() hasSteamID = new EventEmitter<string>();
+  @Output() hasAPIKey = new EventEmitter<string>();
   
-  @Input() steamID: string = '';
+  @Input() entered_text: string = '';
+  @Input() credential_type: 'Steam ID' | 'API Key' = 'Steam ID';
   isLoading = false;
   error = '';
 
   constructor(private backendService: BackendService) {}
 
   onSteamIdEnter(): void {
-    if (this.steamID.trim()) {
+    this.isLoading = true;
+    if (this.entered_text.trim()) { // Only set Steam ID if it's not empty, otherwise the backend will reject requests and log an error
       this.error = '';
-      this.hasSteamID.emit(this.steamID.trim());
+      this.backendService.setSteamId(this.entered_text.trim());
     }
 
     // send steamID to backend to fetch library and generate recommendations
-    this.backendService.indexUser(this.steamID.trim());
+    this.backendService.indexUser();
+    this.hasSteamID.emit(this.entered_text.trim());
+    this.isLoading = false;
+  }
+
+  onEnter(): void {
+    if (this.credential_type === 'Steam ID') {
+      this.onSteamIdEnter();
+    } 
+    else if (this.credential_type === 'API Key') {
+      this.onAPIKeyEnter();
+    }
+  }
+
+  onAPIKeyEnter(): void {
+    this.isLoading = true;
+    if (this.entered_text.trim()) { // Only set API key if it's not empty, otherwise the backend will reject requests and log an error
+      this.error = '';
+      this.backendService.setApiKey(this.entered_text.trim());
+    }
+
+    this.hasAPIKey.emit(this.entered_text.trim());
+    this.isLoading = false;
   }
 
   setLoading(loading: boolean): void {

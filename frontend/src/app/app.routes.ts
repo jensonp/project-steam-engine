@@ -7,7 +7,7 @@ export const routes: Routes = [
         loadComponent: () => {
             return import('./pages/query-screen/query-screen').then(m => m.QueryScreen);
         },
-        title: 'Questions'
+        title: 'Steam Games Recommender'
     },
     {
         path: 'results',
@@ -23,6 +23,6 @@ export const routes: Routes = [
         loadComponent: () => {
             return import('./pages/config-screen/config-screen').then(m => m.ConfigScreen);
         },
-        title: 'Configuration'
+        title: 'Configurations'
     }
 ];

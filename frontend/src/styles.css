@@ -33,13 +33,14 @@ body {
     Angular Material's system-level CSS variables. Learn more about these
     variables at https://material.angular.dev/guide/system-variables
   */
-  background-color: var(--mat-sys-surface);
+  background-color: white;
   color: var(--mat-sys-on-surface);
   font: var(--mat-sys-body-medium);
 
   /* Reset the user agent margin. */
   margin: 0;
   height: 100%;
+  --mat-select-panel-background-color: #ffffff;
 }
 /* Global styles */
 
@@ -63,4 +64,12 @@ a:hover {
 
 .mat-mdc-chip {
   font-size: 0.75rem !important;
+}
+
+body {
+  font-family: system-ui, Geneva, sans-serif;
+}
+
+.custom-color-spinner circle {
+  stroke: white !important; /* Use your desired hex code */
 }

@@ -1,3 +1,10 @@
+:root {
+    --mat-select-panel-background-color: #ffffff;
+    --mat-select-panel-border-color: #cccccc;
+    --mat-select-panel-border-width: 1px;
+    --mat-select-panel-border-radius: 4px;
+}
+
 .search-container {
     text-align: center;
     padding: 2rem;
@@ -43,7 +50,10 @@ button {
     color: white;
     cursor: pointer;
     height: 48px;
-    min-width: 120px;
+}
+
+mat-form-field {
+    padding: 0 8px;
 }
 
 .error-message {
@@ -71,4 +81,10 @@ button {
     .search-button {
     width: 100%;
     }
+}
+
+#gaben {
+    height: auto;
+    margin: 2rem;
+    border-radius: 0%;
 }
