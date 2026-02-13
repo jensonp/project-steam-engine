@@ -1,52 +1,41 @@
-<mat-card class="game-card" [class.has-details]="details">
-    <div class="game-image">
-    @if (details?.headerImage) {
-        <img [src]="details!.headerImage" [alt]="game.name || 'Game'" />
-    } @else {
-        <div class="placeholder-image">
-        <mat-icon>sports_esports</mat-icon>
-        </div>
-    }
+@if (game) {
+    <mat-card class="game-card" [class.has-details]="game">
+    <div class="game-image">     <!-- Cover image  -->
+        @if (game.headerImage) {
+            <img [src]="game!.headerImage" [alt]="game.name || 'Unknown Game'" />
+        } @else {
+            <div class="placeholder-image">
+            <img src="steam.png" alt="Placeholder Image" />
+            </div>
+        }
     </div>
     
     <mat-card-content>
-    <h3 class="game-title" [matTooltip]="game.name || ''">
-        {{ game.name || 'Unknown Game' }}
-    </h3>
-    
-    <div class="playtime">
-        <mat-icon>schedule</mat-icon>
-        <span>{{ formatPlaytime(game.playtimeMinutes) }}</span>
-    </div>
+        <h3 class="game-title" [matTooltip]="game.name || ''">
+            {{ game.name || 'Unknown Game' }}
+        </h3>
 
-    @if (game.playtime2Weeks) {
-        <div class="recent-playtime">
-        <small>{{ formatPlaytime(game.playtime2Weeks) }} last 2 weeks</small>
-        </div>
-    }
-
-    @if (details) {
         <div class="game-details">
-        @if (details.genres.length > 0) {
-            <div class="genres">
-            @for (genre of details.genres.slice(0, 3); track genre) {
-                <mat-chip>{{ genre }}</mat-chip>
+            @if (game.genres.length > 0) {
+                <div class="genres">
+                @for (genre of game.genres.slice(0, 3); track genre) {
+                    <mat-chip>{{ genre }}</mat-chip>
+                }
+                </div>
             }
-            </div>
-        }
-        
-        @if (details.description) {
-            <p class="description">{{ truncateDescription(details.description) }}</p>
-        }
+            
+            @if (game.description) {
+                <p class="description">{{ truncateDescription(game.description) }}</p>
+            }
 
-        <div class="price-info">
-            @if (details.isFree) {
-            <span class="free-badge">Free to Play</span>
-            } @else if (details.price) {
-            <span class="price">\${{ details.price.toFixed(2) }}</span>
-            }
+            <div class="price-info">
+                @if (game.isFree) {
+                <span class="free-badge">Free to Play</span>
+                } @else if (game.price) {
+                <span class="price">\${{ game.price.toFixed(2) }}</span>
+                }
+            </div>
         </div>
-        </div>
-    }
     </mat-card-content>
 </mat-card>
+}

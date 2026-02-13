@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -8,6 +8,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { UserSearchComponent } from '../../components/user-search/user-search.component';
+import { BackendService } from '../../services/backend-service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-query-screen',
@@ -26,6 +28,9 @@ import { UserSearchComponent } from '../../components/user-search/user-search.co
   styleUrl: './query-screen.css',
 })
 export class QueryScreen {
+
+  constructor(private backendService: BackendService, private router: Router) {}
+
   genres: string[] = [
     'Action',
     'Adventure',
@@ -50,25 +55,16 @@ export class QueryScreen {
   selected_genre: string = '';
   selected_player_count: string = '';
   keyword_input: string = '';
-  steamID = '';
-
-  @Output() search = new EventEmitter<string>();
-  
+  steamID = '';  
   isLoading = false;
   error = '';
 
-  onSearch(): void {
+  onQuery(): void {
     if (this.keyword_input.trim()) {
       this.error = '';
-      this.search.emit(this.keyword_input.trim());
     }
-  }
 
-  onSteamIdEnter(): void {
-    if (this.steamID.trim()) {
-      this.error = '';
-      this.search.emit(this.steamID.trim());
-    }
+    this.router.navigate(['/results']); // Go to results page immediately, results will load when backend responds
   }
 
   setLoading(loading: boolean): void {
@@ -77,5 +73,10 @@ export class QueryScreen {
 
   setError(error: string): void {
     this.error = error;
+  }
+
+  // This will be called by UserSearchComponent when a valid Steam ID is entered
+  onSteamIDReceived($event: string): void {
+    this.steamID = $event;
   }
 }

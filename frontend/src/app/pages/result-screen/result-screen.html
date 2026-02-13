@@ -1,1 +1,30 @@
-<p>result-screen works!</p>
+<div class="result-screen">
+    <h2>Recommendations</h2>
+
+    @if (results && results.length > 0) {
+        <div class="results-container">
+            @for (game of results; track game) {
+                <app-game-card [game]="game"></app-game-card>
+            }
+        </div>
+    } @else {
+        <p>No results found. Try adjusting your preferences and searching again!</p>
+    }
+
+    <button mat-button="filled" routerLink="/">Back to Search</button>
+</div>
+
+<!-- 
+  export interface Game {
+  appId: number;
+  name: string;
+  genres: string[];
+  tags: string[];
+  description: string | null;
+  headerImage: string | null;
+  releaseDate: string | null;
+  developers: string[];
+  publishers: string[];
+  price: number | null;
+  isFree: boolean;
+} -->

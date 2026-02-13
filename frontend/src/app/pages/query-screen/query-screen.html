@@ -1,11 +1,13 @@
 <div class="search-container">
     @if (!steamID) {
-        <app-user-search/>
+        <h1>Enter your Steam ID</h1>
+        <p class="subtitle">If you're not sure, go to <a href="https://steamid.io/">steamid.io</a></p>
+        <app-user-search (hasSteamID)="onSteamIDReceived($event)"></app-user-search>
     }
     @else {
         <h1>About your current thinking</h1>
 
-        <p class="subtitle">Give us some details on what kind of games you feel like playing at this moment</p>
+        <p class="subtitle">Briefly describe what games you're looking for</p>
 
         <div class="search-form">
 
@@ -30,7 +32,7 @@
             </mat-form-field>
         </div>
 
-        <button mat-button (click)="onSearch()" [disabled]="isLoading" class="search-button">
+        <button mat-button="filled" (click)="onQuery()" [disabled]="isLoading" class="search-button">
             @if (isLoading) {
                 <mat-spinner diameter="20"></mat-spinner>
             }

@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/icon?family=Material+Icons");
+
 :host {
     display: flex;
     flex-direction: column;
@@ -7,10 +9,14 @@
 .app-toolbar {
     gap: 0.5rem;
     background-color: #f5f5f5;
+    display: flex;
 }
 
 .app-toolbar mat-icon {
-    font-size: 32px;
+    width: 26px;
+    height: 26px;
+    font-size: 26px;
+    justify-content: flex-end;
 }
 
 .main-content {
@@ -25,17 +31,24 @@
 .app-footer {
     text-align: center;
     padding: 1rem;
-    background-color: #f5f5f5;
+    background-color: #ffffff;
     color: #666;
     font-size: 0.875rem;
 }
 
 #header-icon {
     height: 28px;
+    cursor: pointer;
 }
 
 #header-title {
     font-weight: bold;
+    cursor: pointer;
+}
+
+#config-icon {
+    margin-left: auto;
+    cursor: pointer;
 }
 
 @media (max-width: 600px) {

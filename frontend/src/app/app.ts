@@ -7,7 +7,7 @@ import { UserSearchComponent } from './components/user-search/user-search.compon
 import { SteamApiService } from './services/steam-api.service';
 import { UserLibrary, PlayerSummary } from './types/steam.types';
 import { forkJoin } from 'rxjs';
-import { RouterOutlet } from '@angular/router';
+import { RouterOutlet, RouterLinkWithHref } from '@angular/router';
 
 @Component({
   selector: 'app-root',
@@ -16,7 +16,8 @@ import { RouterOutlet } from '@angular/router';
     CommonModule,
     MatToolbarModule,
     MatIconModule,
-    RouterOutlet
+    RouterOutlet,
+    RouterLinkWithHref
 ],
   templateUrl: "./app.html",
   styleUrl:"./app.css"

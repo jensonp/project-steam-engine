@@ -5,12 +5,6 @@
     margin: 0 auto;
 }
 
-h1 {
-    font-size: 2.5rem;
-    margin-bottom: 0.5rem;
-    color: #1976d2;
-}
-
 input {
     padding: 0 6px;
 }
@@ -29,11 +23,21 @@ input {
 
 .search-field {
     flex: 1;
-    max-width: 400px;
+    min-width: 200px;
+    padding: 18px;
 }
 
-.search-button {
-    height: 56px;
+button {
+    border-radius: 100px;
+    padding: 10px 18px;
+    margin: 20px 0;
+    font-size: 16px;
+    font-weight: 600;
+    border: none;
+    background-color: #171d25;
+    color: white;
+    cursor: pointer;
+    height: 48px;
     min-width: 120px;
 }
 

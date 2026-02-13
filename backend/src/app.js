@@ -64,7 +64,7 @@ app.listen(PORT, () => {
 let api_key = '';
 
 // Handling user query's for games recommendation
-app.post("/query", (req, res) => {
+app.get("/query", (req, res) => {
   // Extract query from URL
   let genres = req.query['genres']; // list of specified genres
   let keywords = req.query['keywords']; // string of user's keyword query that needs to be parse

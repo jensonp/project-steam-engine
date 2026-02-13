@@ -8,7 +8,7 @@
     </mat-form-field>
 </div>
 
-<button mat-button (click)="onSteamIdEnter()" [disabled]="isLoading" class="search-button">
+<button (click)="onSteamIdEnter()" [disabled]="isLoading" class="search-button">
     @if (isLoading) {
         <mat-spinner diameter="20"></mat-spinner>
     }

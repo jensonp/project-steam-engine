@@ -1,7 +1,12 @@
 <mat-toolbar color="primary" class="app-toolbar">
-    <img id="header-icon" src="gaben.jpg">
-    <span id="header-title">Steam Game Recommender</span>
+    <img routerLink="/" id="header-icon" src="gaben.jpg">
+    <span routerLink="/" id="header-title">Steam Game Recommender</span>
+    <!-- <ul>
+      <li routerLink="/todos">Todos</li>
+    </ul> -->
+    <mat-icon id="config-icon" routerLink="/config">settings</mat-icon>
 </mat-toolbar>
+
 
 <main class="main-content">
     <!-- <app-user-search #searchComponent (search)="onSearch($event)"></app-user-search> -->
@@ -11,5 +16,5 @@
 </main>
 
 <footer class="app-footer">
-    <p>Project Steam Engine • Built with Angular, Express.js and PostgreSQL</p>
+    <p>Tech Chads • Project Steam Engine</p>
 </footer>
