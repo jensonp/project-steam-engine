@@ -2,7 +2,7 @@ const os = require('os'); // OS specifications
 const { Pool } = require('pg'); // PSQL communication
 const { spawn } = require('child_process');
 const { loadEnvFile } = require('node:process');
-loadEnvFile('../../.envrc');
+loadEnvFile(); // Load the env file
 
 const PORT = 3000;
 
