@@ -108,6 +108,18 @@ app.get("/query", (req, res) => {
       console.log(`  ${i+1}. ${row.game_name} (${row.positive_votes.toLocaleString()} votes)`);
   });
 
+  //Working on the result of the search
+  
+  //potential code to output the top 5 search, keeping it commented but feel free to test it
+  
+  /*
+  const topResult = result.rows.slice(0,5);
+
+  res.json({
+    games: topResult  
+  });
+  */
+
   // ...
 })
 
