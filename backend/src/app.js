@@ -129,6 +129,10 @@ app.post("/login/:id", (req, res) => {
 
   let apiKey = req.query['apiKey'];
 
+  // save the steamID and API key to a json file for later use in indexing and recommendation
+  // this is a temporary solution, ideally we would want to save this in a database and associate it with the user's account for better security and scalability
+  
+
   // Perform user's context indexing
   
 })
