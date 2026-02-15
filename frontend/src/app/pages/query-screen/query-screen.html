@@ -6,7 +6,7 @@
     <p class="subtitle">I grant you game recommendations. Tell me a bit about what kinds of games you would prefer, and I'll show you the way</p>
 
     <div>
-        <mat-form-field appearance="fill" class="search-field">
+        <mat-form-field appearance="outline" class="search-field">
             <mat-label>Genre</mat-label>
             <mat-select multiple [(ngModel)]="selected_genre" panelClass="topunit">
                 @for (genre of genres; track genre) {
@@ -14,7 +14,7 @@
                 }
             </mat-select>
         </mat-form-field>
-        <mat-form-field appearance="fill" class="search-field">
+        <mat-form-field appearance="outline" class="search-field">
             <mat-label>Player count</mat-label>
             <mat-select [(ngModel)]="selected_player_count" panelClass="topunit">
                 @for (player_count of player_counts; track player_count) {
