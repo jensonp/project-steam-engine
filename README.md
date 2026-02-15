@@ -1,82 +1,51 @@
-# Steam Game Recommendation System
+# Project Steam Engine
 
-A full-stack application for Steam game recommendations using Node.js/Express backend and Angular frontend.
+A web-based [Steam](https://store.steampowered.com/) games recommendation software that takes into account of the user's own game library.
 
-## Tech Stack
+<img width="500" alt="image" src="https://github.com/user-attachments/assets/afe6df2b-56db-4704-839b-29d98b588f38" />
 
-- **Backend**: Node.js + Express + TypeScript
-- **Frontend**: Angular 17 + Angular Material + TypeScript
-- **API**: Steam Web API
 
-## Project Structure
+## Technologies
 
-```
-├── backend/          # Node.js Express API
-│   ├── src/
-│   │   ├── routes/   # API endpoints
-│   │   ├── services/ # Steam API client
-│   │   └── types/    # TypeScript interfaces
-│   └── package.json
-│
-├── frontend/         # Angular app
-│   ├── src/app/
-│   │   ├── components/
-│   │   └── services/
-│   └── package.json
-│
-└── .env              # Environment variables
-```
+This project is using modern day web technologies seen in bigger development. The developers of this project has no prior knowledge to these frameworks and software prior to the start of development, so everything are done on a best effort basis from everyone involved :heart:
 
-## Setup
+For the front-end user interface, we used [Angular 21](https://angular.dev/). It was developed using TypeScript, HTML, and CSS.
 
-### 1. Configure Environment
+The back-end are ran on [Node.js](https://nodejs.org/en) and [Express.js](https://en.wikipedia.org/wiki/Express.js). All codes are written in JavaScript. For data storage, we used PostgreSQL
 
-```bash
-cp .env.example .env
-# Edit .env and add your Steam API key
-```
+Retrieval of user's data are done with the [Steam Web API](https://steamcommunity.com/dev/).
 
-Get your API key at: https://steamcommunity.com/dev/apikey
+## Running the software
 
-### 2. Backend Setup
+### Prerequisite
+
+In order to run our web application, you need to have the following software installed on your system. All are cross-platform
+- npm
+- Angular CLI
+- Node.js
+- PostgreSQL Server
+- Python
+
+### Running the front-end
+
+Beforehand, run `npm install` on the front-end directory to install all dependencies automatically. To then start the front-end interface, run the following command within the front-end root directory:
 
 ```bash
-cd backend
-npm install
-npm run dev
+ng serve –open
 ```
 
-Backend runs at http://localhost:3000
+This will automatically open up a browser tab showing the UI. It will be running on port 4200 on your localhost. You can also interact with the UI without the back-end, but the recommendation system won’t work.
 
-### 3. Frontend Setup
+### Running the back-end & database
+
+Similar to the front-end, run `npm install` on the back-end directory for the dependencies. To run the core back-end code, run the following command within the back-end root directory:
 
 ```bash
-cd frontend
-npm install
-ng serve
+npm start
 ```
 
-Frontend runs at http://localhost:4200
+You must also configure the database name, user, and host of PostgreSQL in the backend/src/.env file.
 
-## API Endpoints
+### Using the software
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/user/:steamId/library` | GET | Fetch user's owned games |
-| `/api/user/:steamId/profile` | GET | Get user profile |
-| `/api/game/:appId` | GET | Get game details |
-| `/api/health` | GET | API health check |
-
-## Development
-
-Run both servers simultaneously:
-
-```bash
-# Terminal 1 - Backend
-cd backend && npm run dev
-
-# Terminal 2 - Frontend  
-cd frontend && ng serve
-```
-
-The Angular dev server proxies API requests to the backend automatically.
+In the configuration page, provide your account Steam ID as well as the [API Key](https://steamcommunity.com/dev/). Then, click on the button to build the storefront index (or you may also run the games_to_db.py in the backend folder manually as well). All of these needs to be done before querying the recommendation
