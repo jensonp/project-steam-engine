@@ -70,6 +70,19 @@ app.get("/query", (req, res) => {
   let keywords = req.query['keywords']; // string of user's keyword query that needs to be parse
   let os_compat = Boolean(req.query['os_compat']); // only include games compatible with user's system
 
+  //doing error checking for invalid inputs
+  if(!genres || !Array.isArray(genres)){
+    return res.status(400).json({error : "Genres must be an array"});
+  }
+
+  if(!keywords || typeof keywords != "string"){
+    return res.status(400).json({error : "Keywords must be a string"});
+  }
+
+  if(keywords.length > 200){
+    return res.status(400).json({error : "Keywords too long"});
+  }
+
   // STEP 1: Setup PSQL connection via the UNIX socket
   const pool = new Pool({
     host: provess.env.PGHOST,
