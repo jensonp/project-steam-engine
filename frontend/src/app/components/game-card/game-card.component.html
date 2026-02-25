@@ -32,7 +32,7 @@
                 @if (game.isFree) {
                 <span class="free-badge">Free to Play</span>
                 } @else if (game.price) {
-                <span class="price">\${{ game.price.toFixed(2) }}</span>
+                <span class="price">${{ game.price.toFixed(2) }}</span>
                 }
             </div>
         </div>

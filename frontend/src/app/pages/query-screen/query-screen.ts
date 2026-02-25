@@ -47,7 +47,7 @@ export class QueryScreen {
     'Online'
   ]
 
-  selected_genre: string = '';
+  selected_genre: string[] = [];
   selected_player_count: string = '';
   keyword_input: string = '';
   steamID_configured: boolean = false;
@@ -66,7 +66,8 @@ export class QueryScreen {
       this.error = '';
     }
 
-    this.backendService.getRecommendations(this.selected_genre, this.keyword_input, this.selected_player_count === 'Online').subscribe({
+    const genresParam = this.selected_genre.join(',')
+    this.backendService.getRecommendations(genresParam, this.keyword_input, this.selected_player_count === 'Online').subscribe({
       next: (response) => {
         console.log('Received recommendations:', response);
         this.isLoading = false;
@@ -79,7 +80,6 @@ export class QueryScreen {
       }
     });
 
-    this.router.navigate(['/results']); // Go to results page immediately, results will load when backend responds
   }
 
   setLoading(loading: boolean): void {

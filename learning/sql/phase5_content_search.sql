@@ -134,3 +134,4 @@ LIMIT 10;
 
 \echo '=== Phase 5 Part 2 Complete! ==='
 \echo 'You now have both collaborative filtering AND content-based search!'
+

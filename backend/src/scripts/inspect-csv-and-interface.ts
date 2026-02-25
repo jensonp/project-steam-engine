@@ -16,7 +16,7 @@ let csvColumns: string[] = [];
 if (fs.existsSync(csvPath)) {
   const content = fs.readFileSync(csvPath, 'utf-8');
   const records = parse(content, { columns: true, to: 1 });
-  csvColumns = records.length ? Object.keys(records[0]) : [];
+  csvColumns = records.length ? Object.keys(records[0] as Record<string, unknown>) : [];
   console.log(`Columns in CSV (${path.basename(csvPath)}):`);
   csvColumns.forEach((c, i) => console.log(`  ${i + 1}. ${c}`));
   console.log('');

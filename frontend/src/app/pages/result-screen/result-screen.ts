@@ -1,8 +1,7 @@
-import { Component, Input } from '@angular/core';
+import { Component } from '@angular/core';
 import { GameCardComponent } from '../../components/game-card/game-card.component';
-import { BackendService } from '../../services/backend-service';
 import { Game } from '../../types/steam.types';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-result-screen',
@@ -11,12 +10,15 @@ import { RouterLink } from '@angular/router';
   imports: [GameCardComponent, RouterLink]
 })
 export class ResultScreen {
-  @Input() results?: Game[] = [];
-
-  constructor(private backendService: BackendService) {}
-
+  results: Game[] = [];
+  constructor(private router: Router) {
+    const state = this.router.getCurrentNavigation()?.extras.state as { results: Game[] };
+    if (state?.results) {
+      this.results = state.results;
+    }
+  }
   onBack() {
-    
+    this.router.navigate(['/']);
   }
   
 }

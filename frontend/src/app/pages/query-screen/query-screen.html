@@ -29,7 +29,7 @@
         </mat-form-field>
     </div>
 
-    @if (!steamID_configured || !apiKey_configured) {
+    <!-- @if (!steamID_configured || !apiKey_configured) {
         <div class="config-warning">
             <mat-icon>warning</mat-icon>
             <p>To query, please configure your Steam ID and API Key in the configuration page.</p>
@@ -44,7 +44,17 @@
                 <ng-container>Suggest</ng-container>
             }
         </button>
-    }
+    } -->
+
+    
+    <button (click)="onQuery()" [disabled]="isLoading" class="search-button">
+        @if (isLoading) {
+        <mat-spinner class="custom-color-spinner" diameter="20"></mat-spinner>
+        }
+        @else {
+        <ng-container>Suggest</ng-container>
+        }
+    </button>
 
     @if (error) {
         <div class="error-message">
