@@ -38,7 +38,7 @@ describe('SearchService', () => {
     const [sqlText, params] = (query as jest.Mock).mock.calls[0];
     
     // Verify SQL structure
-    expect(sqlText).toContain('WHERE genres ILIKE $1 OR genres ILIKE $2');
+    expect(sqlText).toContain('WHERE (genres ILIKE $1 OR tags ILIKE $1) AND (genres ILIKE $2 OR tags ILIKE $2)');
     
     // Verify parameterized inputs are safely wrapped in wildcards
     expect(params).toEqual(['%RPG%', '%Action%']);

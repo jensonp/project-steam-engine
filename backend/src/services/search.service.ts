@@ -26,12 +26,12 @@ export class SearchService {
     }
 
     const params = genres.map(g => `%${g}%`);
-    const conditions = genres.map((_, i) => `genres ILIKE $${i + 1}`);
+    const conditions = genres.map((_, i) => `(genres ILIKE $${i + 1} OR tags ILIKE $${i + 1})`);
 
     const sqlQuery = `
       SELECT app_id, game_name, genres, price, header_image
       FROM games
-      WHERE ${conditions.join(' OR ')}
+      WHERE ${conditions.join(' AND ')}
       ORDER BY positive_votes DESC
       LIMIT 10
     `;
