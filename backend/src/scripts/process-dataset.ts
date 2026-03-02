@@ -193,17 +193,26 @@ function saveProcessedData(games: ProcessedGame[], stats: DatasetStats): void {
   fs.writeFileSync(gamesPath, JSON.stringify(games, null, 2));
   console.log(`✓ Saved ${games.length} games to: ${gamesPath}`);
   
-  // Save lightweight version (for quick loading)
+  // Save lightweight version (used by the recommendation engine)
   const lightGames = games.map(g => ({
     appId: g.appId,
     name: g.name,
     allTags: g.allTags,
+    genres: g.genres,
+    tags: g.tags, // Steamspy and categories are combined in allTags, but 'tags' has categories separately
+    categories: g.tags, // Processed categories
+    developers: g.developers,
+    publishers: g.publishers,
+    price: g.price,
+    positiveRatings: g.positiveRatings,
+    negativeRatings: g.negativeRatings,
     ratingRatio: g.ratingRatio,
+    averagePlaytime: g.averagePlaytime,
     ownersMin: g.ownersMin,
   }));
   const lightPath = path.join(PROCESSED_DIR, 'games-light.json');
   fs.writeFileSync(lightPath, JSON.stringify(lightGames, null, 2));
-  console.log(`✓ Saved lightweight data to: ${lightPath}`);
+  console.log(`✓ Saved expanded recommendation features to: ${lightPath}`);
   
   // Save statistics
   const statsPath = path.join(PROCESSED_DIR, 'stats.json');

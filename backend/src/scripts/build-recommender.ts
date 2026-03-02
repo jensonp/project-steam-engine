@@ -18,19 +18,17 @@ interface LightGame {
   appId: number;
   name: string;
   allTags: string[];
+  genres: string[];
+  tags: string[];
+  categories: string[];
+  developers: string[];
+  publishers: string[];
+  price: number;
+  positiveRatings: number;
+  negativeRatings: number;
   ratingRatio: number;
+  averagePlaytime: number;
   ownersMin: number;
-}
-
-interface TfIdfVector {
-  [term: string]: number;
-}
-
-interface GameVector {
-  appId: number;
-  name: string;
-  vector: TfIdfVector;
-  magnitude: number;
 }
 
 interface SimilarGame {
@@ -39,116 +37,86 @@ interface SimilarGame {
   similarity: number;
 }
 
-/**
- * Calculate term frequency for a document (game's tags)
- */
-function calculateTF(tags: string[]): Map<string, number> {
-  const tf = new Map<string, number>();
-  const total = tags.length;
-  
-  for (const tag of tags) {
-    tf.set(tag, (tf.get(tag) || 0) + 1);
-  }
-  
-  // Normalize by total terms
-  for (const [term, count] of tf) {
-    tf.set(term, count / total);
-  }
-  
-  return tf;
+// Global normalization maxes
+interface GlobalMaxes {
+  price: number;
+  popularity: number;
+  playtime: number;
 }
 
-/**
- * Calculate inverse document frequency for all terms
- */
-function calculateIDF(games: LightGame[]): Map<string, number> {
-  const docCount = new Map<string, number>();
-  const totalDocs = games.length;
-  
-  // Count documents containing each term
-  for (const game of games) {
-    const uniqueTags = new Set(game.allTags);
-    for (const tag of uniqueTags) {
-      docCount.set(tag, (docCount.get(tag) || 0) + 1);
-    }
+const SCORE_WEIGHTS = {
+  genres:       0.25,
+  tags:         0.25,
+  categories:   0.10,
+  price:        0.10,
+  review_ratio: 0.10,
+  popularity:   0.05,
+  developer:    0.04,
+  playtime:     0.03,
+};
+
+function computeGlobalMaxes(games: LightGame[]): GlobalMaxes {
+  let maxPrice = 60;
+  let maxPop = 1;
+  let maxPt = 1;
+
+  for (const g of games) {
+    const pop = (g.positiveRatings || 0) + (g.negativeRatings || 0) + (g.ownersMin || 0);
+    if ((g.price || 0) > maxPrice) maxPrice = g.price;
+    if (pop > maxPop) maxPop = pop;
+    if ((g.averagePlaytime || 0) > maxPt) maxPt = g.averagePlaytime;
   }
-  
-  // Calculate IDF: log(N / df)
-  const idf = new Map<string, number>();
-  for (const [term, df] of docCount) {
-    idf.set(term, Math.log(totalDocs / df));
-  }
-  
-  return idf;
+  return { price: maxPrice, popularity: maxPop, playtime: maxPt };
 }
 
-/**
- * Calculate TF-IDF vector for a game
- */
-function calculateTfIdf(tags: string[], idf: Map<string, number>): TfIdfVector {
-  const tf = calculateTF(tags);
-  const tfidf: TfIdfVector = {};
+function jaccardSimilarity(arrA: string[], arrB: string[]): number {
+  if ((!arrA || arrA.length === 0) && (!arrB || arrB.length === 0)) return 0.0;
+  const setA = new Set(arrA.map(a => a.toLowerCase()));
+  const setB = new Set(arrB.map(b => b.toLowerCase()));
   
-  for (const [term, tfValue] of tf) {
-    const idfValue = idf.get(term) || 0;
-    tfidf[term] = tfValue * idfValue;
-  }
+  const intersection = new Set([...setA].filter(x => setB.has(x)));
+  const union = new Set([...setA, ...setB]);
   
-  return tfidf;
+  return intersection.size / union.size;
 }
 
-/**
- * Calculate vector magnitude (for cosine similarity)
- */
-function calculateMagnitude(vector: TfIdfVector): number {
-  let sum = 0;
-  for (const value of Object.values(vector)) {
-    sum += value * value;
-  }
-  return Math.sqrt(sum);
+function hasStudioOverlap(gameA: LightGame, gameB: LightGame): number {
+  const studiosA = new Set([...(gameA.developers || []), ...(gameA.publishers || [])]);
+  const studiosB = new Set([...(gameB.developers || []), ...(gameB.publishers || [])]);
+  const overlap = [...studiosA].some(x => studiosB.has(x));
+  return overlap ? 1.0 : 0.0;
 }
 
-/**
- * Calculate cosine similarity between two vectors
- */
-function cosineSimilarity(v1: TfIdfVector, m1: number, v2: TfIdfVector, m2: number): number {
-  if (m1 === 0 || m2 === 0) return 0;
-  
-  let dotProduct = 0;
-  
-  // Only iterate over terms that exist in v1
-  for (const term in v1) {
-    if (term in v2) {
-      dotProduct += v1[term] * v2[term];
-    }
-  }
-  
-  return dotProduct / (m1 * m2);
-}
+function calculateScore(target: LightGame, candidate: LightGame, allMax: GlobalMaxes): number {
+  let finalScore = 0;
 
-/**
- * Build game vectors using TF-IDF
- */
-function buildGameVectors(games: LightGame[], idf: Map<string, number>): GameVector[] {
-  console.log('Building TF-IDF vectors...');
-  
-  const vectors: GameVector[] = [];
-  
-  for (const game of games) {
-    if (game.allTags.length === 0) continue;
-    
-    const vector = calculateTfIdf(game.allTags, idf);
-    const magnitude = calculateMagnitude(vector);
-    
-    vectors.push({
-      appId: game.appId,
-      name: game.name,
-      vector,
-      magnitude,
-    });
-  }
-  
-  return vectors;
+  // 1. Jaccard Indexing
+  finalScore += SCORE_WEIGHTS.genres * jaccardSimilarity(target.genres || [], candidate.genres || []);
+  finalScore += SCORE_WEIGHTS.tags * jaccardSimilarity(target.tags || [], candidate.tags || []);
+  finalScore += SCORE_WEIGHTS.categories * jaccardSimilarity(target.categories || [], candidate.categories || []);
+
+  // 2. Studio Overlap
+  finalScore += SCORE_WEIGHTS.developer * hasStudioOverlap(target, candidate);
+
+  // 3. Price Proximity
+  const candPrice = candidate.price || 0;
+  const prefPrice = target.price || 0;
+  const priceScore = 1.0 - Math.min(Math.abs(candPrice - prefPrice) / allMax.price, 1.0);
+  finalScore += SCORE_WEIGHTS.price * priceScore;
+
+  // 4. Review Ratio
+  finalScore += SCORE_WEIGHTS.review_ratio * (candidate.ratingRatio || 0);
+
+  // 5. Popularity
+  const popRaw = (candidate.positiveRatings || 0) + (candidate.negativeRatings || 0) + (candidate.ownersMin || 0);
+  const popScore = Math.log1p(popRaw) / Math.log1p(allMax.popularity);
+  finalScore += SCORE_WEIGHTS.popularity * (allMax.popularity > 0 ? popScore : 0);
+
+  // 6. Playtime
+  const ptScore = Math.log1p(candidate.averagePlaytime || 0) / Math.log1p(allMax.playtime);
+  finalScore += SCORE_WEIGHTS.playtime * (allMax.playtime > 0 ? ptScore : 0);
+
+  return finalScore;
 }
 
 /**
@@ -156,21 +124,20 @@ function buildGameVectors(games: LightGame[], idf: Map<string, number>): GameVec
  */
 function findSimilarGames(
   targetId: number,
-  vectors: GameVector[],
+  games: LightGame[],
+  allMax: GlobalMaxes,
   topK: number = 20
 ): SimilarGame[] {
-  const target = vectors.find(v => v.appId === targetId);
+  const target = games.find(g => g.appId === targetId);
   if (!target) return [];
   
   const similarities: SimilarGame[] = [];
   
-  for (const other of vectors) {
+  for (const other of games) {
     if (other.appId === targetId) continue;
     
-    const similarity = cosineSimilarity(
-      target.vector, target.magnitude,
-      other.vector, other.magnitude
-    );
+    // Use the 9-factor Python logic!
+    const similarity = calculateScore(target, other, allMax);
     
     if (similarity > 0.1) { // Only include if somewhat similar
       similarities.push({
@@ -191,26 +158,27 @@ function findSimilarGames(
  * Build and save the similarity index
  */
 function buildSimilarityIndex(
-  vectors: GameVector[],
+  games: LightGame[],
   topK: number = 20
 ): Map<number, SimilarGame[]> {
-  console.log(`Building similarity index for ${vectors.length} games...`);
+  console.log(`Building similarity index for ${games.length} games...`);
   console.log('This may take a few minutes...\n');
   
   const index = new Map<number, SimilarGame[]>();
   const startTime = Date.now();
+  const allMax = computeGlobalMaxes(games);
   
-  for (let i = 0; i < vectors.length; i++) {
-    const game = vectors[i];
-    const similar = findSimilarGames(game.appId, vectors, topK);
+  for (let i = 0; i < games.length; i++) {
+    const game = games[i];
+    const similar = findSimilarGames(game.appId, games, allMax, topK);
     index.set(game.appId, similar);
     
     // Progress update every 1000 games
     if ((i + 1) % 1000 === 0) {
       const elapsed = (Date.now() - startTime) / 1000;
       const rate = (i + 1) / elapsed;
-      const remaining = (vectors.length - i - 1) / rate;
-      console.log(`  Processed ${i + 1}/${vectors.length} (${remaining.toFixed(0)}s remaining)`);
+      const remaining = (games.length - i - 1) / rate;
+      console.log(`  Processed ${i + 1}/${games.length} (${remaining.toFixed(0)}s remaining)`);
     }
   }
   
@@ -221,49 +189,26 @@ function buildSimilarityIndex(
  * Save the recommender data
  */
 function saveRecommenderData(
-  vectors: GameVector[],
-  index: Map<number, SimilarGame[]>,
-  idf: Map<string, number>
+  index: Map<number, SimilarGame[]>
 ): void {
   fs.mkdirSync(OUTPUT_DIR, { recursive: true });
-  
-  // Save IDF values (needed for new game lookups)
-  const idfPath = path.join(OUTPUT_DIR, 'idf.json');
-  fs.writeFileSync(idfPath, JSON.stringify(Object.fromEntries(idf), null, 2));
-  console.log(`✓ Saved IDF values to: ${idfPath}`);
   
   // Save similarity index
   const indexPath = path.join(OUTPUT_DIR, 'similarity-index.json');
   const indexObj = Object.fromEntries(index);
   fs.writeFileSync(indexPath, JSON.stringify(indexObj, null, 2));
-  console.log(`✓ Saved similarity index to: ${indexPath}`);
-  
-  // Save compact vectors (for runtime recommendations)
-  const compactVectors = vectors.map(v => ({
-    appId: v.appId,
-    name: v.name,
-    magnitude: v.magnitude,
-    // Only keep top terms to reduce file size
-    topTerms: Object.entries(v.vector)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 20)
-      .map(([term, weight]) => ({ term, weight })),
-  }));
-  
-  const vectorsPath = path.join(OUTPUT_DIR, 'vectors.json');
-  fs.writeFileSync(vectorsPath, JSON.stringify(compactVectors, null, 2));
-  console.log(`✓ Saved vectors to: ${vectorsPath}`);
+  console.log(`✓ Saved multi-factor similarity index to: ${indexPath}`);
 }
 
 /**
  * Demo: Show recommendations for popular games
  */
 function demoRecommendations(
-  vectors: GameVector[],
+  games: LightGame[],
   index: Map<number, SimilarGame[]>
 ): void {
   // Popular game IDs
-  const demoGames = [
+  const demoIds = [
     { id: 730, name: 'Counter-Strike 2' },
     { id: 570, name: 'Dota 2' },
     { id: 440, name: 'Team Fortress 2' },
@@ -274,11 +219,11 @@ function demoRecommendations(
   console.log('║              SAMPLE RECOMMENDATIONS                            ║');
   console.log('╚════════════════════════════════════════════════════════════════╝\n');
   
-  for (const demo of demoGames) {
+  for (const demo of demoIds) {
     const similar = index.get(demo.id);
     if (!similar || similar.length === 0) {
       // Try to find the game by partial name match
-      const found = vectors.find(v => v.name.toLowerCase().includes(demo.name.toLowerCase()));
+      const found = games.find(g => g.name.toLowerCase().includes(demo.name.toLowerCase()));
       if (found) {
         const foundSimilar = index.get(found.appId);
         if (foundSimilar) {
@@ -319,28 +264,20 @@ async function main(): Promise<void> {
   const games: LightGame[] = JSON.parse(fs.readFileSync(GAMES_FILE, 'utf-8'));
   console.log(`Loaded ${games.length} games\n`);
   
-  // Filter games with tags
-  const gamesWithTags = games.filter(g => g.allTags.length > 0);
-  console.log(`Games with tags: ${gamesWithTags.length}\n`);
+  // Filter games down to valid ones
+  const validGames = games.filter(g => g.allTags && g.allTags.length > 0);
+  console.log(`Games with metadata: ${validGames.length}\n`);
   
-  // Calculate IDF
-  console.log('Calculating IDF values...');
-  const idf = calculateIDF(gamesWithTags);
-  console.log(`Vocabulary size: ${idf.size} terms\n`);
-  
-  // Build TF-IDF vectors
-  const vectors = buildGameVectors(gamesWithTags, idf);
-  console.log(`Built vectors for ${vectors.length} games\n`);
-  
-  // Build similarity index
-  const index = buildSimilarityIndex(vectors, 20);
+  // Build similarity index using Jaccard and multi-factor
+  console.log('Building Jaccard/Proximity Matrix...');
+  const index = buildSimilarityIndex(validGames, 20);
   
   // Save data
   console.log('\nSaving recommender data...');
-  saveRecommenderData(vectors, index, idf);
+  saveRecommenderData(index);
   
   // Show demo recommendations
-  demoRecommendations(vectors, index);
+  demoRecommendations(validGames, index);
   
   console.log('\n✓ Recommendation engine built successfully!');
   console.log('\nThe recommendation data is ready to be used by the API.');
