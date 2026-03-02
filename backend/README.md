@@ -61,3 +61,7 @@ npm run test
 # Runs an end-to-end API smoke test (Requires server to be running)
 npm run test:api
 ```
+
+### Note on Database Ports
+
+Jenson's local PostgreSQL instance runs on port `8080`. If your local PostgreSQL uses the standard port `5432` or `5433`, ensure you update `PGPORT=5432` inside your `src/.env` file. The backend and the testing scripts will automatically parse this value.
