@@ -47,3 +47,4 @@ data/processed/*.json
 backend/data/raw/
 backend/data/processed/
 *.pdf
+backend/api

@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
+import { Game } from '../types/steam.types';
 
 @Injectable({
   providedIn: 'root',
@@ -30,15 +31,15 @@ export class BackendService {
   }
 
   // Return list of recommended games for the user based on the query and their user data
-  getRecommendations(genres: string, keywords: string, os_compat: boolean): Observable<string[]> {
-    const url = `${this.backendUrl}/query`;
+  getRecommendations(genres: string, keywords: string, os_compat: boolean): Observable<Game[]> {
+    const url = `${this.backendUrl}/api/search`;
     let params = new HttpParams();
 
-    params = params.set('genres', genres);
-    params = params.set('keywords', keywords);
-    params = params.set('os_compat', String(os_compat));
+    if (genres && genres.length > 0) {
+      params = params.set('genres', genres);
+    }
 
-    return this.http.get<string[]>(url, { params });
+    return this.http.get<Game[]>(url, { params });
   }
 
   // Trigger the backend to index the Steam storefront dataset into PSQL
