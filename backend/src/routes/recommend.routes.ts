@@ -1,153 +1,170 @@
 import { Router, Request, Response } from 'express';
 import { getRecommenderService } from '../services/recommender.service';
-import { getSteamService } from '../services/steam.service';
-import { SteamApiError } from '../types/steam.types';
+import { z } from 'zod';
+import { validate } from '../middleware/validate.middleware';
 
 const router = Router();
 
-/**
- * GET /api/recommend/similar/:appId
- * Get games similar to a specific game
- */
-router.get('/similar/:appId', async (req: Request, res: Response) => {
-  const appId = parseInt(req.params.appId, 10);
-  const limit = Math.min(parseInt(req.query.limit as string) || 10, 50);
+// --- Zod Validation Schemas ---
 
-  if (isNaN(appId)) {
-    res.status(400).json({ error: 'Invalid app ID' });
-    return;
-  }
-
-  const recommender = getRecommenderService();
-
-  if (!recommender.isReady()) {
-    res.status(503).json({ 
-      error: 'Recommendation engine not ready. Please run the data pipeline first.',
-      instructions: [
-        '1. Download steam.csv from Kaggle',
-        '2. Run: npx ts-node src/scripts/process-dataset.ts',
-        '3. Run: npx ts-node src/scripts/build-recommender.ts',
-      ]
-    });
-    return;
-  }
-
-  const similar = recommender.getSimilarGames(appId, limit);
-  const gameInfo = recommender.getGameInfo(appId);
-
-  res.json({
-    appId,
-    name: gameInfo?.name || 'Unknown',
-    recommendations: similar,
-  });
+const similarGamesSchema = z.object({
+  params: z.object({
+    appId: z.string().regex(/^\d+$/, 'appId must be a positive integer'),
+  }),
+  query: z.object({
+    limit: z.string().regex(/^\d+$/, 'limit must be a positive integer').optional(),
+  }),
 });
 
-/**
- * GET /api/recommend/user/:steamId
- * Get personalized recommendations based on user's library
- */
-router.get('/user/:steamId', async (req: Request, res: Response) => {
-  const { steamId } = req.params;
-  const limit = Math.min(parseInt(req.query.limit as string) || 20, 50);
-
-  const recommender = getRecommenderService();
-
-  if (!recommender.isReady()) {
-    res.status(503).json({ 
-      error: 'Recommendation engine not ready',
-      instructions: [
-        '1. Download steam.csv from Kaggle',
-        '2. Run: npx ts-node src/scripts/process-dataset.ts',
-        '3. Run: npx ts-node src/scripts/build-recommender.ts',
-      ]
-    });
-    return;
-  }
-
-  try {
-    // Fetch user's library from Steam API
-    const steamService = getSteamService();
-    const library = await steamService.getOwnedGames(steamId);
-
-    if (library.games.length === 0) {
-      res.json({
-        steamId,
-        message: 'No games found in library',
-        recommendations: [],
-      });
-      return;
-    }
-
-    // Get recommendations based on library
-    const ownedGames = library.games.map(g => ({
-      appId: g.appId,
-      playtimeMinutes: g.playtimeMinutes,
-    }));
-
-    const recommendations = recommender.getRecommendationsForLibrary(ownedGames, limit);
-
-    res.json({
-      steamId,
-      librarySize: library.gameCount,
-      recommendations,
-    });
-  } catch (error) {
-    if (error instanceof SteamApiError) {
-      res.status(error.statusCode || 500).json({
-        error: error.message,
-        code: error.statusCode,
-      });
-    } else {
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  }
+const userRecommendationsSchema = z.object({
+  params: z.object({
+    steamId: z
+      .string()
+      .length(17, 'Steam ID must be exactly 17 characters')
+      .regex(/^\d+$/, 'Steam ID must be numeric'),
+  }),
+  query: z.object({
+    limit: z.string().regex(/^\d+$/, 'limit must be a positive integer').optional(),
+  }),
 });
 
-/**
- * POST /api/recommend/bytags
- * Get recommendations based on specified tags
- */
-router.post('/bytags', async (req: Request, res: Response) => {
-  const { tags, excludeAppIds, limit: requestLimit } = req.body;
-  const limit = Math.min(requestLimit || 20, 50);
-
-  if (!tags || !Array.isArray(tags) || tags.length === 0) {
-    res.status(400).json({ error: 'Tags array is required' });
-    return;
-  }
-
-  const recommender = getRecommenderService();
-
-  if (!recommender.isReady()) {
-    res.status(503).json({ error: 'Recommendation engine not ready' });
-    return;
-  }
-
-  const recommendations = recommender.getRecommendationsByTags(
-    tags,
-    excludeAppIds || [],
-    limit
-  );
-
-  res.json({
-    tags,
-    recommendations,
-  });
+const byTagsSchema = z.object({
+  body: z.object({
+    tags: z.array(z.string()).min(1, 'You must provide at least one tag'),
+    limit: z.number().int().positive('limit must be a positive integer').optional(),
+  }),
 });
+
+// --- Routes ---
 
 /**
  * GET /api/recommend/status
- * Check if the recommendation engine is ready
  */
-router.get('/status', (req: Request, res: Response) => {
-  const recommender = getRecommenderService();
-
-  res.json({
-    ready: recommender.isReady(),
-    message: recommender.isReady() 
-      ? 'Recommendation engine is ready'
-      : 'Recommendation engine not initialized. Run the data pipeline.',
-  });
+router.get('/status', (req: Request, res: Response): void => {
+  try {
+    const recommender = getRecommenderService();
+    res.json({
+      ready: recommender.isReady(),
+      status: recommender.isReady() ? 'Online' : 'Loading or error',
+    });
+  } catch (error: any) {
+    res.status(503).json({
+      ready: false,
+      error: error.message,
+      instructions: [
+        "1. Download steam.csv from Kaggle to data/raw/",
+        "2. Run: npm run data:process",
+        "3. Run: npm run data:build-recommender"
+      ]
+    });
+  }
 });
+
+/**
+ * GET /api/recommend/similar/:appId
+ */
+router.get(
+  '/similar/:appId',
+  validate(similarGamesSchema),
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const recommender = getRecommenderService();
+      
+      if (!recommender.isReady()) {
+        res.status(503).json({ error: 'Recommendation engine not ready' });
+        return;
+      }
+
+      const appId = parseInt(req.params.appId, 10);
+      const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 10;
+
+      const recommendations = recommender.getSimilarGames(appId, limit);
+      
+      if (recommendations.length === 0) {
+        res.status(404).json({ error: `No recommendations found for app ID ${appId}` });
+        return;
+      }
+
+      res.json(recommendations);
+    } catch (error: any) {
+      if (error.message.includes('not ready')) {
+        res.status(503).json({ error: error.message });
+      } else {
+        res.status(500).json({ error: 'Internal server error', details: error.message });
+      }
+    }
+  }
+);
+
+/**
+ * GET /api/recommend/user/:steamId
+ */
+router.get(
+  '/user/:steamId',
+  validate(userRecommendationsSchema),
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const recommender = getRecommenderService();
+      
+      if (!recommender.isReady()) {
+        res.status(503).json({ error: 'Recommendation engine not ready' });
+        return;
+      }
+
+      const steamId = req.params.steamId;
+      const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 10;
+
+      // 1. Fetch user library from Steam
+      const { getSteamService } = require('../services/steam.service');
+      const steamService = getSteamService();
+      const library = await steamService.getOwnedGames(steamId);
+
+      // 2. Map to the format RecommenderService expects
+      const ownedGames = library.map((g: any) => ({
+        appId: g.appId,
+        playtimeMinutes: g.playtimeForever,
+      }));
+
+      // 3. Get recommendations
+      const recommendations = recommender.getRecommendationsForLibrary(ownedGames, limit);
+      res.json(recommendations);
+    } catch (error: any) {
+      if (error.message.includes('not ready')) {
+        res.status(503).json({ error: error.message });
+      } else {
+        console.error('User recommendation error:', error);
+        res.status(500).json({ error: 'Failed to generate recommendations', details: error.message });
+      }
+    }
+  }
+);
+
+/**
+ * POST /api/recommend/bytags
+ */
+router.post(
+  '/bytags',
+  validate(byTagsSchema),
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const recommender = getRecommenderService();
+      
+      if (!recommender.isReady()) {
+        res.status(503).json({ error: 'Recommendation engine not ready' });
+        return;
+      }
+
+      const { tags, limit = 10 } = req.body;
+      const recommendations = recommender.getRecommendationsByTags(tags, limit);
+      res.json(recommendations);
+    } catch (error: any) {
+      if (error.message.includes('not ready')) {
+        res.status(503).json({ error: error.message });
+      } else {
+        res.status(500).json({ error: 'Internal server error', details: error.message });
+      }
+    }
+  }
+);
 
 export default router;

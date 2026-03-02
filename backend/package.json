@@ -4,14 +4,19 @@
   "description": "Steam Game Recommendation API",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "test": "jest",
     "build": "tsc",
-    "start": "node ./src/app.js",
+    "start": "node dist/index.js",
     "lint": "eslint src/**/*.ts",
     "data:download": "ts-node src/scripts/download-dataset.ts",
     "data:process": "ts-node src/scripts/process-dataset.ts",
     "data:build-recommender": "ts-node src/scripts/build-recommender.ts",
     "data:pipeline": "npm run data:process && npm run data:build-recommender",
-    "data:inspect-csv": "ts-node src/scripts/inspect-csv-columns.ts"
+    "data:inspect-csv": "ts-node src/scripts/inspect-csv-columns.ts",
+    "test:db": "bash scripts/db-health.sh",
+    "test:api": "bash scripts/test-api.sh",
+    "test:data": "bash scripts/check-data.sh",
+    "dev:full": "bash scripts/dev-start.sh"
   },
   "dependencies": {
     "axios": "^1.6.0",
@@ -19,12 +24,19 @@
     "csv-parse": "^6.1.0",
     "dotenv": "^16.3.0",
     "express": "^4.18.0",
-    "pg": "^8.18.0"
+    "pg": "^8.18.0",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
+    "@types/jest": "^30.0.0",
     "@types/node": "^20.10.0",
+    "@types/pg": "^8.18.0",
+    "@types/supertest": "^7.2.0",
+    "jest": "^30.2.0",
+    "supertest": "^7.2.2",
+    "ts-jest": "^29.4.6",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.3.0"
   }

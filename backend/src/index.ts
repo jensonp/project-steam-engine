@@ -4,26 +4,32 @@ import { config } from './config';
 import userRoutes from './routes/user.routes';
 import gameRoutes from './routes/game.routes';
 import recommendRoutes from './routes/recommend.routes';
+import searchRoutes from './routes/search.routes'; // Added searchRoutes import
+
+// Validate config
+if (!config.port) {
+  console.error('FATAL ERROR: PORT is not defined in config.');
+  process.exit(1);
+}
 
 const app = express();
 const PORT = config.port;
 
-// Middleware
-app.use(cors({
-  origin: ['http://localhost:4200', 'http://localhost:5432']
-}));
+// Basic Middleware
+app.use(cors()); // Changed cors configuration
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+// app.use(express.urlencoded({ extended: false })); // Removed this line as per instruction
 
-// API Routes
+// Routes
 app.use('/api/user', userRoutes);
-app.use('/api/game', gameRoutes);
 app.use('/api/recommend', recommendRoutes);
+app.use('/api/game', gameRoutes);
+app.use('/api/search', searchRoutes); // Added searchRoutes
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({
-    status: 'healthy',
+    status: 'ok', // Changed status from 'healthy' to 'ok'
     timestamp: new Date().toISOString(),
   });
 });

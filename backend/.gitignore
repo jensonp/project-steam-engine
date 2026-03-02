@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+
+# Build Output
+dist/
+dist-tsc/
+build/
+coverage/
+
+# Environment Variables
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Database & Data Processing Files
+data/raw/
+data/processed/
+*.sqlite
+*.db
+
+# macOS System Files
+.DS_Store
+
+# Editor Directories
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Testing
+coverage/
+
+# Optional: TypeScript cache
+*.tsbuildinfo
