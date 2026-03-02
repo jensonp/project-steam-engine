@@ -31,12 +31,20 @@ export class BackendService {
   }
 
   // Return list of recommended games for the user based on the query and their user data
-  getRecommendations(genres: string, keywords: string, os_compat: boolean): Observable<Game[]> {
+  getRecommendations(genres: string, keyword: string, playerCount: string): Observable<Game[]> {
     const url = `${this.backendUrl}/api/search`;
     let params = new HttpParams();
 
     if (genres && genres.length > 0) {
       params = params.set('genres', genres);
+    }
+    
+    if (keyword && keyword.trim().length > 0) {
+      params = params.set('keyword', keyword.trim());
+    }
+    
+    if (playerCount && playerCount !== 'Any') {
+      params = params.set('playerCount', playerCount);
     }
 
     return this.http.get<Game[]>(url, { params });

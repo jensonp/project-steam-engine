@@ -67,7 +67,7 @@ export class QueryScreen {
     }
 
     const genresParam = this.selected_genre.join(',')
-    this.backendService.getRecommendations(genresParam, this.keyword_input, this.selected_player_count === 'Online').subscribe({
+    this.backendService.getRecommendations(genresParam, this.keyword_input, this.selected_player_count).subscribe({
       next: (response) => {
         console.log('Received recommendations:', response);
         this.isLoading = false;

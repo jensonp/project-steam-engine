@@ -6,10 +6,12 @@ import { validate } from '../middleware/validate.middleware';
 const router = Router();
 const searchService = new SearchService();
 
-// Zod Schema: Optional comma-separated genres string
+// Zod Schema: Optional parameters
 const searchSchema = z.object({
   query: z.object({
     genres: z.string().optional(),
+    keyword: z.string().optional(),
+    playerCount: z.string().optional(),
   }),
 });
 
@@ -17,6 +19,8 @@ const searchSchema = z.object({
  * GET /api/search
  * Query params:
  * - genres (string): Comma-separated list of genres (e.g. "RPG,Action")
+ * - keyword (string): Text search across title and description
+ * - playerCount (string): Filter for Multiplayer, Singleplayer, etc.
  */
 router.get(
   '/',
@@ -24,13 +28,15 @@ router.get(
   async (req: Request, res: Response): Promise<void> => {
     try {
       const genresRaw = (req.query.genres as string) || '';
+      const keyword = (req.query.keyword as string) || '';
+      const playerCount = (req.query.playerCount as string) || '';
       
       const genreList = genresRaw
         .split(',')
         .map(g => g.trim())
         .filter(g => g.length > 0);
         
-      const games = await searchService.searchByGenres(genreList);
+      const games = await searchService.searchByGenres(genreList, keyword, playerCount);
       res.json(games);
       
     } catch (error: any) {

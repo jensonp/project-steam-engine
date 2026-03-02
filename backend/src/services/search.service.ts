@@ -11,27 +11,48 @@ export interface GameSearchResult {
 
 export class SearchService {
   /**
-   * Search for top games matching the given genres, ordered by positive votes.
-   * If no genres are provided, returns the top games overall.
+   * Search for top games matching the given filters, ordered by positive votes.
    */
-  async searchByGenres(genres: string[]): Promise<GameSearchResult[]> {
-    if (genres.length === 0) {
-      const result = await query(`
-        SELECT app_id, game_name, genres, price, header_image
-        FROM games
-        ORDER BY positive_votes DESC
-        LIMIT 10
-      `);
-      return this.mapRows(result.rows);
+  async searchByGenres(genres: string[], keyword?: string, playerCount?: string): Promise<GameSearchResult[]> {
+    const whereClauses: string[] = [];
+    const params: any[] = [];
+    let paramIndex = 1;
+
+    // 1. Genre Flags
+    if (genres.length > 0) {
+      const genreConditions = genres.map(g => {
+        params.push(`%${g}%`);
+        const clause = `(genres ILIKE $${paramIndex} OR tags ILIKE $${paramIndex})`;
+        paramIndex++;
+        return clause;
+      });
+      whereClauses.push(`(${genreConditions.join(' AND ')})`);
     }
 
-    const params = genres.map(g => `%${g}%`);
-    const conditions = genres.map((_, i) => `(genres ILIKE $${i + 1} OR tags ILIKE $${i + 1})`);
+    // 2. Keyword Filter (Title or Description)
+    if (keyword) {
+      params.push(`%${keyword}%`);
+      whereClauses.push(`(game_name ILIKE $${paramIndex} OR short_description ILIKE $${paramIndex})`);
+      paramIndex++;
+    }
+
+    // 3. Player Count Filter (Multiplayer, Co-op, Single-player mappings)
+    if (playerCount && playerCount !== 'Any') {
+      let mappedTerm = playerCount;
+      if (playerCount === 'Online') mappedTerm = 'Online PvP';
+      
+      params.push(`%${mappedTerm}%`);
+      whereClauses.push(`categories ILIKE $${paramIndex}`);
+      paramIndex++;
+    }
+
+    // Construct the final WHERE clause dynamically
+    const whereString = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
 
     const sqlQuery = `
       SELECT app_id, game_name, genres, price, header_image
       FROM games
-      WHERE ${conditions.join(' AND ')}
+      ${whereString}
       ORDER BY positive_votes DESC
       LIMIT 10
     `;
