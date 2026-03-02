@@ -4,7 +4,7 @@ import { config } from './config';
 import userRoutes from './routes/user.routes';
 import gameRoutes from './routes/game.routes';
 import recommendRoutes from './routes/recommend.routes';
-import searchRoutes from './routes/search.routes'; // Added searchRoutes import
+import searchRoutes from './routes/search.routes';
 
 // Validate config
 if (!config.port) {
@@ -16,15 +16,14 @@ const app = express();
 const PORT = config.port;
 
 // Basic Middleware
-app.use(cors()); // Changed cors configuration
+app.use(cors());
 app.use(express.json());
-// app.use(express.urlencoded({ extended: false })); // Removed this line as per instruction
 
 // Routes
 app.use('/api/user', userRoutes);
 app.use('/api/recommend', recommendRoutes);
 app.use('/api/game', gameRoutes);
-app.use('/api/search', searchRoutes); // Added searchRoutes
+app.use('/api/search', searchRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -47,7 +46,5 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`
-    Backend server is running at: http://localhost:${PORT}
-  `);
+  console.log(` Backend server is running at: http://localhost:${PORT} `);
 });
