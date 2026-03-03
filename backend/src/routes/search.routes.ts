@@ -27,9 +27,12 @@ router.get(
   validate(searchSchema),
   async (req: Request, res: Response): Promise<void> => {
     try {
-      const genresRaw = (req.query.genres as string) || '';
-      const keyword = (req.query.keyword as string) || '';
-      const playerCount = (req.query.playerCount as string) || '';
+      const queryData = req.query as z.infer<typeof searchSchema>['query'];
+      
+      // Extract properties directly based on the Zod schema
+      const genresRaw = queryData.genres || '';
+      const keyword = queryData.keyword || '';
+      const playerCount = queryData.playerCount || '';
       
       const genreList = genresRaw
         .split(',')

@@ -326,8 +326,12 @@ async function main(): Promise<void> {
   const games = await fetchGamesFromDB();
   console.log(`Loaded ${games.length} games\n`);
   
-  // Filter games down to valid ones
-  const validGames = games.filter(g => g.allTags && g.allTags.length > 0);
+  // Filter games down to valid ones (min 50 reviews to filter shovelware and reduce O(N^2) Matrix size)
+  const validGames = games.filter(g => 
+    g.allTags && 
+    g.allTags.length > 0 &&
+    (g.positiveRatings + g.negativeRatings) >= 50
+  );
   console.log(`Games with metadata: ${validGames.length}\n`);
   
   // Build similarity index using Jaccard and multi-factor
