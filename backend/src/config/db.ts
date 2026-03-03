@@ -1,4 +1,4 @@
-import { Pool } from 'pg';
+import { Pool, QueryResult, QueryResultRow } from 'pg';
 import { config } from '../config';
 
 // Create a single shared connection pool for PostgreSQL
@@ -11,5 +11,7 @@ export const pool = new Pool({
 
 console.log(`[DB] Initialize connection pool: postgres://${config.pgUser}@${config.pgHost}:${config.pgPort}/${config.pgDatabase}`);
 
-// Generic query helper
-export const query = (text: string, params?: any[]) => pool.query(text, params);
+// Strict Generic query helper mapping exactly to the Promise overload
+export const query = <T extends QueryResultRow = any>(text: string, params?: any[]): Promise<QueryResult<T>> => {
+  return pool.query<T>(text, params);
+};
