@@ -28,7 +28,7 @@ app.use('/api/search', searchRoutes);
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({
-    status: 'ok', // Changed status from 'healthy' to 'ok'
+    status: 'ok',
     timestamp: new Date().toISOString(),
   });
 });

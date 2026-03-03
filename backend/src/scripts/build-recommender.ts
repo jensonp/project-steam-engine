@@ -9,9 +9,9 @@
 
 import fs from 'fs';
 import path from 'path';
+import { query } from '../config/db';
 
 const PROCESSED_DIR = path.join(__dirname, '../../data/processed');
-const GAMES_FILE = path.join(PROCESSED_DIR, 'games-light.json');
 const OUTPUT_DIR = path.join(PROCESSED_DIR, 'recommender');
 
 interface LightGame {
@@ -29,6 +29,12 @@ interface LightGame {
   ratingRatio: number;
   averagePlaytime: number;
   ownersMin: number;
+  
+  // Precomputed memory sets for O(1) mathematical intersection speeds
+  genresSet: Set<string>;
+  tagsSet: Set<string>;
+  categoriesSet: Set<string>;
+  studiosSet: Set<string>;
 }
 
 interface SimilarGame {
@@ -55,6 +61,64 @@ const SCORE_WEIGHTS = {
   playtime:     0.03,
 };
 
+async function fetchGamesFromDB(): Promise<LightGame[]> {
+  console.log('Fetching all games from PostgreSQL database...');
+  const result = await query('SELECT * FROM games');
+  
+  return result.rows.map(r => {
+    const genres = (r.genres || '').split(',').map((s: string) => s.trim()).filter(Boolean);
+    const tags = (r.tags || '').split(',').map((s: string) => s.trim()).filter(Boolean);
+    const categories = (r.categories || '').split(',').map((s: string) => s.trim()).filter(Boolean);
+    
+    // allTags is the union
+    const allTags = Array.from(new Set([...genres, ...tags, ...categories]));
+
+    const developers = (r.developers || '').split(',').map((s: string) => s.trim()).filter(Boolean);
+    const publishers = (r.publishers || '').split(',').map((s: string) => s.trim()).filter(Boolean);
+
+    const price = r.price ? parseFloat(r.price) : 0;
+    const positiveRatings = r.positive_votes || 0;
+    const negativeRatings = r.negative_votes || 0;
+    const totalRatings = positiveRatings + negativeRatings;
+    const ratingRatio = totalRatings > 0 ? positiveRatings / totalRatings : 0;
+    
+    const averagePlaytime = r.average_playtime || 0;
+
+    let ownersMin = 0;
+    if (r.estimated_owners) {
+       const parts = r.estimated_owners.replace(/,/g, '').replace(/\s/g, '').split('-');
+       ownersMin = parseInt(parts[0]) || 0;
+    }
+
+    // Precompile Sets exactly once to prevent 39 Billion dynamic array instantiations
+    const genresSet = new Set<string>(genres.map((s: string) => s.toLowerCase()));
+    const tagsSet = new Set<string>(tags.map((s: string) => s.toLowerCase()));
+    const categoriesSet = new Set<string>(categories.map((s: string) => s.toLowerCase()));
+    const studiosSet = new Set<string>([...developers, ...publishers].map((s: string) => s.toLowerCase()));
+
+    return {
+      appId: r.app_id,
+      name: r.game_name,
+      allTags,
+      genres,
+      tags,
+      categories,
+      developers,
+      publishers,
+      price,
+      positiveRatings,
+      negativeRatings,
+      ratingRatio,
+      averagePlaytime,
+      ownersMin,
+      genresSet,
+      tagsSet,
+      categoriesSet,
+      studiosSet
+    };
+  });
+}
+
 function computeGlobalMaxes(games: LightGame[]): GlobalMaxes {
   let maxPrice = 60;
   let maxPop = 1;
@@ -69,34 +133,41 @@ function computeGlobalMaxes(games: LightGame[]): GlobalMaxes {
   return { price: maxPrice, popularity: maxPop, playtime: maxPt };
 }
 
-function jaccardSimilarity(arrA: string[], arrB: string[]): number {
-  if ((!arrA || arrA.length === 0) && (!arrB || arrB.length === 0)) return 0.0;
-  const setA = new Set(arrA.map(a => a.toLowerCase()));
-  const setB = new Set(arrB.map(b => b.toLowerCase()));
+function getJaccard(setA: Set<string>, setB: Set<string>): number {
+  if (setA.size === 0 && setB.size === 0) return 0.0;
   
-  const intersection = new Set([...setA].filter(x => setB.has(x)));
-  const union = new Set([...setA, ...setB]);
+  let intersect = 0;
+  // Iterate the smaller set to find intersections fast
+  const [smaller, larger] = setA.size < setB.size ? [setA, setB] : [setB, setA];
   
-  return intersection.size / union.size;
+  for (const item of smaller) {
+    if (larger.has(item)) intersect++;
+  }
+  
+  const union = setA.size + setB.size - intersect;
+  return intersect / union;
 }
 
-function hasStudioOverlap(gameA: LightGame, gameB: LightGame): number {
-  const studiosA = new Set([...(gameA.developers || []), ...(gameA.publishers || [])]);
-  const studiosB = new Set([...(gameB.developers || []), ...(gameB.publishers || [])]);
-  const overlap = [...studiosA].some(x => studiosB.has(x));
-  return overlap ? 1.0 : 0.0;
+function getStudioOverlap(setA: Set<string>, setB: Set<string>): number {
+  if (setA.size === 0 || setB.size === 0) return 0.0;
+  
+  const [smaller, larger] = setA.size < setB.size ? [setA, setB] : [setB, setA];
+  for (const item of smaller) {
+    if (larger.has(item)) return 1.0;
+  }
+  return 0.0;
 }
 
 function calculateScore(target: LightGame, candidate: LightGame, allMax: GlobalMaxes): number {
   let finalScore = 0;
 
-  // 1. Jaccard Indexing
-  finalScore += SCORE_WEIGHTS.genres * jaccardSimilarity(target.genres || [], candidate.genres || []);
-  finalScore += SCORE_WEIGHTS.tags * jaccardSimilarity(target.tags || [], candidate.tags || []);
-  finalScore += SCORE_WEIGHTS.categories * jaccardSimilarity(target.categories || [], candidate.categories || []);
+  // 1. Ultra-fast Jaccard Indexing using precomputed HashSets
+  finalScore += SCORE_WEIGHTS.genres * getJaccard(target.genresSet, candidate.genresSet);
+  finalScore += SCORE_WEIGHTS.tags * getJaccard(target.tagsSet, candidate.tagsSet);
+  finalScore += SCORE_WEIGHTS.categories * getJaccard(target.categoriesSet, candidate.categoriesSet);
 
   // 2. Studio Overlap
-  finalScore += SCORE_WEIGHTS.developer * hasStudioOverlap(target, candidate);
+  finalScore += SCORE_WEIGHTS.developer * getStudioOverlap(target.studiosSet, candidate.studiosSet);
 
   // 3. Price Proximity
   const candPrice = candidate.price || 0;
@@ -252,16 +323,7 @@ async function main(): Promise<void> {
   console.log('Recommendation Engine Builder\n');
   console.log('==============================\n');
   
-  // Load processed games
-  if (!fs.existsSync(GAMES_FILE)) {
-    console.error(`❌ Processed data not found: ${GAMES_FILE}`);
-    console.log('\nRun the processor first:');
-    console.log('  npx ts-node src/scripts/process-dataset.ts');
-    process.exit(1);
-  }
-  
-  console.log(`Loading games from: ${GAMES_FILE}`);
-  const games: LightGame[] = JSON.parse(fs.readFileSync(GAMES_FILE, 'utf-8'));
+  const games = await fetchGamesFromDB();
   console.log(`Loaded ${games.length} games\n`);
   
   // Filter games down to valid ones
