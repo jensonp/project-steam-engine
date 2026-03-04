@@ -50,6 +50,19 @@ export class BackendService {
     return this.http.get<Game[]>(url, { params });
   }
 
+  // Fetch the aggregated Steam profile (genre vector, friend stats, top genres)
+  getUserProfile(steamId: string): Observable<any> {
+    const url = `${this.backendUrl}/api/recommend/user/${encodeURIComponent(steamId)}/profile`;
+    return this.http.get<any>(url);
+  }
+
+  // Fetch personalized recommendations driven by the user's Steam library + friend graph
+  getPersonalizedRecommendations(steamId: string, limit: number = 20): Observable<any[]> {
+    const url = `${this.backendUrl}/api/recommend/user/${encodeURIComponent(steamId)}`;
+    let params = new HttpParams().set('limit', limit.toString());
+    return this.http.get<any[]>(url, { params });
+  }
+
   // Trigger the backend to index the Steam storefront dataset into PSQL
   indexStorefront(): Observable<unknown> {
     const url = `${this.backendUrl}/index`;

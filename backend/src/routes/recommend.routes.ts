@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { getRecommenderService } from '../services/recommender.service';
+import { buildUserProfile, scoreWithUserContext } from '../services/user-profile.service';
 import { z } from 'zod';
 import { validate } from '../middleware/validate.middleware';
 
@@ -105,36 +106,61 @@ router.get(
   async (req: Request, res: Response): Promise<void> => {
     try {
       const recommender = getRecommenderService();
-      
       if (!recommender.isReady()) {
         res.status(503).json({ error: 'Recommendation engine not ready' });
         return;
       }
 
       const steamId = req.params.steamId;
-      const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 10;
+      const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 20;
 
-      // 1. Fetch user library from Steam
-      const { getSteamService } = require('../services/steam.service');
-      const steamService = getSteamService();
-      const library = await steamService.getOwnedGames(steamId);
+      // Build a full user profile (playtime vector + friend graph)
+      const profile = await buildUserProfile(steamId);
 
-      // 2. Map to the format RecommenderService expects
-      const ownedGames = library.map((g: any) => ({
-        appId: g.appId,
-        playtimeMinutes: g.playtimeForever,
-      }));
-
-      // 3. Get recommendations
-      const recommendations = recommender.getRecommendationsForLibrary(ownedGames, limit);
-      res.json(recommendations);
-    } catch (error: any) {
-      if (error.message.includes('not ready')) {
-        res.status(503).json({ error: error.message });
-      } else {
-        console.error('User recommendation error:', error);
-        res.status(500).json({ error: 'Failed to generate recommendations', details: error.message });
+      if (profile.library.length === 0) {
+        res.status(404).json({
+          error: 'Could not load Steam library. Profile may be private.',
+        });
+        return;
       }
+
+      // Score candidates using the 3-signal composite engine
+      const recommendations = await scoreWithUserContext(steamId, profile, limit);
+      res.json(recommendations);
+
+    } catch (error: any) {
+      console.error('User recommendation error:', error);
+      res.status(500).json({ error: 'Failed to generate recommendations', details: error.message });
+    }
+  }
+);
+
+/**
+ * GET /api/recommend/user/:steamId/profile
+ * Returns the aggregated user profile: genre vector, friend overlap stats, top genres.
+ */
+router.get(
+  '/user/:steamId/profile',
+  validate(userRecommendationsSchema),
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const steamId = req.params.steamId;
+      const profile = await buildUserProfile(steamId);
+
+      // Serialize the profile for JSON — strip the internal Sets/Maps
+      res.json({
+        steamId: profile.steamId,
+        personaName: profile.personaName,
+        avatar: profile.avatar,
+        librarySize: profile.librarySize,
+        recentGamesCount: profile.recentGamesCount,
+        topGenres: profile.topGenres,
+        friendsAnalyzed: profile.friendsAnalyzed,
+        friendOverlapGames: profile.friendOverlapGames,
+      });
+    } catch (error: any) {
+      console.error('Profile fetch error:', error);
+      res.status(500).json({ error: 'Failed to build user profile', details: error.message });
     }
   }
 );

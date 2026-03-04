@@ -7,6 +7,7 @@ import { MatProgressSpinner } from "@angular/material/progress-spinner";
 
 @Component({
   selector: 'app-config-screen',
+  standalone: true,
   imports: [UserSearchComponent, RouterLink, MatIconModule, MatProgressSpinner],
   templateUrl: './config-screen.html',
   styleUrl: './config-screen.css',

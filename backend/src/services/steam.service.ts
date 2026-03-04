@@ -4,9 +4,11 @@ import {
   OwnedGame,
   UserLibrary,
   PlayerSummary,
+  Friend,
   Game,
   SteamOwnedGamesResponse,
   SteamPlayerSummaryResponse,
+  SteamFriendListResponse,
   SteamAppDetailsResponse,
   SteamApiError,
 } from '../types/steam.types';
@@ -236,6 +238,64 @@ export class SteamService {
       console.error(`Failed to fetch app details for ${appId}:`, error);
       return null;
     }
+  }
+
+  /**
+   * Fetch a user's friend list.
+   * Returns [] on private profiles (401/403) rather than throwing.
+   */
+  async getFriendList(steamId: string): Promise<Friend[]> {
+    try {
+      const response = await this.apiClient.get<SteamFriendListResponse>(
+        '/ISteamUser/GetFriendList/v1/',
+        {
+          params: {
+            key: this.apiKey,
+            steamid: steamId,
+            relationship: 'friend',
+            format: 'json',
+          },
+        }
+      );
+
+      const friends = response.data.friendslist?.friends || [];
+      return friends.map((f) => ({
+        steamId: f.steamid,
+        relationship: f.relationship,
+        friendSince: f.friend_since,
+      }));
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const status = error.response?.status;
+        // 401/403 = private friend list — gracefully return empty
+        if (status === 401 || status === 403) return [];
+      }
+      // Any other error: log and return empty rather than crashing
+      console.warn(`getFriendList(${steamId}) failed:`, (error as any).message);
+      return [];
+    }
+  }
+
+  /**
+   * Fetch owned games for multiple Steam IDs in parallel.
+   * Uses Promise.allSettled so one private profile doesn't abort the batch.
+   * Returns a Map<steamId, OwnedGame[]> for only the successfully resolved profiles.
+   */
+  async getMultipleOwnedGames(
+    steamIds: string[]
+  ): Promise<Map<string, OwnedGame[]>> {
+    const results = await Promise.allSettled(
+      steamIds.map((id) => this.getOwnedGames(id).then((lib) => ({ id, games: lib.games })))
+    );
+
+    const map = new Map<string, OwnedGame[]>();
+    for (const result of results) {
+      if (result.status === 'fulfilled') {
+        map.set(result.value.id, result.value.games);
+      }
+      // 'rejected' entries (private profiles) are silently skipped
+    }
+    return map;
   }
 }
 

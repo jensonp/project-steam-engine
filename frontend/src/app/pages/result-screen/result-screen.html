@@ -1,30 +1,29 @@
-<div class="result-screen">
-    <h1>Recommendations</h1>
+<div class="result-screen" #resultScreen>
+    <!-- Animated background: position:absolute so html2canvas can capture it -->
+    @if (glassEnabled && animatedBackground !== 'none') {
+        <canvas #animatedBg class="animated-background"></canvas>
+    }
+
+    <div class="result-header" data-liquid-ignore>
+        <h1>Recommendations</h1>
+        <button mat-flat-button color="primary" class="glass-toggle-button" (click)="onToggleGlass()">
+            {{ glassEnabled ? 'Disable Liquid Glass' : 'Enable Liquid Glass' }}
+        </button>
+    </div>
 
     @if (results && results.length > 0) {
-        <div class="results-container">
-            @for (game of results; track game) {
-                <app-game-card [game]="game"></app-game-card>
+        <div class="results-container" [class.glass-mode]="glassEnabled">
+            @for (game of results; track game.appId) {
+                <app-game-card [game]="game" [glassEnabled]="glassEnabled"></app-game-card>
             }
         </div>
     } @else {
         <p>No results found. Try adjusting your preferences and searching again!</p>
     }
 
-    <button mat-button="filled" routerLink="/">Back to query</button>
+    <div data-liquid-ignore>
+        <button mat-button="filled" routerLink="/" class="back-button">Back to query</button>
+    </div>
 </div>
 
-<!-- 
-  export interface Game {
-  appId: number;
-  name: string;
-  genres: string[];
-  tags: string[];
-  description: string | null;
-  headerImage: string | null;
-  releaseDate: string | null;
-  developers: string[];
-  publishers: string[];
-  price: number | null;
-  isFree: boolean;
-} -->
+<app-glass-settings (settingsChanged)="onGlassSettingsChanged($event)"></app-glass-settings>

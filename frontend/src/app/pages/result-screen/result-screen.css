@@ -1,4 +1,25 @@
-button {
+.result-screen {
+    position: relative;
+    padding: 20px;
+    min-height: 100vh;
+}
+
+.result-header {
+    position: relative;
+    z-index: 100;
+}
+
+.result-header h1 {
+    margin-bottom: 10px;
+}
+
+.glass-toggle-button {
+    margin: 0 0 20px;
+}
+
+.back-button {
+    position: relative;
+    z-index: 100;
     border-radius: 100px;
     padding: 10px 18px;
     margin: 20px 0;
@@ -12,9 +33,31 @@ button {
     min-width: 120px;
 }
 
+/*
+ * The animated background MUST be position:absolute (NOT fixed).
+ * liquidGL's html2canvas ignores ALL position:fixed elements.
+ * Using absolute inside .result-screen ensures it gets captured
+ * in the body snapshot so the glass panes can refract it.
+ */
+.animated-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none;
+}
+
 .results-container {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     gap: 20px;
-    padding: 20px;
+    position: relative;
+    z-index: 1;
+}
+
+.results-container.glass-mode {
+    gap: 24px;
+    padding: 10px 0;
 }

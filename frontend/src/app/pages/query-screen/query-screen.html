@@ -5,6 +5,51 @@
 
     <p class="subtitle">I grant you game recommendations. Tell me a bit about what kinds of games you would prefer, and I'll show you the way</p>
 
+    <!-- Steam Profile Section -->
+    <div class="steam-section">
+        <mat-form-field appearance="outline" class="steam-field">
+            <mat-label>Steam ID (optional — for personalized recommendations)</mat-label>
+            <input matInput
+                   [(ngModel)]="steamId_input"
+                   placeholder="e.g. 76561198393551255"
+                   [disabled]="isLoading || isLoadingProfile"
+                   (keyup.enter)="loadSteamProfile()">
+            <mat-icon matSuffix>games</mat-icon>
+        </mat-form-field>
+        <button class="load-profile-button"
+                (click)="loadSteamProfile()"
+                [disabled]="!steamId_input || steamId_input.length !== 17 || isLoadingProfile">
+            @if (isLoadingProfile) {
+                <mat-spinner diameter="16"></mat-spinner>
+            } @else {
+                Load Profile
+            }
+        </button>
+    </div>
+
+    <!-- Profile Card (shown after successful profile load) -->
+    @if (userProfile) {
+        <div class="profile-card">
+            @if (userProfile.avatar) {
+                <img class="profile-avatar" [src]="userProfile.avatar" [alt]="userProfile.personaName">
+            }
+            <div class="profile-info">
+                <span class="profile-name">{{ userProfile.personaName }}</span>
+                <span class="profile-stats">
+                    {{ userProfile.librarySize }} games &nbsp;·&nbsp;
+                    {{ userProfile.friendsAnalyzed }} friends analyzed &nbsp;·&nbsp;
+                    {{ userProfile.friendOverlapGames }} games overlap
+                </span>
+                <div class="profile-genres">
+                    @for (g of userProfile.topGenres.slice(0, 5); track g.genre) {
+                        <span class="genre-chip">{{ g.genre }} ({{ (g.weight * 100).toFixed(0) }}%)</span>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Genre / Keyword Filters -->
     <div>
         <mat-form-field appearance="outline" class="search-field">
             <mat-label>Genre</mat-label>
@@ -29,30 +74,12 @@
         </mat-form-field>
     </div>
 
-    <!-- @if (!steamID_configured || !apiKey_configured) {
-        <div class="config-warning">
-            <mat-icon>warning</mat-icon>
-            <p>To query, please configure your Steam ID and API Key in the configuration page.</p>
-        </div>
-    }
-    @else {
-        <button (click)="onQuery()" [disabled]="isLoading" class="search-button">
-            @if (isLoading) {
-                <mat-spinner class="custom-color-spinner" diameter="20"></mat-spinner>
-            }
-            @else {
-                <ng-container>Suggest</ng-container>
-            }
-        </button>
-    } -->
-
-    
     <button (click)="onQuery()" [disabled]="isLoading" class="search-button">
         @if (isLoading) {
         <mat-spinner class="custom-color-spinner" diameter="20"></mat-spinner>
         }
         @else {
-        <ng-container>Suggest</ng-container>
+        <ng-container>{{ userProfile ? 'Suggest for Me' : 'Suggest' }}</ng-container>
         }
     </button>
 

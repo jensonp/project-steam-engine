@@ -22,6 +22,32 @@ export interface PlayerSummary {
   visibility: number; // 1 = private, 3 = public
 }
 
+export interface Friend {
+  steamId: string;
+  relationship: string; // 'friend' | 'all'
+  friendSince: number;  // Unix timestamp
+}
+
+export interface UserGenreProfile {
+  genre: string;
+  weight: number; // L1-normalized share of total weighted playtime
+}
+
+export interface UserProfile {
+  steamId: string;
+  personaName: string;
+  avatar: string | null;
+  librarySize: number;
+  recentGamesCount: number;
+  topGenres: UserGenreProfile[];
+  friendsAnalyzed: number;
+  friendOverlapGames: number;
+  ownedAppIds: Set<number>;
+  friendOverlapSet: Set<number>;
+  genreVector: Map<string, number>;
+  library: OwnedGame[];
+}
+
 export interface Game {
   appId: number;
   name: string;
@@ -91,4 +117,15 @@ export class SteamApiError extends Error {
     super(message);
     this.name = 'SteamApiError';
   }
+}
+
+// Steam Friend List Raw API Response
+export interface SteamFriendListResponse {
+  friendslist: {
+    friends: Array<{
+      steamid: string;
+      relationship: string;
+      friend_since: number;
+    }>;
+  };
 }

@@ -17,15 +17,28 @@ import { Game } from '../../types/steam.types';
     MatTooltipModule,
   ],
   templateUrl:"./game-card.component.html",
-  styleUrl: "./game-card.component.css"
+  styleUrl: "./game-card.component.css",
+  host: { 'class': 'game-card-host' }
 })
 export class GameCardComponent {
   @Input() game?: Game;
+  @Input() glassEnabled = false;
 
   truncateDescription(description: string): string {
     if (description.length > 100) {
       return description.substring(0, 100) + '...';
     }
     return description;
+  }
+
+  onImageLoad(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    img.classList.add('loaded');
+  }
+
+  onImageError(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    img.src = 'steam.png';
+    img.classList.add('loaded');
   }
 }

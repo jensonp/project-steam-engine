@@ -71,5 +71,27 @@ body {
 }
 
 .custom-color-spinner circle {
-  stroke: white !important; /* Use your desired hex code */
+  stroke: white !important;
+}
+
+/*
+ * When glass mode is active, the body gets a dark background.
+ * This is critical because liquidGL uses html2canvas to snapshot the body.
+ * If the body is white, the glass panes refract white = invisible effect.
+ */
+body.glass-active {
+  background-color: #0a1628;
+  color: #ffffff;
+}
+
+/*
+ * liquidGL global rules.
+ * The library sets the target element to opacity:0, background:transparent,
+ * pointer-events:none. It renders the glass effect on a shared WebGL canvas.
+ * Children must sit above that canvas via z-index so they remain visible/clickable.
+ */
+.liquidGL > * {
+  position: relative;
+  z-index: 3;
+  pointer-events: auto;
 }
