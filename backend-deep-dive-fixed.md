@@ -57,10 +57,10 @@
 16. [Node.js Runtime Internals](#16-nodejs-runtime-internals)
 
 - 16.1 [Module Resolution](#161-module-resolution--require-algorithm)
-- 16.2 [`process.env` Mechanics](#162-processenv--environment-variable-mechanics)
+- 16.2 [`process.​env` Mechanics](#162-processenv--environment-variable-mechanics)
 - 16.3 [Buffers and Binary Data](#163-buffers-and-binary-data)
 
-17. [`node_modules` Library Internals](#17-node_modules-library-internals)
+17. [`node_​modules` Library Internals](#17-node_modules-library-internals)
 
 - 17.1 [Express](#171-express--application-and-router-mechanics)
 - 17.2 [CORS](#172-cors--cors-module)
@@ -111,33 +111,33 @@
 
 ## 1. Configuration Layer
 
-### 1.1 `package.json`
+### 1.1 `package.​json`
 
-**File**: `backend/package.json`
+**File**: `backend/​package.​json`
 
-This manifest declares the backend as `pse-backend` v1.0.0 and defines the complete dependency graph and script interface.
+This manifest declares the backend as `pse-​backend` v1.0.0 and defines the complete dependency graph and script interface.
 
 **Runtime Dependencies — why each exists:**
 
 | Dependency  | Version | Role                                                                                                                                                                                                                                                                    |
-| ----------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ------------ | ------------ | --------------------------------------------------------------------------- |
 | `express`   | ^4.18.0 | HTTP framework. Provides the `Router`, middleware pipeline, `req`/`res` abstraction. Version 4 uses the callback-based error model (4-arity handler).                                                                                                                   |
-| `cors`      | ^2.8.5  | Express middleware that sets `Access-Control-Allow-*` headers. Required because the Angular frontend (port 4200) makes cross-origin requests to the API (port 3000). Without this, browsers enforce the Same-Origin Policy and block the preflight `OPTIONS` request.   |
+| `cors`      | ^2.8.5  | Express middleware that sets `Access-​Control-​Allow-​*` headers. Required because the Angular frontend (port 4200) makes cross-origin requests to the API (port 3000). Without this, browsers enforce the Same-Origin Policy and block the preflight `OPTIONS` request.   |
 | `pg`        | ^8.18.0 | PostgreSQL client for Node.js. Exposes `Pool` (connection pooling) and `Client` (single connection). This project uses `Pool` exclusively. The driver communicates over the PostgreSQL wire protocol (libpq binary format) on the configured port.                      |
-| `axios`     | ^1.6.0  | HTTP client used to call the Steam Web API and Steam Store API. Chosen over `fetch` (which is available in Node 18+) because Axios provides typed response generics (`get<T>`), automatic JSON parsing, configurable `baseURL`, and interceptor support out of the box. |
-| `zod`       | ^4.3.6  | Schema declaration and validation library. Used to validate every inbound HTTP request (params, query, body) before it reaches route handler logic. Zod schemas double as TypeScript type inference sources via `z.infer<typeof schema>`.                               |
-| `csv-parse` | ^6.1.0  | Parses CSV files from the Kaggle Steam dataset during the offline data pipeline. Uses the synchronous `parse` API (`csv-parse/sync`) to load the entire CSV into memory at once.                                                                                        |
-| `dotenv`    | ^16.3.0 | Reads `.env` files and injects their key-value pairs into `process.env`. This project loads two `.env` files with a defined precedence (see Section 3).                                                                                                                 |
+| `axios`     | ^1.6.0  | HTTP client used to call the Steam Web API and Steam Store API. Chosen over `fetch` (which is available in Node 18+) because Axios provides typed response generics (`get<T>`), automatic JSON parsing, configurable `base​URL`, and interceptor support out of the box. |
+| `zod`       | ^4.3.6  | Schema declaration and validation library. Used to validate every inbound HTTP request (params, query, body) before it reaches route handler logic. Zod schemas double as TypeScript type inference sources via `z.​infer<typeof schema>`.                               |
+| `csv-​parse` | ^6.1.0  | Parses CSV files from the Kaggle Steam dataset during the offline data pipeline. Uses the synchronous `parse` API (`csv-​parse/​sync`) to load the entire CSV into memory at once.                                                                                        |
+| `dotenv`    | ^16.3.0 | Reads `.​env` files and injects their key-value pairs into `process.​env`. This project loads two `.​env` files with a defined precedence (see Section 3).                                                                                                                 |
 
 **Dev Dependencies — key choices:**
 
 | Dependency                         | Purpose                                                                                                                                                                                                                                                  |
-| ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `typescript` ^5.3.0                | Compiler. `strict: true` mode enforces `strictNullChecks`, `noImplicitAny`, `strictFunctionTypes`, etc.                                                                                                                                                  |
-| `ts-node-dev` ^2.0.0               | Development server. Combines `ts-node` (JIT TypeScript compilation via the TypeScript compiler API) with file-watching and process restart. `--transpile-only` skips type-checking at dev time for speed; type errors are caught by `tsc` at build time. |
-| `jest` ^30.2.0 + `ts-jest` ^29.4.6 | Test runner. `ts-jest` transforms `.ts` files on the fly so Jest can execute them. The `preset: 'ts-jest'` in `jest.config.js` handles this.                                                                                                             |
+| ---------------------------------- | --------------------------------------------------------------------------- |
+| `typescript` ^5.3.0                | Compiler. `strict: true` mode enforces `strict​Null​Checks`, `no​Implicit​Any`, `strict​Function​Types`, etc.                                                                                                                                                  |
+| `ts-​node-​dev` ^2.0.0               | Development server. Combines `ts-​node` (JIT TypeScript compilation via the TypeScript compiler API) with file-watching and process restart. `-​-​transpile-​only` skips type-checking at dev time for speed; type errors are caught by `tsc` at build time. |
+| `jest` ^30.2.0 + `ts-​jest` ^29.4.6 | Test runner. `ts-​jest` transforms `.​ts` files on the fly so Jest can execute them. The `preset: 'ts-​jest'` in `jest.​config.​js` handles this.                                                                                                             |
 | `supertest` ^7.2.2                 | HTTP assertion library. Spins up an in-memory Express server (no network socket) via `request(app)` and allows chaining assertions on status codes, headers, and response bodies.                                                                        |
-| `@types/*`                         | TypeScript declaration files for `express`, `cors`, `pg`, `node`, `jest`, `supertest`. These provide type information for libraries written in JavaScript.                                                                                               |
+| `@types/​*`                         | TypeScript declaration files for `express`, `cors`, `pg`, `node`, `jest`, `supertest`. These provide type information for libraries written in JavaScript.                                                                                               |
 
 **Script definitions:**
 
@@ -153,11 +153,11 @@ This manifest declares the backend as `pse-backend` v1.0.0 and defines the compl
 "dev:full"            ->  bash scripts/dev-start.sh
 ```
 
-The `data:pipeline` script chains `process` then `build-recommender` sequentially via `&&`. This enforces the dependency: `build-recommender` requires the processed output from `process-dataset`.
+The `data:pipeline` script chains `process` then `build-​recommender` sequentially via `&&`. This enforces the dependency: `build-​recommender` requires the processed output from `process-​dataset`.
 
-### 1.2 `tsconfig.json`
+### 1.2 `tsconfig.​json`
 
-**File**: `backend/tsconfig.json`
+**File**: `backend/​tsconfig.​json`
 
 ```json
 {
@@ -183,23 +183,23 @@ The `data:pipeline` script chains `process` then `build-recommender` sequentiall
 
 Key settings and their consequences:
 
-- **`target: "ES2020"`** — The compiler emits ES2020 syntax, which means `optional chaining` (`?.`), `nullish coalescing` (`??`), `BigInt`, `Promise.allSettled`, and `globalThis` are emitted as-is rather than downleveled. This is safe because the runtime is Node.js (which supports ES2020 natively since v14).
+- **`target: "ES2020"`** — The compiler emits ES2020 syntax, which means `optional chaining` (`?.​`), `nullish coalescing` (`??`), `Big​Int`, `Promise.​all​Settled`, and `global​This` are emitted as-is rather than downleveled. This is safe because the runtime is Node.js (which supports ES2020 natively since v14).
 
-- **`module: "commonjs"`** — Output uses `require()` / `module.exports`. This is necessary because `ts-node-dev` and Node.js (without the `--experimental-modules` flag or `"type": "module"` in `package.json`) expect CommonJS modules. When you write `import express from 'express'` in TypeScript, the compiler emits `const express_1 = require("express")`.
+- **`module: "commonjs"`** — Output uses `require()` / `module.​exports`. This is necessary because `ts-​node-​dev` and Node.js (without the `-​-​experimental-​modules` flag or `"type": "module"` in `package.​json`) expect CommonJS modules. When you write `import express from 'express'` in TypeScript, the compiler emits `const express_​1 = require("express")`.
 
-- **`esModuleInterop: true`** — Enables synthetic default imports. Without this, `import express from 'express'` would fail because the `express` package uses `module.exports = createApplication` (a CommonJS default export), not `export default`. With `esModuleInterop`, the compiler generates a `__importDefault` helper that wraps CommonJS modules to provide a `.default` property.
+- **`es​Module​Interop: true`** — Enables synthetic default imports. Without this, `import express from 'express'` would fail because the `express` package uses `module.​exports = create​Application` (a CommonJS default export), not `export default`. With `es​Module​Interop`, the compiler generates a `_​_​import​Default` helper that wraps CommonJS modules to provide a `.​default` property.
 
-- **`strict: true`** — Enables the entire `strict` family: `strictNullChecks`, `strictFunctionTypes`, `strictBindCallApply`, `strictPropertyInitialization`, `noImplicitAny`, `noImplicitThis`, `alwaysStrict`. This forces you to handle `null | undefined` explicitly, catch missing properties, and fully type function signatures.
+- **`strict: true`** — Enables the entire `strict` family: `strict​Null​Checks`, `strict​Function​Types`, `strict​Bind​Call​Apply`, `strict​Property​Initialization`, `no​Implicit​Any`, `no​Implicit​This`, `always​Strict`. This forces you to handle `null | undefined` explicitly, catch missing properties, and fully type function signatures.
 
-- **`declaration: true` + `declarationMap: true`** — Generates `.d.ts` declaration files and `.d.ts.map` files alongside the JavaScript output. These are useful if the backend were consumed as a library, and they allow IDEs to navigate from compiled output back to source.
+- **`declaration: true` + `declaration​Map: true`** — Generates `.​d.​ts` declaration files and `.​d.​ts.​map` files alongside the JavaScript output. These are useful if the backend were consumed as a library, and they allow IDEs to navigate from compiled output back to source.
 
-- **`sourceMap: true`** — Generates `.js.map` files so stack traces in errors point to the original `.ts` line numbers rather than the compiled `.js` lines.
+- **`source​Map: true`** — Generates `.​js.​map` files so stack traces in errors point to the original `.​ts` line numbers rather than the compiled `.​js` lines.
 
-- **`resolveJsonModule: true`** — Allows `import data from './file.json'` with full type inference on the JSON structure.
+- **`resolve​Json​Module: true`** — Allows `import data from '.​/​file.​json'` with full type inference on the JSON structure.
 
-### 1.3 `.env.example`
+### 1.3 `.​env.​example`
 
-**File**: `backend/src/.env.example`
+**File**: `backend/​src/​.​env.​example`
 
 ```
 STEAM_API_KEY=your_steam_api_key_here
@@ -211,11 +211,11 @@ PGPASSWORD=your_postgres_password
 PGPORT=8080
 ```
 
-This documents the six environment variables the backend requires. The `STEAM_API_KEY` is obtained from [Valve's developer portal](https://steamcommunity.com/dev/apikey). The `PG*` variables follow the libpq convention (PostgreSQL's C client library), which means tools like `psql` also recognize them natively. Note that `PGPORT` defaults to 8080 here (non-standard; PostgreSQL's default is 5432) — this suggests the developer's local Postgres instance runs on a custom port.
+This documents the six environment variables the backend requires. The `STEAM_​API_​KEY` is obtained from [Valve's developer portal](https://steamcommunity.com/dev/apikey). The `PG*` variables follow the libpq convention (PostgreSQL's C client library), which means tools like `psql` also recognize them natively. Note that `PGPORT` defaults to 8080 here (non-standard; PostgreSQL's default is 5432) — this suggests the developer's local Postgres instance runs on a custom port.
 
-### 1.4 `jest.config.js`
+### 1.4 `jest.​config.​js`
 
-**File**: `backend/jest.config.js`
+**File**: `backend/​jest.​config.​js`
 
 ```js
 module.exports = {
@@ -228,18 +228,18 @@ module.exports = {
 };
 ```
 
-- **`preset: 'ts-jest'`** — Tells Jest to use `ts-jest` as the transformer for `.ts` files. Under the hood, `ts-jest` invokes the TypeScript compiler API (`ts.transpileModule`) on each test file before Jest executes it.
-- **`testEnvironment: 'node'`** — Uses Node.js globals (`process`, `Buffer`, `require`) instead of a jsdom browser emulation. Correct for a server-side project.
-- **`roots: ['<rootDir>/src']`** — Jest only looks inside `src/` for test files. This prevents it from scanning `node_modules/` or `dist/`.
-- **`testMatch`** — Glob pattern: any file matching `**/__tests__/**/*.test.ts` is treated as a test. This convention co-locates tests next to the modules they test (e.g., `services/__tests__/search.service.test.ts` sits next to `services/search.service.ts`).
-- **`clearMocks: true`** — Automatically calls `jest.clearAllMocks()` between every test. This resets mock call counts and return values, preventing state leakage between tests.
-- **`silent: false`** — Allows `console.log` output from tests to appear in the terminal. Useful during development; you would set this to `true` in CI to reduce noise.
+- **`preset: 'ts-​jest'`** — Tells Jest to use `ts-​jest` as the transformer for `.​ts` files. Under the hood, `ts-​jest` invokes the TypeScript compiler API (`ts.​transpile​Module`) on each test file before Jest executes it.
+- **`test​Environment: 'node'`** — Uses Node.js globals (`process`, `Buffer`, `require`) instead of a jsdom browser emulation. Correct for a server-side project.
+- **`roots: ['<root​Dir>/​src']`** — Jest only looks inside `src/​` for test files. This prevents it from scanning `node_​modules/​` or `dist/​`.
+- **`test​Match`** — Glob pattern: any file matching `**/​_​_​tests_​_​/​**/​*.​test.​ts` is treated as a test. This convention co-locates tests next to the modules they test (e.g., `services/​_​_​tests_​_​/​search.​service.​test.​ts` sits next to `services/​search.​service.​ts`).
+- **`clear​Mocks: true`** — Automatically calls `jest.​clear​All​Mocks()` between every test. This resets mock call counts and return values, preventing state leakage between tests.
+- **`silent: false`** — Allows `console.​log` output from tests to appear in the terminal. Useful during development; you would set this to `true` in CI to reduce noise.
 
 ---
 
-## 2. Entry Point — `index.ts`
+## 2. Entry Point — `index.​ts`
 
-**File**: [`index.ts`](backend/src/index.ts)
+**File**: [`index.​ts`](backend/src/index.ts)
 
 This file is the application root. It constructs the Express application, registers middleware, mounts route sub-routers, defines fallback handlers, and starts the HTTP listener.
 
@@ -259,13 +259,13 @@ This file is the application root. It constructs the Express application, regist
 11. app.listen(PORT)        ->  binds TCP socket, starts accepting connections
 ```
 
-### Mechanical step-by-step execution of `index.ts`
+### Mechanical step-by-step execution of `index.​ts`
 
 **Step 1 — Module imports (lines 1–7)**:
 
-When Node.js evaluates `require('./config')`, the `config.ts` module is loaded and executed **synchronously**. This triggers `dotenv.config()` twice (see Section 3), populating `process.env`. The config object is constructed and cached in the module system.
+When Node.js evaluates `require('.​/​config')`, the `config.​ts` module is loaded and executed **synchronously**. This triggers `dotenv.​config()` twice (see Section 3), populating `process.​env`. The config object is constructed and cached in the module system.
 
-When `require('./routes/user.routes')` is evaluated, Node.js loads and evaluates `user.routes.ts`, which in turn `require`s `steam.service.ts` (for `getSteamService`), `steam.types.ts` (for `SteamApiError`), `zod` (for schema definitions), and `validate.middleware.ts`. Each module is loaded once and cached — if two route files both import `steam.service.ts`, the module is only evaluated once. This is the CommonJS module singleton guarantee.
+When `require('.​/​routes/​user.​routes')` is evaluated, Node.js loads and evaluates `user.​routes.​ts`, which in turn `require`s `steam.​service.​ts` (for `get​Steam​Service`), `steam.​types.​ts` (for `Steam​Api​Error`), `zod` (for schema definitions), and `validate.​middleware.​ts`. Each module is loaded once and cached — if two route files both import `steam.​service.​ts`, the module is only evaluated once. This is the CommonJS module singleton guarantee.
 
 **Step 2 — Config validation (lines 9–13)**:
 
@@ -276,7 +276,7 @@ if (!config.port) {
 }
 ```
 
-The `!config.port` check leverages JavaScript's falsy evaluation. Since `parseInt` returns `NaN` for unparseable strings, and `NaN` is falsy, this guard catches both missing and invalid PORT values. `process.exit(1)` terminates the Node.js process with exit code 1 (indicating failure). The exit code is consumed by process managers (systemd, Docker, PM2) to determine restart behavior.
+The `!config.​port` check leverages JavaScript's falsy evaluation. Since `parse​Int` returns `Na​N` for unparseable strings, and `Na​N` is falsy, this guard catches both missing and invalid PORT values. `process.​exit(1)` terminates the Node.js process with exit code 1 (indicating failure). The exit code is consumed by process managers (systemd, Docker, PM2) to determine restart behavior.
 
 **Step 3 — Express application construction (line 15)**:
 
@@ -284,7 +284,7 @@ The `!config.port` check leverages JavaScript's falsy evaluation. Since `parseIn
 const app = express();
 ```
 
-`express()` returns a function with signature `(req: IncomingMessage, res: ServerResponse) => void`. This function is also augmented with methods like `.use()`, `.get()`, `.listen()`. Internally, Express creates a new `Application` prototype instance that maintains an ordered array of middleware layers (the "stack").
+`express()` returns a function with signature `(req: Incoming​Message, res: Server​Response) => void`. This function is also augmented with methods like `.​use()`, `.​get()`, `.​listen()`. Internally, Express creates a new `Application` prototype instance that maintains an ordered array of middleware layers (the "stack").
 
 **Step 4 — Global middleware registration (lines 19–20)**:
 
@@ -293,9 +293,9 @@ app.use(cors());
 app.use(express.json());
 ```
 
-`cors()` is invoked immediately (not deferred) and returns a middleware function `(req, res, next) => void`. This function is pushed onto the application's middleware stack. When a request arrives, Express walks the stack top-to-bottom. `cors()` inspects the request's `Origin` header and, if present, sets `Access-Control-Allow-Origin`, `Access-Control-Allow-Methods`, and `Access-Control-Allow-Headers` on the response. For `OPTIONS` preflight requests, it responds immediately with 204 (no content) and terminates the middleware chain.
+`cors()` is invoked immediately (not deferred) and returns a middleware function `(req, res, next) => void`. This function is pushed onto the application's middleware stack. When a request arrives, Express walks the stack top-to-bottom. `cors()` inspects the request's `Origin` header and, if present, sets `Access-​Control-​Allow-​Origin`, `Access-​Control-​Allow-​Methods`, and `Access-​Control-​Allow-​Headers` on the response. For `OPTIONS` preflight requests, it responds immediately with 204 (no content) and terminates the middleware chain.
 
-`express.json()` is a built-in middleware (added in Express 4.16). It checks the `Content-Type` header; if it matches `application/json`, it reads the full request body from the stream, parses it with `JSON.parse()`, and assigns the result to `req.body`. If the body is not valid JSON, it calls `next(err)` with a `SyntaxError`, which propagates to the error handler.
+`express.​json()` is a built-in middleware (added in Express 4.16). It checks the `Content-​Type` header; if it matches `application/​json`, it reads the full request body from the stream, parses it with `JSON.​parse()`, and assigns the result to `req.​body`. If the body is not valid JSON, it calls `next(err)` with a `Syntax​Error`, which propagates to the error handler.
 
 **Step 5 — Router mounting (lines 23–26)**:
 
@@ -306,11 +306,11 @@ app.use("/api/game", gameRoutes);
 app.use("/api/search", searchRoutes);
 ```
 
-Each `app.use(prefix, router)` call creates a "layer" in the Express stack that matches any request whose path starts with the given prefix. When a request arrives at `/api/user/76561198012345678/library`, Express:
+Each `app.​use(prefix, router)` call creates a "layer" in the Express stack that matches any request whose path starts with the given prefix. When a request arrives at `/​api/​user/​76561198012345678/​library`, Express:
 
-1. Strips the prefix `/api/user` from the path.
-2. Passes the remainder `/:steamId/library` to the `userRoutes` router.
-3. The router matches this against its own routes (registered via `router.get('/:steamId/library', ...)`).
+1. Strips the prefix `/​api/​user` from the path.
+2. Passes the remainder `/​:steam​Id/​library` to the `user​Routes` router.
+3. The router matches this against its own routes (registered via `router.​get('/​:steam​Id/​library', .​.​.​)`).
 
 **Step 6 — Health check endpoint (lines 29–34)**:
 
@@ -320,7 +320,7 @@ app.get("/api/health", (req, res) => {
 });
 ```
 
-This is a simple 2-arity handler (no `next`). `res.json()` internally calls `JSON.stringify()` on the object, sets `Content-Type: application/json`, and sends the response. The `timestamp` provides a liveness signal — monitoring systems can poll this endpoint and verify the server is responsive.
+This is a simple 2-arity handler (no `next`). `res.​json()` internally calls `JSON.​stringify()` on the object, sets `Content-​Type: application/​json`, and sends the response. The `timestamp` provides a liveness signal — monitoring systems can poll this endpoint and verify the server is responsive.
 
 **Step 7 — 404 handler (lines 37–39)**:
 
@@ -330,7 +330,7 @@ app.use((req, res) => {
 });
 ```
 
-This is a **2-arity middleware** registered after all routes. Express only reaches this if no prior route handler called `res.send()`, `res.json()`, or `res.end()`. The 2-arity signature distinguishes it from the error handler (which has 4 parameters). Express uses `Function.length` (the number of declared parameters) to differentiate.
+This is a **2-arity middleware** registered after all routes. Express only reaches this if no prior route handler called `res.​send()`, `res.​json()`, or `res.​end()`. The 2-arity signature distinguishes it from the error handler (which has 4 parameters). Express uses `Function.​length` (the number of declared parameters) to differentiate.
 
 **Step 8 — Error handler (lines 42–45)**:
 
@@ -358,11 +358,11 @@ app.listen(PORT, () => {
 });
 ```
 
-`app.listen(PORT)` is sugar for `http.createServer(app).listen(PORT)`. Internally:
+`app.​listen(PORT)` is sugar for `http.​create​Server(app).​listen(PORT)`. Internally:
 
-1. Node.js creates an `http.Server` instance.
-2. Passes the Express `app` function as the `requestListener` (called on every incoming HTTP request).
-3. Calls `server.listen(PORT)`, which instructs the OS kernel to bind a TCP socket on the specified port.
+1. Node.js creates an `http.​Server` instance.
+2. Passes the Express `app` function as the `request​Listener` (called on every incoming HTTP request).
+3. Calls `server.​listen(PORT)`, which instructs the OS kernel to bind a TCP socket on the specified port.
 4. The OS places the socket in the `LISTEN` state, ready to accept incoming TCP connections.
 5. When the bind succeeds, Node.js emits the `'listening'` event, which triggers the callback.
 
@@ -372,23 +372,23 @@ Express processes middleware in **registration order**. The sequence here is:
 
 1. `cors()` runs first — it adds CORS headers to every response and handles `OPTIONS` preflight requests. If this were registered after the routers, preflight requests would hit the 404 handler instead.
 
-2. `express.json()` parses the `Content-Type: application/json` request body into `req.body`. If this were missing, `req.body` would be `undefined` for POST requests (e.g., `/api/recommend/bytags`).
+2. `express.​json()` parses the `Content-​Type: application/​json` request body into `req.​body`. If this were missing, `req.​body` would be `undefined` for POST requests (e.g., `/​api/​recommend/​bytags`).
 
-3. Route handlers run in mount order. Because Express matches routes top-down, the order of `app.use('/api/user', ...)` etc. does not matter for non-overlapping prefixes — but it would matter if two routers claimed the same path.
+3. Route handlers run in mount order. Because Express matches routes top-down, the order of `app.​use('/​api/​user', .​.​.​)` etc. does not matter for non-overlapping prefixes — but it would matter if two routers claimed the same path.
 
-4. The 404 handler is a **2-arity middleware** `(req, res)` registered after all routes. Express only reaches this if no route handler called `res.send()` / `res.json()`.
+4. The 404 handler is a **2-arity middleware** `(req, res)` registered after all routes. Express only reaches this if no route handler called `res.​send()` / `res.​json()`.
 
 5. The error handler is a **4-arity middleware** `(err, req, res, next)`. Express identifies error-handling middleware by its 4-parameter signature. This catches any `throw` or `next(err)` from upstream middleware/routes. It logs the error and returns a generic 500.
 
 ---
 
-## 3. Config Module — `config.ts`
+## 3. Config Module — `config.​ts`
 
-**File**: [`config.ts`](backend/src/config.ts)
+**File**: [`config.​ts`](backend/src/config.ts)
 
 ### Mechanical execution flow
 
-When this module is first `require`d (triggered by `import { config } from './config'` in `index.ts`), Node.js evaluates the entire file top-to-bottom:
+When this module is first `require`d (triggered by `import { config } from '.​/​config'` in `index.​ts`), Node.js evaluates the entire file top-to-bottom:
 
 **Step 1 — Import resolution**:
 
@@ -397,7 +397,7 @@ import dotenv from "dotenv";
 import path from "path";
 ```
 
-Both are CommonJS modules. `dotenv` is loaded from `node_modules/dotenv/lib/main.js`; `path` is a Node.js built-in (no disk I/O needed — it's compiled into the Node.js binary).
+Both are CommonJS modules. `dotenv` is loaded from `node_​modules/​dotenv/​lib/​main.​js`; `path` is a Node.js built-in (no disk I/O needed — it's compiled into the Node.js binary).
 
 **Step 2 — First dotenv load (root monorepo)**:
 
@@ -406,13 +406,13 @@ const rootEnv =
   dotenv.config({ path: path.join(process.cwd(), "..", ".env") }).parsed || {};
 ```
 
-Execution flow of `dotenv.config()`:
+Execution flow of `dotenv.​config()`:
 
-1. `path.join(process.cwd(), '..', '.env')` constructs an absolute path. If `cwd` is `/project/backend`, this resolves to `/project/.env`.
-2. `dotenv.config({ path })` calls `fs.readFileSync(path, 'utf8')` — synchronous, blocking I/O.
+1. `path.​join(process.​cwd(), '.​.​', '.​env')` constructs an absolute path. If `cwd` is `/​project/​backend`, this resolves to `/​project/​.​env`.
+2. `dotenv.​config({ path })` calls `fs.​read​File​Sync(path, 'utf8')` — synchronous, blocking I/O.
 3. If the file exists, `dotenv` parses it line-by-line: splits on the first `=`, trims whitespace, handles quoted values, and builds a `{ key: value }` object.
-4. Each key-value pair is injected into `process.env` via `process.env[key] = value` (but only if the key doesn't already exist in `process.env` — dotenv does not overwrite existing environment variables by default).
-5. The `.parsed` property contains the parsed object. If the file doesn't exist, `.parsed` is `undefined`, and the `|| {}` fallback produces an empty object.
+4. Each key-value pair is injected into `process.​env` via `process.​env[key] = value` (but only if the key doesn't already exist in `process.​env` — dotenv does not overwrite existing environment variables by default).
+5. The `.​parsed` property contains the parsed object. If the file doesn't exist, `.​parsed` is `undefined`, and the `|| {}` fallback produces an empty object.
 
 **Step 3 — Second dotenv load (local src/.env)**:
 
@@ -421,7 +421,7 @@ const localEnv =
   dotenv.config({ path: path.join(process.cwd(), "src", ".env") }).parsed || {};
 ```
 
-Same process, but for `backend/src/.env`. Since `dotenv.config()` was already called once, any keys from `rootEnv` are already in `process.env`. The second call won't overwrite them (due to dotenv's default behavior), but the `.parsed` object captures the local file's values regardless.
+Same process, but for `backend/​src/​.​env`. Since `dotenv.​config()` was already called once, any keys from `root​Env` are already in `process.​env`. The second call won't overwrite them (due to dotenv's default behavior), but the `.​parsed` object captures the local file's values regardless.
 
 **Step 4 — Object spread merge**:
 
@@ -429,7 +429,7 @@ Same process, but for `backend/src/.env`. Since `dotenv.config()` was already ca
 const envConfig = { ...rootEnv, ...localEnv };
 ```
 
-JavaScript's spread operator creates a new object. Keys from `localEnv` overwrite same-named keys from `rootEnv`. This is the precedence mechanism — **local values win**.
+JavaScript's spread operator creates a new object. Keys from `local​Env` overwrite same-named keys from `root​Env`. This is the precedence mechanism — **local values win**.
 
 **Step 5 — Config object construction**:
 
@@ -455,7 +455,7 @@ envConfig.X  ||  process.env.X  ||  hardcoded default
  Merged .env     OS env variable      Last resort
 ```
 
-The `||` operator returns the first truthy value. Empty strings `''` are falsy, so if a `.env` file has `PORT=` (empty value), the chain falls through to `process.env.PORT`, then to the default.
+The `||` operator returns the first truthy value. Empty strings `''` are falsy, so if a `.​env` file has `PORT=` (empty value), the chain falls through to `process.​env.​PORT`, then to the default.
 
 **The full precedence chain** for any config value is:
 
@@ -463,15 +463,15 @@ The `||` operator returns the first truthy value. Empty strings `''` are falsy, 
 localEnv (src/.env)  >  rootEnv (../.env)  >  process.env  >  hardcoded default
 ```
 
-### `parseInt` for PORT and PGPORT:
+### `parse​Int` for PORT and PGPORT:
 
-Environment variables are always strings. `parseInt(str, 10)` converts to a base-10 integer. The radix `10` is explicit to avoid the historical JavaScript pitfall where `parseInt('08')` was interpreted as octal in older engines (returning 0 instead of 8). Modern engines default to base 10, but explicit radix is a defensive practice.
+Environment variables are always strings. `parse​Int(str, 10)` converts to a base-10 integer. The radix `10` is explicit to avoid the historical JavaScript pitfall where `parse​Int('08')` was interpreted as octal in older engines (returning 0 instead of 8). Modern engines default to base 10, but explicit radix is a defensive practice.
 
 ---
 
-## 4. Database Layer — `config/db.ts`
+## 4. Database Layer — `config/​db.​ts`
 
-**File**: [`db.ts`](backend/src/config/db.ts)
+**File**: [`db.​ts`](backend/src/config/db.ts)
 
 ### Mechanical execution flow
 
@@ -491,14 +491,14 @@ export const pool = new Pool({
 });
 ```
 
-`new Pool({...})` does **not** immediately open a TCP connection to PostgreSQL. The `pg.Pool` constructor only stores the configuration and initializes internal state:
+`new Pool({.​.​.​})` does **not** immediately open a TCP connection to PostgreSQL. The `pg.​Pool` constructor only stores the configuration and initializes internal state:
 
-- `this._clients = []` — array of active `Client` connections.
-- `this._idle = []` — array of idle clients available for reuse.
-- `this._pendingQueue = []` — queue of pending query callbacks waiting for a free client.
-- `this._ending = false` — pool lifecycle flag.
+- `this.​_​clients = []` — array of active `Client` connections.
+- `this.​_​idle = []` — array of idle clients available for reuse.
+- `this.​_​pending​Queue = []` — queue of pending query callbacks waiting for a free client.
+- `this.​_​ending = false` — pool lifecycle flag.
 
-The first actual TCP connection is established lazily, on the first `pool.query()` call.
+The first actual TCP connection is established lazily, on the first `pool.​query()` call.
 
 **Step 2 — Console log**:
 
@@ -521,30 +521,30 @@ export const query = <T extends QueryResultRow = any>(
 };
 ```
 
-### Connection Pooling — what `pg.Pool` actually does when `pool.query()` is called:
+### Connection Pooling — what `pg.​Pool` actually does when `pool.​query()` is called:
 
-1. **Check idle clients**: If `this._idle.length > 0`, pop the most recently used idle client (LIFO order for TCP keepalive efficiency).
-2. **Check capacity**: If no idle clients exist and `this._clients.length < max` (default 10), create a new `Client`:
+1. **Check idle clients**: If `this.​_​idle.​length > 0`, pop the most recently used idle client (LIFO order for TCP keepalive efficiency).
+2. **Check capacity**: If no idle clients exist and `this.​_​clients.​length < max` (default 10), create a new `Client`:
    a. Open a TCP socket to `host:port`.
-   b. Perform the PostgreSQL startup handshake (send `StartupMessage` with protocol version 3.0, database, user).
-   c. PostgreSQL responds with an `AuthenticationRequest` (e.g., `AuthenticationMD5Password`).
-   d. Client sends the password hash. PostgreSQL responds with `AuthenticationOk`.
-   e. PostgreSQL sends `ParameterStatus` messages (server version, encoding, timezone), then `BackendKeyData` (process ID, secret key for cancel), then `ReadyForQuery`.
+   b. Perform the PostgreSQL startup handshake (send `Startup​Message` with protocol version 3.0, database, user).
+   c. PostgreSQL responds with an `Authentication​Request` (e.g., `Authentication​MD5Password`).
+   d. Client sends the password hash. PostgreSQL responds with `Authentication​Ok`.
+   e. PostgreSQL sends `Parameter​Status` messages (server version, encoding, timezone), then `Backend​Key​Data` (process ID, secret key for cancel), then `Ready​For​Query`.
    f. The client is now ready to execute queries.
-3. **Queue if at capacity**: If all `max` clients are busy, the query callback is pushed onto `_pendingQueue`. When any client finishes its current query, it dequeues the next pending callback and executes it.
+3. **Queue if at capacity**: If all `max` clients are busy, the query callback is pushed onto `_​pending​Queue`. When any client finishes its current query, it dequeues the next pending callback and executes it.
 
-**What `pool.query<T>(text, params)` does internally**:
+**What `pool.​query<T>(text, params)` does internally**:
 
 1. Acquires a client from the pool (steps above).
 2. Sends a `Parse` message (SQL text -> prepared statement), `Bind` message (parameter values), and `Execute` message to PostgreSQL. This is the **extended query protocol**.
 3. Parameters (`params` array) are transmitted separately from the SQL text as binary values. PostgreSQL's parser never sees them as SQL — they are bound at the protocol level, preventing SQL injection.
-4. PostgreSQL executes the query and sends `DataRow` messages (one per result row) followed by `CommandComplete` and `ReadyForQuery`.
-5. The `pg` client assembles the `DataRow` messages into a `QueryResult<T>` object with `.rows: T[]`, `.rowCount: number`, `.fields: FieldDef[]`.
+4. PostgreSQL executes the query and sends `Data​Row` messages (one per result row) followed by `Command​Complete` and `Ready​For​Query`.
+5. The `pg` client assembles the `Data​Row` messages into a `Query​Result<T>` object with `.​rows: T[]`, `.​row​Count: number`, `.​fields: Field​Def[]`.
 6. The client is returned to the idle pool.
 
 ### The generic `query<T>` helper:
 
-The type parameter `T extends QueryResultRow` constrains `T` to be an object (since `QueryResultRow` is `{ [column: string]: any }`). When a caller writes:
+The type parameter `T extends Query​Result​Row` constrains `T` to be an object (since `Query​Result​Row` is `{ [column: string]: any }`). When a caller writes:
 
 ```typescript
 const result = await query<{ app_id: number; genres: string }>(
@@ -559,9 +559,9 @@ This is a compile-time-only construct — at runtime, the `<T>` is erased. The a
 
 ---
 
-## 5. Type System — `steam.types.ts`
+## 5. Type System — `steam.​types.​ts`
 
-**File**: [`steam.types.ts`](backend/src/types/steam.types.ts)
+**File**: [`steam.​types.​ts`](backend/src/types/steam.types.ts)
 
 This file defines the entire type vocabulary of the backend. It serves two distinct roles:
 
@@ -569,7 +569,7 @@ This file defines the entire type vocabulary of the backend. It serves two disti
 
 These types represent the **application's internal data model** — the cleaned, normalized shape of data after it has been transformed from raw API responses or database rows.
 
-**`OwnedGame`**: Represents a single game in a user's library.
+**`Owned​Game`**: Represents a single game in a user's library.
 
 ```typescript
 interface OwnedGame {
@@ -581,7 +581,7 @@ interface OwnedGame {
 }
 ```
 
-**`UserLibrary`**: Aggregate of a user's game collection.
+**`User​Library`**: Aggregate of a user's game collection.
 
 ```typescript
 interface UserLibrary {
@@ -591,9 +591,9 @@ interface UserLibrary {
 }
 ```
 
-The `steamId` is a `string` rather than `number` because Steam IDs are 64-bit unsigned integers (e.g., `76561198012345678`). JavaScript's `number` type is an IEEE 754 double-precision float, which can only represent integers exactly up to 2^53 - 1 (9,007,199,254,740,991). Steam IDs exceed this range, so representing them as numbers would cause precision loss. String representation is exact.
+The `steam​Id` is a `string` rather than `number` because Steam IDs are 64-bit unsigned integers (e.g., `76561198012345678`). JavaScript's `number` type is an IEEE 754 double-precision float, which can only represent integers exactly up to 2^53 - 1 (9,007,199,254,740,991). Steam IDs exceed this range, so representing them as numbers would cause precision loss. String representation is exact.
 
-**`PlayerSummary`**: Profile metadata for display.
+**`Player​Summary`**: Profile metadata for display.
 
 ```typescript
 interface PlayerSummary {
@@ -610,7 +610,7 @@ The `visibility` field maps to Steam's `communityvisibilitystate`:
 - `1`: Private — the user's profile is hidden; library, friends, and game data are inaccessible.
 - `3`: Public — all data is accessible.
 
-This distinction is critical because API calls to private profiles return empty responses rather than errors — the backend must handle this gracefully (see `steam.service.ts`).
+This distinction is critical because API calls to private profiles return empty responses rather than errors — the backend must handle this gracefully (see `steam.​service.​ts`).
 
 **`Friend`**: Represents a relationship in the user's friend graph.
 
@@ -622,9 +622,9 @@ interface Friend {
 }
 ```
 
-The `friendSince` field is a Unix epoch timestamp. JavaScript's `Date` constructor accepts milliseconds, so conversion requires `new Date(friendSince * 1000)`. The `relationship` field is always `'friend'` in practice because the API is called with `relationship=friend`.
+The `friend​Since` field is a Unix epoch timestamp. JavaScript's `Date` constructor accepts milliseconds, so conversion requires `new Date(friend​Since * 1000)`. The `relationship` field is always `'friend'` in practice because the API is called with `relationship=friend`.
 
-**`UserGenreProfile`**: A single entry in the user's genre preference vector.
+**`User​Genre​Profile`**: A single entry in the user's genre preference vector.
 
 ```typescript
 interface UserGenreProfile {
@@ -635,7 +635,7 @@ interface UserGenreProfile {
 
 The `weight` field is a probability-like value in [0, 1] where all weights across the vector sum to exactly 1.0. This is the result of L1 normalization (see Section 8.4 for the full derivation).
 
-**`UserProfile`**: The aggregated user context object.
+**`User​Profile`**: The aggregated user context object.
 
 ```typescript
 interface UserProfile {
@@ -654,7 +654,7 @@ interface UserProfile {
 }
 ```
 
-Note the use of `Set<number>` and `Map<string, number>` for internal computation fields. These provide O(1) membership testing and key lookup, which is critical when scoring thousands of recommendation candidates. However, `Set` and `Map` are not JSON-serializable — `JSON.stringify(new Set([1,2,3]))` produces `'{}'` because `Set` has no enumerable own properties. The route handler in `recommend.routes.ts` must strip these fields before sending the response.
+Note the use of `Set<number>` and `Map<string, number>` for internal computation fields. These provide O(1) membership testing and key lookup, which is critical when scoring thousands of recommendation candidates. However, `Set` and `Map` are not JSON-serializable — `JSON.​stringify(new Set([1,2,3]))` produces `'{}'` because `Set` has no enumerable own properties. The route handler in `recommend.​routes.​ts` must strip these fields before sending the response.
 
 **`Game`**: Full game details from the Steam Store API.
 
@@ -678,19 +678,19 @@ interface Game {
 
 These types mirror the exact JSON structure returned by Steam's APIs. They exist to provide type safety when destructuring API responses.
 
-**`SteamOwnedGamesResponse`**: Response from `/IPlayerService/GetOwnedGames/v1/`.
+**`Steam​Owned​Games​Response`**: Response from `/​IPlayer​Service/​Get​Owned​Games/​v1/​`.
 
--> See [`SteamOwnedGamesResponse`](backend/src/types/steam.types.ts#L66-L77)
+-> See [`Steam​Owned​Games​Response`](backend/src/types/steam.types.ts#L66-L77)
 
 The `games` array is `optional` (marked with `?`) because the Steam API returns an empty `response: {}` object (no `games` key at all) when the user's profile is private. This is not an HTTP error — it's a 200 OK with a semantically empty payload. The service layer must check for this case explicitly.
 
-**`SteamPlayerSummaryResponse`**: Response from `/ISteamUser/GetPlayerSummaries/v2/`.
+**`Steam​Player​Summary​Response`**: Response from `/​ISteam​User/​Get​Player​Summaries/​v2/​`.
 
--> See [`SteamPlayerSummaryResponse`](backend/src/types/steam.types.ts#L79-L89)
+-> See [`Steam​Player​Summary​Response`](backend/src/types/steam.types.ts#L79-L89)
 
-This endpoint accepts comma-separated Steam IDs and returns an array of player objects. In this project, only one ID is queried at a time (`steamids: steamId`), so `players[0]` is always the target user. The `players` array is non-optional (it's always present), but may be empty if the Steam ID is invalid.
+This endpoint accepts comma-separated Steam IDs and returns an array of player objects. In this project, only one ID is queried at a time (`steamids: steam​Id`), so `players[0]` is always the target user. The `players` array is non-optional (it's always present), but may be empty if the Steam ID is invalid.
 
-**`SteamAppDetailsResponse`**: Response from `/api/appdetails`.
+**`Steam​App​Details​Response`**: Response from `/​api/​appdetails`.
 
 ```typescript
 interface SteamAppDetailsResponse {
@@ -714,13 +714,13 @@ interface SteamAppDetailsResponse {
 }
 ```
 
-The response is keyed by `appId` as a string (e.g., `{ "730": { success: true, data: { ... } } }`). The `price_overview.final` is in **cents** (e.g., 5999 = $59.99).
+The response is keyed by `app​Id` as a string (e.g., `{ "730": { success: true, data: { .​.​.​ } } }`). The `price_​overview.​final` is in **cents** (e.g., 5999 = $59.99).
 
-**`SteamFriendListResponse`**: Response from `/ISteamUser/GetFriendList/v1/`.
+**`Steam​Friend​List​Response`**: Response from `/​ISteam​User/​Get​Friend​List/​v1/​`.
 
--> See [`SteamFriendListResponse`](backend/src/types/steam.types.ts#L123-L131)
+-> See [`Steam​Friend​List​Response`](backend/src/types/steam.types.ts#L123-L131)
 
-Note the snake_case (`friend_since`). The service layer maps this to camelCase (`friendSince`) when constructing `Friend` objects.
+Note the snake_case (`friend_​since`). The service layer maps this to camelCase (`friend​Since`) when constructing `Friend` objects.
 
 ### 5.3 Custom Error Class
 
@@ -736,14 +736,14 @@ export class SteamApiError extends Error {
 }
 ```
 
-**Mechanical execution when `new SteamApiError('msg', 403)` is called**:
+**Mechanical execution when `new Steam​Api​Error('msg', 403)` is called**:
 
-1. JavaScript allocates a new object with prototype `SteamApiError.prototype`.
-2. `super(message)` calls `Error(message)`, which sets `this.message = message` and captures the call stack into `this.stack` (V8's `Error.captureStackTrace`).
-3. TypeScript's `public statusCode?: number` parameter property is syntactic sugar — it declares `this.statusCode` as a public property and assigns the constructor argument to it. At runtime, this compiles to `this.statusCode = statusCode`.
-4. `this.name = 'SteamApiError'` overrides the inherited `Error.prototype.name` ('Error'). Without this, stack traces would show `Error: msg` instead of `SteamApiError: msg`.
+1. JavaScript allocates a new object with prototype `Steam​Api​Error.​prototype`.
+2. `super(message)` calls `Error(message)`, which sets `this.​message = message` and captures the call stack into `this.​stack` (V8's `Error.​capture​Stack​Trace`).
+3. TypeScript's `public status​Code?: number` parameter property is syntactic sugar — it declares `this.​status​Code` as a public property and assigns the constructor argument to it. At runtime, this compiles to `this.​status​Code = status​Code`.
+4. `this.​name = 'Steam​Api​Error'` overrides the inherited `Error.​prototype.​name` ('Error'). Without this, stack traces would show `Error: msg` instead of `Steam​Api​Error: msg`.
 
-The `statusCode` field allows route handlers to set the HTTP response status code to match the error type:
+The `status​Code` field allows route handlers to set the HTTP response status code to match the error type:
 
 - `403` -> private profile
 - `404` -> player not found
@@ -751,9 +751,9 @@ The `statusCode` field allows route handlers to set the HTTP response status cod
 
 ---
 
-## 6. Validation Middleware — `validate.middleware.ts`
+## 6. Validation Middleware — `validate.​middleware.​ts`
 
-**File**: [`validate.middleware.ts`](backend/src/middleware/validate.middleware.ts)
+**File**: [`validate.​middleware.​ts`](backend/src/middleware/validate.middleware.ts)
 
 ```typescript
 export const validate = (schema: ZodSchema) => {
@@ -794,7 +794,7 @@ export const validate = (schema: ZodSchema) => {
 
 **Step 1 — Factory invocation** (at route definition time, not request time):
 
-When a route file calls `validate(steamIdSchema)`, the outer function executes immediately and returns a new anonymous async function. This returned function is the actual Express middleware. It captures `schema` in its closure (lexical scope).
+When a route file calls `validate(steam​Id​Schema)`, the outer function executes immediately and returns a new anonymous async function. This returned function is the actual Express middleware. It captures `schema` in its closure (lexical scope).
 
 ```typescript
 // This happens at module load time:
@@ -804,7 +804,7 @@ router.get("/:steamId/library", validate(steamIdSchema), handler);
 
 **Step 2 — Middleware execution** (at request time):
 
-When a request arrives at `GET /api/user/76561198012345678/library`, Express calls the middleware function with `(req, res, next)`.
+When a request arrives at `GET /​api/​user/​76561198012345678/​library`, Express calls the middleware function with `(req, res, next)`.
 
 **Step 3 — Validation target construction**:
 
@@ -816,21 +816,21 @@ await schema.parseAsync({
 });
 ```
 
-The three Express request properties are bundled into a single object that matches the Zod schema structure. This means Zod schemas must be structured as `z.object({ params: z.object({...}), query: z.object({...}), body: z.object({...}) })`.
+The three Express request properties are bundled into a single object that matches the Zod schema structure. This means Zod schemas must be structured as `z.​object({ params: z.​object({.​.​.​}), query: z.​object({.​.​.​}), body: z.​object({.​.​.​}) })`.
 
 **Step 4 — Zod parsing internals**:
 
-`schema.parseAsync(target)` executes the following internally:
+`schema.​parse​Async(target)` executes the following internally:
 
 1. **Root object check**: Verify `target` is an object.
 2. **Nested object validation**: For each key (`body`, `query`, `params`), descend into the nested schema.
-3. **Field validation**: For each field (e.g., `params.steamId`), run the validation chain:
-   - `z.string()` — check `typeof value === 'string'`.
-   - `.length(17)` — check `value.length === 17`.
-   - `.regex(/^\d+$/)` — check `value.match(/^\d+$/) !== null`.
-4. **Error accumulation**: Zod does **not** short-circuit on the first error. It validates all fields and accumulates all errors into a `ZodError` object with an `issues` array.
+3. **Field validation**: For each field (e.g., `params.​steam​Id`), run the validation chain:
+   - `z.​string()` — check `typeof value === 'string'`.
+   - `.​length(17)` — check `value.​length === 17`.
+   - `.​regex(/​^\d+$/​)` — check `value.​match(/​^\d+$/​) !== null`.
+4. **Error accumulation**: Zod does **not** short-circuit on the first error. It validates all fields and accumulates all errors into a `Zod​Error` object with an `issues` array.
 5. **On success**: Returns the parsed (and possibly coerced) data.
-6. **On failure**: Throws a `ZodError`.
+6. **On failure**: Throws a `Zod​Error`.
 
 **Step 5 — Success path**:
 
@@ -855,15 +855,15 @@ if (error instanceof z.ZodError) {
 
 Each Zod issue has:
 
-- `path`: An array of path segments, e.g., `['params', 'steamId']`.
+- `path`: An array of path segments, e.g., `['params', 'steam​Id']`.
 - `message`: Human-readable error, e.g., `'Steam ID must be exactly 17 characters long'`.
-- `code`: The Zod error code, e.g., `'too_small'`, `'invalid_string'`.
+- `code`: The Zod error code, e.g., `'too_​small'`, `'invalid_​string'`.
 
-The `path.join('.')` produces `'params.steamId'`, giving the caller a dot-notation path to the offending field. This is concatenated with the message: `'params.steamId - Steam ID must be exactly 17 characters long'`.
+The `path.​join('.​')` produces `'params.​steam​Id'`, giving the caller a dot-notation path to the offending field. This is concatenated with the message: `'params.​steam​Id -​ Steam ID must be exactly 17 characters long'`.
 
-The `(error as any).issues || (error as any).errors` handles both Zod 3 (which uses `errors`) and Zod 4 (which uses `issues`).
+The `(error as any).​issues || (error as any).​errors` handles both Zod 3 (which uses `errors`) and Zod 4 (which uses `issues`).
 
-**Concrete example**: If the request is `GET /api/user/abc/library`:
+**Concrete example**: If the request is `GET /​api/​user/​abc/​library`:
 
 ```json
 {
@@ -877,39 +877,39 @@ The `(error as any).issues || (error as any).errors` handles both Zod 3 (which u
 
 ### Why validation belongs in middleware (not in route handlers):
 
-Separation of concerns. Route handlers assume their inputs are valid and focus on business logic. Validation middleware acts as a **gate** — invalid requests are rejected before they ever reach the handler. This also centralizes the error response format: every validation failure across all routes produces the same `{ error: 'Validation failed', details: [...] }` shape.
+Separation of concerns. Route handlers assume their inputs are valid and focus on business logic. Validation middleware acts as a **gate** — invalid requests are rejected before they ever reach the handler. This also centralizes the error response format: every validation failure across all routes produces the same `{ error: 'Validation failed', details: [.​.​.​] }` shape.
 
 ---
 
 ## 7. Route Layer
 
-The route layer follows Express's `Router` pattern. Each file creates a `Router()` instance, attaches handlers, and exports it. The `index.ts` mounts each router at a specific path prefix.
+The route layer follows Express's `Router` pattern. Each file creates a `Router()` instance, attaches handlers, and exports it. The `index.​ts` mounts each router at a specific path prefix.
 
-### 7.1 `user.routes.ts`
+### 7.1 `user.​routes.​ts`
 
-**File**: [`user.routes.ts`](backend/src/routes/user.routes.ts)
+**File**: [`user.​routes.​ts`](backend/src/routes/user.routes.ts)
 
-**Mount point**: `/api/user`
+**Mount point**: `/​api/​user`
 
 **Endpoints**:
 
 | Method | Path                | Purpose                            |
-| ------ | ------------------- | ---------------------------------- |
-| GET    | `/:steamId/library` | Fetch user's complete game library |
-| GET    | `/:steamId/recent`  | Fetch recently played games        |
-| GET    | `/:steamId/profile` | Fetch player profile summary       |
+| ------------ | ------------------- | ---------------------------------- |
+| GET    | `/​:steam​Id/​library` | Fetch user's complete game library |
+| GET    | `/​:steam​Id/​recent`  | Fetch recently played games        |
+| GET    | `/​:steam​Id/​profile` | Fetch player profile summary       |
 
 #### Zod Schema Definition
 
--> See [`steamIdSchema`](backend/src/routes/user.routes.ts#L10-L17)
+-> See [`steam​Id​Schema`](backend/src/routes/user.routes.ts#L10-L17)
 
-This schema is shared across all three endpoints. It validates that `:steamId` is exactly 17 digits — the length of a 64-bit Steam ID in decimal notation (e.g., `76561198012345678`). The validation chain is conjunctive: both `.length(17)` AND `.regex(/^\d+$/)` must pass.
+This schema is shared across all three endpoints. It validates that `:steam​Id` is exactly 17 digits — the length of a 64-bit Steam ID in decimal notation (e.g., `76561198012345678`). The validation chain is conjunctive: both `.​length(17)` AND `.​regex(/​^\d+$/​)` must pass.
 
-#### Endpoint: `GET /:steamId/library` — Mechanical Execution
+#### Endpoint: `GET /​:steam​Id/​library` — Mechanical Execution
 
 -> Source: [`library handler`](backend/src/routes/user.routes.ts#L23-L47)
 
-**Step 1** — Express matches the path `/:steamId/library` and runs the middleware chain: `validate(steamIdSchema)` -> `async handler`.
+**Step 1** — Express matches the path `/​:steam​Id/​library` and runs the middleware chain: `validate(steam​Id​Schema)` -> `async handler`.
 
 **Step 2** — Boolean-from-string query parameter conversion:
 
@@ -919,7 +919,7 @@ const includeFreeGames = req.query.includeFreeGames !== "false";
 
 Query parameters are always strings. This expression evaluates to:
 
-- `true` if `includeFreeGames` is `undefined` (parameter not provided) — because `undefined !== 'false'` is `true`.
+- `true` if `include​Free​Games` is `undefined` (parameter not provided) — because `undefined !== 'false'` is `true`.
 - `true` if the value is `'true'`, `'yes'`, or any string except `'false'`.
 - `false` only if the value is exactly the string `'false'`.
 
@@ -936,7 +936,7 @@ const library = await steamService.getOwnedGames(
 );
 ```
 
-`getSteamService()` returns the singleton `SteamService` instance (creating it on first call). The `getOwnedGames` method makes an HTTP request to the Steam Web API (see Section 8.1).
+`get​Steam​Service()` returns the singleton `Steam​Service` instance (creating it on first call). The `get​Owned​Games` method makes an HTTP request to the Steam Web API (see Section 8.1).
 
 **Step 4** — Response:
 
@@ -944,7 +944,7 @@ const library = await steamService.getOwnedGames(
 res.json(library);
 ```
 
-`res.json()` calls `JSON.stringify(library)`, sets `Content-Type: application/json; charset=utf-8`, writes the string to the response stream, and ends the response. The `UserLibrary` object with `steamId`, `gameCount`, and `games[]` is serialized.
+`res.​json()` calls `JSON.​stringify(library)`, sets `Content-​Type: application/​json; charset=utf-​8`, writes the string to the response stream, and ends the response. The `User​Library` object with `steam​Id`, `game​Count`, and `games[]` is serialized.
 
 **Step 5** — Error handling:
 
@@ -958,9 +958,9 @@ if (error instanceof SteamApiError) {
 }
 ```
 
-The `instanceof` check differentiates between known application errors (private profile, rate limit) and unexpected errors (network timeout, code bugs). Known errors preserve the `statusCode` from the exception; unknown errors always return 500.
+The `instanceof` check differentiates between known application errors (private profile, rate limit) and unexpected errors (network timeout, code bugs). Known errors preserve the `status​Code` from the exception; unknown errors always return 500.
 
-#### Endpoint: `GET /:steamId/recent` — Mechanical Execution
+#### Endpoint: `GET /​:steam​Id/​recent` — Mechanical Execution
 
 -> Source: [`recent handler`](backend/src/routes/user.routes.ts#L53-L73)
 
@@ -972,13 +972,13 @@ const count = Math.min(parseInt(req.query.count as string) || 10, 100);
 
 This expression evaluates right-to-left:
 
-1. `req.query.count` -> `string | undefined` (Express query params are strings).
-2. `parseInt(undefined)` -> `NaN`.
-3. `NaN || 10` -> `10` (NaN is falsy, so the `||` short-circuits to the default).
-4. `Math.min(10, 100)` -> `10`.
+1. `req.​query.​count` -> `string | undefined` (Express query params are strings).
+2. `parse​Int(undefined)` -> `Na​N`.
+3. `Na​N || 10` -> `10` (NaN is falsy, so the `||` short-circuits to the default).
+4. `Math.​min(10, 100)` -> `10`.
 
-If the user passes `?count=50`: `parseInt('50')` -> `50`, `50 || 10` -> `50`, `Math.min(50, 100)` -> `50`.
-If the user passes `?count=999`: `Math.min(999, 100)` -> `100`. The cap prevents abuse.
+If the user passes `?count=50`: `parse​Int('50')` -> `50`, `50 || 10` -> `50`, `Math.​min(50, 100)` -> `50`.
+If the user passes `?count=999`: `Math.​min(999, 100)` -> `100`. The cap prevents abuse.
 
 **Step 2** — Service call:
 
@@ -989,9 +989,9 @@ const games = await steamService.getRecentlyPlayedGames(
 );
 ```
 
-This calls `/IPlayerService/GetRecentlyPlayedGames/v1/` on the Steam API. Unlike `getOwnedGames`, this method returns the raw `OwnedGame[]` array (not a `UserLibrary` wrapper), since the recently-played endpoint doesn't include a game count.
+This calls `/​IPlayer​Service/​Get​Recently​Played​Games/​v1/​` on the Steam API. Unlike `get​Owned​Games`, this method returns the raw `Owned​Game[]` array (not a `User​Library` wrapper), since the recently-played endpoint doesn't include a game count.
 
-#### Endpoint: `GET /:steamId/profile` — Mechanical Execution
+#### Endpoint: `GET /​:steam​Id/​profile` — Mechanical Execution
 
 -> Source: [`profile handler`](backend/src/routes/user.routes.ts#L79-L99)
 
@@ -1001,7 +1001,7 @@ This calls `/IPlayerService/GetRecentlyPlayedGames/v1/` on the Steam API. Unlike
 const profile = await steamService.getPlayerSummary(req.params.steamId);
 ```
 
-This calls `/ISteamUser/GetPlayerSummaries/v2/`, which returns public profile metadata (persona name, avatar URL, visibility state).
+This calls `/​ISteam​User/​Get​Player​Summaries/​v2/​`, which returns public profile metadata (persona name, avatar URL, visibility state).
 
 **Step 2** — Error handling specifics:
 
@@ -1009,25 +1009,25 @@ This calls `/ISteamUser/GetPlayerSummaries/v2/`, which returns public profile me
 const status = error.statusCode === 404 ? 404 : 500;
 ```
 
-Unlike the library endpoint (which forwards the `statusCode` directly), the profile endpoint only distinguishes between "not found" (404) and everything else (500). This is because a 403 (private profile) for the `getPlayerSummary` endpoint has different semantics — the player _exists_ but their profile is private, which is arguably a 200 with reduced data, not a client error.
+Unlike the library endpoint (which forwards the `status​Code` directly), the profile endpoint only distinguishes between "not found" (404) and everything else (500). This is because a 403 (private profile) for the `get​Player​Summary` endpoint has different semantics — the player _exists_ but their profile is private, which is arguably a 200 with reduced data, not a client error.
 
-### 7.2 `game.routes.ts`
+### 7.2 `game.​routes.​ts`
 
-**File**: [`game.routes.ts`](backend/src/routes/game.routes.ts)
+**File**: [`game.​routes.​ts`](backend/src/routes/game.routes.ts)
 
-**Mount point**: `/api/game`
+**Mount point**: `/​api/​game`
 
 **Endpoints**:
 
 | Method | Path      | Purpose                                       |
-| ------ | --------- | --------------------------------------------- |
-| GET    | `/:appId` | Fetch detailed game info from Steam Store API |
+| ------------ | ------------ | --------------------------------------------- |
+| GET    | `/​:app​Id` | Fetch detailed game info from Steam Store API |
 
 #### Zod Schema
 
--> See [`getGameParamsSchema`](backend/src/routes/game.routes.ts#L10-L14)
+-> See [`get​Game​Params​Schema`](backend/src/routes/game.routes.ts#L10-L14)
 
-Note: The schema validates `appId` as a string matching `/^\d+$/`. This is correct because Express route parameters are always strings. The conversion to number happens in the handler.
+Note: The schema validates `app​Id` as a string matching `/​^\d+$/​`. This is correct because Express route parameters are always strings. The conversion to number happens in the handler.
 
 #### Mechanical Execution
 
@@ -1037,7 +1037,7 @@ Note: The schema validates `appId` as a string matching `/^\d+$/`. This is corre
 const appId = parseInt(req.params.appId, 10);
 ```
 
-After Zod validation, we know `req.params.appId` is a numeric string. `parseInt` converts it to a JavaScript number. The radix `10` is explicit for safety.
+After Zod validation, we know `req.​params.​app​Id` is a numeric string. `parse​Int` converts it to a JavaScript number. The radix `10` is explicit for safety.
 
 **Step 2** — Service call:
 
@@ -1045,7 +1045,7 @@ After Zod validation, we know `req.params.appId` is a numeric string. `parseInt`
 const game = await steamService.getAppDetails(appId);
 ```
 
-This calls the Steam Store API (`/appdetails?appids=730&cc=us&l=en`). Unlike the Web API methods, `getAppDetails` returns `null` on failure (rather than throwing). This is because Store API failures are non-exceptional — games can be delisted, region-locked, or the endpoint may be temporarily rate-limited.
+This calls the Steam Store API (`/​appdetails?appids=730&cc=us&l=en`). Unlike the Web API methods, `get​App​Details` returns `null` on failure (rather than throwing). This is because Store API failures are non-exceptional — games can be delisted, region-locked, or the endpoint may be temporarily rate-limited.
 
 **Step 3** — Null check:
 
@@ -1056,27 +1056,27 @@ if (!game) {
 }
 ```
 
-The `return` after `res.status(404).json(...)` is critical. Without it, execution would fall through to `res.json(game)`, causing a "headers already sent" error (Express can only send one response per request).
+The `return` after `res.​status(404).​json(.​.​.​)` is critical. Without it, execution would fall through to `res.​json(game)`, causing a "headers already sent" error (Express can only send one response per request).
 
-### 7.3 `search.routes.ts`
+### 7.3 `search.​routes.​ts`
 
-**File**: [`search.routes.ts`](backend/src/routes/search.routes.ts)
+**File**: [`search.​routes.​ts`](backend/src/routes/search.routes.ts)
 
-**Mount point**: `/api/search`
+**Mount point**: `/​api/​search`
 
 **Endpoints**:
 
 | Method | Path | Purpose                                           |
-| ------ | ---- | ------------------------------------------------- |
-| GET    | `/`  | Search games by genres, keyword, and player count |
+| ------------ | ------------ | ------------------------------------------------- |
+| GET    | `/​`  | Search games by genres, keyword, and player count |
 
 This is the database-backed search endpoint. It does not call the Steam API — it queries the local PostgreSQL `games` table.
 
 #### Zod Schema — All Optional Parameters
 
--> See [`searchSchema`](backend/src/routes/search.routes.ts#L10-L16)
+-> See [`search​Schema`](backend/src/routes/search.routes.ts#L10-L16)
 
-All three query parameters are optional. A request with no parameters (`GET /api/search`) is valid and returns the top 10 games by positive votes.
+All three query parameters are optional. A request with no parameters (`GET /​api/​search`) is valid and returns the top 10 games by positive votes.
 
 #### Mechanical Execution
 
@@ -1086,7 +1086,7 @@ All three query parameters are optional. A request with no parameters (`GET /api
 const queryData = req.query as z.infer<typeof searchSchema>["query"];
 ```
 
-The `z.infer<typeof searchSchema>` extracts the TypeScript type from the Zod schema. The `['query']` index type narrows it to the `query` property. This cast tells TypeScript that `queryData` has the exact shape defined in the schema.
+The `z.​infer<typeof search​Schema>` extracts the TypeScript type from the Zod schema. The `['query']` index type narrows it to the `query` property. This cast tells TypeScript that `query​Data` has the exact shape defined in the schema.
 
 **Step 2** — Genre string processing:
 
@@ -1100,10 +1100,10 @@ const genreList = genresRaw
 
 Concrete example: `?genres=RPG,Action,%20Puzzle`
 
-1. `genresRaw` = `'RPG,Action, Puzzle'` (URL-decoded by Express).
-2. `.split(',')` = `['RPG', 'Action', ' Puzzle']`.
-3. `.map(g => g.trim())` = `['RPG', 'Action', 'Puzzle']`.
-4. `.filter(g => g.length > 0)` = `['RPG', 'Action', 'Puzzle']` (filters out empty strings from trailing commas like `"RPG,"`).
+1. `genres​Raw` = `'RPG,Action, Puzzle'` (URL-decoded by Express).
+2. `.​split(',')` = `['RPG', 'Action', ' Puzzle']`.
+3. `.​map(g => g.​trim())` = `['RPG', 'Action', 'Puzzle']`.
+4. `.​filter(g => g.​length > 0)` = `['RPG', 'Action', 'Puzzle']` (filters out empty strings from trailing commas like `"RPG,"`).
 
 **Step 3** — Service delegation:
 
@@ -1115,25 +1115,25 @@ const games = await searchService.searchByGenres(
 );
 ```
 
-The `searchService` is instantiated at module load time (`const searchService = new SearchService()`). It's stateless, so multiple instances would behave identically.
+The `search​Service` is instantiated at module load time (`const search​Service = new Search​Service()`). It's stateless, so multiple instances would behave identically.
 
-### 7.4 `recommend.routes.ts`
+### 7.4 `recommend.​routes.​ts`
 
-**File**: [`recommend.routes.ts`](backend/src/routes/recommend.routes.ts)
+**File**: [`recommend.​routes.​ts`](backend/src/routes/recommend.routes.ts)
 
-**Mount point**: `/api/recommend`
+**Mount point**: `/​api/​recommend`
 
 This is the most complex route file, with five endpoints orchestrating the recommendation engine.
 
 **Endpoints**:
 
 | Method | Path                     | Purpose                                                        |
-| ------ | ------------------------ | -------------------------------------------------------------- |
-| GET    | `/status`                | Check if the recommender is loaded and ready                   |
-| GET    | `/similar/:appId`        | Get games similar to a specific game                           |
-| GET    | `/user/:steamId`         | Get personalized recommendations for a user                    |
-| GET    | `/user/:steamId/profile` | Get the user's aggregated profile (genre vector, friend stats) |
-| POST   | `/bytags`                | Get recommendations matching specific tags                     |
+| ------------ | ------------------------ | -------------------------------------------------------------- |
+| GET    | `/​status`                | Check if the recommender is loaded and ready                   |
+| GET    | `/​similar/​:app​Id`        | Get games similar to a specific game                           |
+| GET    | `/​user/​:steam​Id`         | Get personalized recommendations for a user                    |
+| GET    | `/​user/​:steam​Id/​profile` | Get the user's aggregated profile (genre vector, friend stats) |
+| POST   | `/​bytags`                | Get recommendations matching specific tags                     |
 
 #### Zod Schemas
 
@@ -1163,9 +1163,9 @@ const byTagsSchema = z.object({
 });
 ```
 
-Note: The `byTagsSchema` validates `limit` as a `z.number()` (not `z.string()`), because it comes from a JSON body (which preserves JavaScript types), not a query parameter (which is always a string).
+Note: The `by​Tags​Schema` validates `limit` as a `z.​number()` (not `z.​string()`), because it comes from a JSON body (which preserves JavaScript types), not a query parameter (which is always a string).
 
-#### Endpoint: `GET /status` — Mechanical Execution
+#### Endpoint: `GET /​status` — Mechanical Execution
 
 -> Source: [`status handler`](backend/src/routes/recommend.routes.ts#L44-L62)
 
@@ -1187,13 +1187,13 @@ router.get('/status', (req: Request, res: Response): void => {
 });
 ```
 
-**Step 1** — `getRecommenderService()` returns the singleton. If this is the first call, the constructor runs and attempts to load `similarity-index.json`, `vectors.json`, and `idf.json` from disk (synchronous I/O). If the files don't exist, `isLoaded` is set to `false`.
+**Step 1** — `get​Recommender​Service()` returns the singleton. If this is the first call, the constructor runs and attempts to load `similarity-​index.​json`, `vectors.​json`, and `idf.​json` from disk (synchronous I/O). If the files don't exist, `is​Loaded` is set to `false`.
 
 **Step 2** — If the constructor throws (e.g., malformed JSON file), the catch block returns 503 (Service Unavailable) with setup instructions.
 
-**Step 3** — `recommender.isReady()` returns `this.isLoaded`, which is `true` only if `similarityIndex.size > 0`.
+**Step 3** — `recommender.​is​Ready()` returns `this.​is​Loaded`, which is `true` only if `similarity​Index.​size > 0`.
 
-#### Endpoint: `GET /similar/:appId` — Mechanical Execution
+#### Endpoint: `GET /​similar/​:app​Id` — Mechanical Execution
 
 -> Source: [`similar handler`](backend/src/routes/recommend.routes.ts#L67-L98)
 
@@ -1221,7 +1221,7 @@ const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 10;
 const recommendations = recommender.getSimilarGames(appId, limit);
 ```
 
-`Map.get(appId)` is an O(1) hash table lookup. The result is a pre-sorted array of `SimilarGame` objects. `.slice(0, limit)` extracts the top-K.
+`Map.​get(app​Id)` is an O(1) hash table lookup. The result is a pre-sorted array of `Similar​Game` objects. `.​slice(0, limit)` extracts the top-K.
 
 **Step 4** — Empty result handling:
 
@@ -1234,13 +1234,13 @@ if (recommendations.length === 0) {
 }
 ```
 
-#### Endpoint: `GET /user/:steamId` — The Personalized Recommendation Pipeline
+#### Endpoint: `GET /​user/​:steam​Id` — The Personalized Recommendation Pipeline
 
 -> Source: [`user recommendation handler`](backend/src/routes/recommend.routes.ts#L103-L136)
 
 This is the crown jewel of the API. The complete mechanical execution flow:
 
-**Step 1** — Readiness guard (same as `/similar`).
+**Step 1** — Readiness guard (same as `/​similar`).
 
 **Step 2** — Profile construction:
 
@@ -1278,12 +1278,12 @@ This triggers the scoring engine (see Section 8.4):
 
 - Collect candidates from similarity index.
 - Batch-fetch candidate metadata from PostgreSQL.
-- Compute `finalScore = alpha·jaccard + beta·genreAlignment + gamma·social` for each candidate.
+- Compute `final​Score = alpha·jaccard + beta·genre​Alignment + gamma·social` for each candidate.
 - Sort and return top-K.
 
-**Step 5** — Response: `res.json(recommendations)` serializes the `ScoredRecommendation[]` array.
+**Step 5** — Response: `res.​json(recommendations)` serializes the `Scored​Recommendation[]` array.
 
-#### Endpoint: `GET /user/:steamId/profile`
+#### Endpoint: `GET /​user/​:steam​Id/​profile`
 
 Returns the user's profile without recommendations. Crucially, it **strips non-serializable fields** before responding:
 
@@ -1300,26 +1300,26 @@ res.json({
 });
 ```
 
-Fields omitted: `ownedAppIds` (Set), `friendOverlapSet` (Set), `genreVector` (Map), `library` (OwnedGame[]). `JSON.stringify` would produce `{}` for `Set` and `Map` — this explicit field selection prevents silent data loss.
+Fields omitted: `owned​App​Ids` (Set), `friend​Overlap​Set` (Set), `genre​Vector` (Map), `library` (OwnedGame[]). `JSON.​stringify` would produce `{}` for `Set` and `Map` — this explicit field selection prevents silent data loss.
 
-#### Endpoint: `POST /bytags`
+#### Endpoint: `POST /​bytags`
 
 ```typescript
 const { tags, limit = 10 } = req.body;
 const recommendations = recommender.getRecommendationsByTags(tags, limit);
 ```
 
-Destructuring with default: if `req.body.limit` is `undefined`, `limit` defaults to `10`. The Zod schema has already validated that `tags` is a non-empty string array.
+Destructuring with default: if `req.​body.​limit` is `undefined`, `limit` defaults to `10`. The Zod schema has already validated that `tags` is a non-empty string array.
 
-Note: The route handler passes `tags` directly as the `excludeAppIds` parameter position, but looking at the actual `getRecommendationsByTags` signature: `(tags: string[], excludeAppIds: number[] = [], limit: number = 20)`, the `limit` here is passed as the second argument (not third). This means `limit` is actually being interpreted as `excludeAppIds`. However, since `limit` is a number and `excludeAppIds` expects `number[]`, JavaScript's type coercion handles this gracefully — `new Set(10)` creates an empty Set, so no games are excluded. The actual limit defaults to 20 from the function signature. This is a subtle bug/inconsistency in the route handler.
+Note: The route handler passes `tags` directly as the `exclude​App​Ids` parameter position, but looking at the actual `get​Recommendations​By​Tags` signature: `(tags: string[], exclude​App​Ids: number[] = [], limit: number = 20)`, the `limit` here is passed as the second argument (not third). This means `limit` is actually being interpreted as `exclude​App​Ids`. However, since `limit` is a number and `exclude​App​Ids` expects `number[]`, JavaScript's type coercion handles this gracefully — `new Set(10)` creates an empty Set, so no games are excluded. The actual limit defaults to 20 from the function signature. This is a subtle bug/inconsistency in the route handler.
 
 ---
 
 ## 8. Service Layer
 
-### 8.1 `steam.service.ts`
+### 8.1 `steam.​service.​ts`
 
-**File**: [`steam.service.ts`](backend/src/services/steam.service.ts)
+**File**: [`steam.​service.​ts`](backend/src/services/steam.service.ts)
 
 This service encapsulates all communication with Valve's Steam Web API and Steam Store API. It is the **only module** that makes outbound HTTP requests.
 
@@ -1337,9 +1337,9 @@ this.storeClient = axios.create({
 });
 ```
 
-Two separate `AxiosInstance` objects are created because the Steam Web API and the Steam Store API have different base URLs, different authentication models (Web API uses `key` parameter; Store API uses no auth but requires `cc` and `l` for country/language), and different response formats.
+Two separate `Axios​Instance` objects are created because the Steam Web API and the Steam Store API have different base URLs, different authentication models (Web API uses `key` parameter; Store API uses no auth but requires `cc` and `l` for country/language), and different response formats.
 
-The 30-second timeout prevents the backend from hanging indefinitely if the Steam API is slow or unresponsive. When the timeout fires, Axios rejects the promise with a `ECONNABORTED` error, which the service translates into a `SteamApiError`.
+The 30-second timeout prevents the backend from hanging indefinitely if the Steam API is slow or unresponsive. When the timeout fires, Axios rejects the promise with a `ECONNABORTED` error, which the service translates into a `Steam​Api​Error`.
 
 ### Constructor — Mechanical Execution
 
@@ -1354,11 +1354,11 @@ constructor(apiKey?: string) {
 }
 ```
 
-**Step 1** — API key resolution: The optional `apiKey` parameter allows tests to inject a test key. If not provided, the constructor falls back to `config.steamApiKey`. The `||` operator means an empty string `''` is treated as missing.
+**Step 1** — API key resolution: The optional `api​Key` parameter allows tests to inject a test key. If not provided, the constructor falls back to `config.​steam​Api​Key`. The `||` operator means an empty string `''` is treated as missing.
 
-**Step 2** — API key validation: If no key is available, the constructor throws immediately. This is a fail-fast pattern — better to crash at `getSteamService()` call time than to discover the key is missing during an API request.
+**Step 2** — API key validation: If no key is available, the constructor throws immediately. This is a fail-fast pattern — better to crash at `get​Steam​Service()` call time than to discover the key is missing during an API request.
 
-**Step 3** — Axios instance creation: `axios.create()` returns a new `AxiosInstance` with the given defaults. Each instance maintains its own defaults (baseURL, timeout) but shares the same underlying HTTP adapter (`http` or `https` module).
+**Step 3** — Axios instance creation: `axios.​create()` returns a new `Axios​Instance` with the given defaults. Each instance maintains its own defaults (baseURL, timeout) but shares the same underlying HTTP adapter (`http` or `https` module).
 
 ### Singleton pattern
 
@@ -1373,13 +1373,13 @@ export function getSteamService(): SteamService {
 }
 ```
 
-This is the **lazy singleton** pattern. The instance is created on first access and cached in module scope. Since Node.js modules are singletons themselves (the `require` cache ensures a module is evaluated only once), this means exactly one `SteamService` instance exists for the lifetime of the process.
+This is the **lazy singleton** pattern. The instance is created on first access and cached in module scope. Since Node.js modules are singletons themselves (the `require` cache ensures a module is evaluated only once), this means exactly one `Steam​Service` instance exists for the lifetime of the process.
 
-The `getSteamService()` factory function (rather than direct export of an instance) defers construction to first use, which means the error occurs at request time (with a clear stack trace) rather than at module import time.
+The `get​Steam​Service()` factory function (rather than direct export of an instance) defers construction to first use, which means the error occurs at request time (with a clear stack trace) rather than at module import time.
 
-### Method: `getOwnedGames` — Mechanical Execution
+### Method: `get​Owned​Games` — Mechanical Execution
 
--> Source: [`getOwnedGames`](backend/src/services/steam.service.ts#L46-L101)
+-> Source: [`get​Owned​Games`](backend/src/services/steam.service.ts#L46-L101)
 
 ```typescript
 async getOwnedGames(steamId: string, includeAppInfo: boolean = true, includeFreeGames: boolean = true): Promise<UserLibrary>
@@ -1402,9 +1402,9 @@ const response = await this.apiClient.get<SteamOwnedGamesResponse>(
 );
 ```
 
-Axios constructs the URL: `https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/?key=XXXX&steamid=76561198012345678&include_appinfo=1&include_played_free_games=1&format=json`.
+Axios constructs the URL: `https:/​/​api.​steampowered.​com/​IPlayer​Service/​Get​Owned​Games/​v1/​?key=XXXX&steamid=76561198012345678&include_​appinfo=1&include_​played_​free_​games=1&format=json`.
 
-The `<SteamOwnedGamesResponse>` generic tells TypeScript (at compile time only) that `response.data` has type `SteamOwnedGamesResponse`. Axios adds `Content-Type: application/json` automatically and parses the response body with `JSON.parse()`.
+The `<Steam​Owned​Games​Response>` generic tells TypeScript (at compile time only) that `response.​data` has type `Steam​Owned​Games​Response`. Axios adds `Content-​Type: application/​json` automatically and parses the response body with `JSON.​parse()`.
 
 **Step 2** — Private profile detection:
 
@@ -1418,7 +1418,7 @@ if (!data || !data.games) {
 }
 ```
 
-When Steam returns `{ response: {} }` (private profile), `data` is `{}` and `data.games` is `undefined`. The `!data.games` check catches this. A 403 statusCode is assigned to signal "forbidden" (the user exists but their data is inaccessible).
+When Steam returns `{ response: {} }` (private profile), `data` is `{}` and `data.​games` is `undefined`. The `!data.​games` check catches this. A 403 statusCode is assigned to signal "forbidden" (the user exists but their data is inaccessible).
 
 **Step 3** — Data mapping (snake_case -> camelCase):
 
@@ -1432,11 +1432,11 @@ const games: OwnedGame[] = data.games.map((game) => ({
 }));
 ```
 
-The `.map()` produces a new array where each element is transformed from the API's snake_case naming to the application's camelCase convention. The `|| null` and `|| 0` fallbacks handle missing/falsy values:
+The `.​map()` produces a new array where each element is transformed from the API's snake_case naming to the application's camelCase convention. The `|| null` and `|| 0` fallbacks handle missing/falsy values:
 
-- `game.name` -> `null` if undefined (delisted games).
-- `game.playtime_forever` -> `0` if undefined or 0 (both are handled the same).
-- `game.playtime_2weeks` -> `null` if undefined (user hasn't played recently).
+- `game.​name` -> `null` if undefined (delisted games).
+- `game.​playtime_​forever` -> `0` if undefined or 0 (both are handled the same).
+- `game.​playtime_​2weeks` -> `null` if undefined (user hasn't played recently).
 
 **Step 4** — Error categorization:
 
@@ -1453,19 +1453,19 @@ throw new SteamApiError(`Request failed: ${error}`);
 
 Three error cases:
 
-1. `SteamApiError` already thrown (from the private profile check) — re-throw as-is.
-2. Axios error (HTTP 4xx/5xx, timeout, network error) — wrap in `SteamApiError` with the HTTP status.
-3. Unknown error — wrap in generic `SteamApiError`.
+1. `Steam​Api​Error` already thrown (from the private profile check) — re-throw as-is.
+2. Axios error (HTTP 4xx/5xx, timeout, network error) — wrap in `Steam​Api​Error` with the HTTP status.
+3. Unknown error — wrap in generic `Steam​Api​Error`.
 
-### Method: `getRecentlyPlayedGames` — Mechanical Execution
+### Method: `get​Recently​Played​Games` — Mechanical Execution
 
--> Source: [`getRecentlyPlayedGames`](backend/src/services/steam.service.ts#L103-L140)
+-> Source: [`get​Recently​Played​Games`](backend/src/services/steam.service.ts#L103-L140)
 
 ```typescript
 async getRecentlyPlayedGames(steamId: string, count: number = 10): Promise<OwnedGame[]>
 ```
 
-**Step 1** — HTTP request to `/IPlayerService/GetRecentlyPlayedGames/v1/`.
+**Step 1** — HTTP request to `/​IPlayer​Service/​Get​Recently​Played​Games/​v1/​`.
 
 **Step 2** — Graceful empty handling:
 
@@ -1473,19 +1473,19 @@ async getRecentlyPlayedGames(steamId: string, count: number = 10): Promise<Owned
 const games = response.data.response?.games || [];
 ```
 
-The `?.` operator short-circuits if `response.data.response` is undefined (private profile). The `|| []` ensures the result is always an array.
+The `?.​` operator short-circuits if `response.​data.​response` is undefined (private profile). The `|| []` ensures the result is always an array.
 
-**Step 3** — Data mapping (same as `getOwnedGames` but without `imgIconUrl`).
+**Step 3** — Data mapping (same as `get​Owned​Games` but without `img​Icon​Url`).
 
-### Method: `getPlayerSummary` — Mechanical Execution
+### Method: `get​Player​Summary` — Mechanical Execution
 
--> Source: [`getPlayerSummary`](backend/src/services/steam.service.ts#L142-L183)
+-> Source: [`get​Player​Summary`](backend/src/services/steam.service.ts#L142-L183)
 
 ```typescript
 async getPlayerSummary(steamId: string): Promise<PlayerSummary>
 ```
 
-**Step 1** — HTTP request to `/ISteamUser/GetPlayerSummaries/v2/`.
+**Step 1** — HTTP request to `/​ISteam​User/​Get​Player​Summaries/​v2/​`.
 
 **Step 2** — Empty players check:
 
@@ -1510,11 +1510,11 @@ return {
 };
 ```
 
-The `|| 'Unknown'` default for `personaName` handles edge cases where the API returns no name. The `|| 1` default for `visibility` treats missing visibility as "private" (the safest assumption).
+The `|| 'Unknown'` default for `persona​Name` handles edge cases where the API returns no name. The `|| 1` default for `visibility` treats missing visibility as "private" (the safest assumption).
 
-### Method: `getAppDetails` — Mechanical Execution
+### Method: `get​App​Details` — Mechanical Execution
 
--> Source: [`getAppDetails`](backend/src/services/steam.service.ts#L185-L241)
+-> Source: [`get​App​Details`](backend/src/services/steam.service.ts#L185-L241)
 
 ```typescript
 async getAppDetails(appId: number): Promise<Game | null>
@@ -1542,7 +1542,7 @@ if (!appData?.success || !appData.data) {
 }
 ```
 
-The Store API returns `{ "730": { success: false } }` for delisted/invalid games. The `String(appId)` conversion is necessary because the response keys are strings, not numbers.
+The Store API returns `{ "730": { success: false } }` for delisted/invalid games. The `String(app​Id)` conversion is necessary because the response keys are strings, not numbers.
 
 **Step 3** — Genre/tag extraction:
 
@@ -1551,7 +1551,7 @@ const genres = details.genres?.map((g) => g.description) || [];
 const tags = details.categories?.map((c) => c.description) || [];
 ```
 
-Steam's Store API returns genres as `[{ id: "1", description: "Action" }]`. The `.map()` extracts just the description strings.
+Steam's Store API returns genres as `[{ id: "1", description: "Action" }]`. The `.​map()` extracts just the description strings.
 
 **Step 4** — Price conversion:
 
@@ -1561,7 +1561,7 @@ if (!isFree && details.price_overview) {
 }
 ```
 
-Steam's API returns prices in cents (5999 = $59.99). Division by 100 converts to dollars. The `!isFree` guard prevents free games from getting a price of `$0.00` (they should have `null` price).
+Steam's API returns prices in cents (5999 = $59.99). Division by 100 converts to dollars. The `!is​Free` guard prevents free games from getting a price of `$0.​00` (they should have `null` price).
 
 **Step 5** — Error handling:
 
@@ -1572,17 +1572,17 @@ Steam's API returns prices in cents (5999 = $59.99). Division by 100 converts to
 }
 ```
 
-Unlike other methods, `getAppDetails` returns `null` on failure rather than throwing. This is because Store API failures are expected (rate limits, delisted games) and should not crash the calling code.
+Unlike other methods, `get​App​Details` returns `null` on failure rather than throwing. This is because Store API failures are expected (rate limits, delisted games) and should not crash the calling code.
 
-### Method: `getFriendList` — Mechanical Execution
+### Method: `get​Friend​List` — Mechanical Execution
 
--> Source: [`getFriendList`](backend/src/services/steam.service.ts#L243-L277)
+-> Source: [`get​Friend​List`](backend/src/services/steam.service.ts#L243-L277)
 
 ```typescript
 async getFriendList(steamId: string): Promise<Friend[]>
 ```
 
-**Step 1** — HTTP request to `/ISteamUser/GetFriendList/v1/` with `relationship: 'friend'`.
+**Step 1** — HTTP request to `/​ISteam​User/​Get​Friend​List/​v1/​` with `relationship: 'friend'`.
 
 **Step 2** — Data mapping:
 
@@ -1605,11 +1605,11 @@ console.warn(`getFriendList(${steamId}) failed:`, (error as any).message);
 return [];
 ```
 
-Unlike `getOwnedGames` (which throws on private profiles), `getFriendList` returns `[]` on 401/403 errors. This is intentional: the friend list is an **optional** signal for recommendations. If unavailable, the recommendation engine still works — it just lacks social data. Throwing would abort the entire profile-building pipeline.
+Unlike `get​Owned​Games` (which throws on private profiles), `get​Friend​List` returns `[]` on 401/403 errors. This is intentional: the friend list is an **optional** signal for recommendations. If unavailable, the recommendation engine still works — it just lacks social data. Throwing would abort the entire profile-building pipeline.
 
-### Method: `getMultipleOwnedGames` — Mechanical Execution
+### Method: `get​Multiple​Owned​Games` — Mechanical Execution
 
--> Source: [`getMultipleOwnedGames`](backend/src/services/steam.service.ts#L279-L299)
+-> Source: [`get​Multiple​Owned​Games`](backend/src/services/steam.service.ts#L279-L299)
 
 ```typescript
 async getMultipleOwnedGames(steamIds: string[]): Promise<Map<string, OwnedGame[]>>
@@ -1625,12 +1625,12 @@ const results = await Promise.allSettled(
 );
 ```
 
-`steamIds.map(...)` creates an array of Promises, one per Steam ID. `Promise.allSettled` waits for all of them to complete (either fulfilled or rejected).
+`steam​Ids.​map(.​.​.​)` creates an array of Promises, one per Steam ID. `Promise.​all​Settled` waits for all of them to complete (either fulfilled or rejected).
 
-**Why `Promise.allSettled` vs `Promise.all`**:
+**Why `Promise.​all​Settled` vs `Promise.​all`**:
 
-- `Promise.all` rejects immediately if **any** promise rejects. If 9/10 friends have public profiles and 1 is private, all 9 successful results would be discarded.
-- `Promise.allSettled` always resolves (never rejects). It returns an array of `{ status: 'fulfilled', value }` or `{ status: 'rejected', reason }` objects.
+- `Promise.​all` rejects immediately if **any** promise rejects. If 9/10 friends have public profiles and 1 is private, all 9 successful results would be discarded.
+- `Promise.​all​Settled` always resolves (never rejects). It returns an array of `{ status: 'fulfilled', value }` or `{ status: 'rejected', reason }` objects.
 
 **Step 2** — Result collection:
 
@@ -1648,21 +1648,21 @@ Only successful results are inserted. Rejected entries (private profiles, timeou
 
 ---
 
-### 8.2 `search.service.ts`
+### 8.2 `search.​service.​ts`
 
-**File**: [`search.service.ts`](backend/src/services/search.service.ts)
+**File**: [`search.​service.​ts`](backend/src/services/search.service.ts)
 
 This service constructs dynamic SQL queries to search the `games` table.
 
-### Interface: `GameSearchResult`
+### Interface: `Game​Search​Result`
 
--> See [`GameSearchResult`](backend/src/services/search.service.ts#L3-L10)
+-> See [`Game​Search​Result`](backend/src/services/search.service.ts#L3-L10)
 
 This is the response shape sent to the frontend. It's a subset of the full `games` table — only the fields needed for search result cards.
 
-### Method: `searchByGenres` — Mechanical Execution
+### Method: `search​By​Genres` — Mechanical Execution
 
--> Source: [`searchByGenres`](backend/src/services/search.service.ts#L16-L62)
+-> Source: [`search​By​Genres`](backend/src/services/search.service.ts#L16-L62)
 
 ```typescript
 async searchByGenres(genres: string[], keyword?: string, playerCount?: string): Promise<GameSearchResult[]>
@@ -1678,9 +1678,9 @@ const params: any[] = [];
 let paramIndex = 1;
 ```
 
-- `whereClauses`: Accumulates SQL fragments like `(genres ILIKE $1 OR tags ILIKE $1)`.
+- `where​Clauses`: Accumulates SQL fragments like `(genres ILIKE $1 OR tags ILIKE $1)`.
 - `params`: Accumulates parameter values like `'%RPG%'`.
-- `paramIndex`: Tracks the next `$N` placeholder number.
+- `param​Index`: Tracks the next `$N` placeholder number.
 
 **Step 2 — Genre filter construction**:
 
@@ -1698,9 +1698,9 @@ if (genres.length > 0) {
 
 For `genres = ['RPG', 'Action']`:
 
-1. Iteration 1: `params = ['%RPG%']`, `paramIndex = 2`, clause = `(genres ILIKE $1 OR tags ILIKE $1)`.
-2. Iteration 2: `params = ['%RPG%', '%Action%']`, `paramIndex = 3`, clause = `(genres ILIKE $2 OR tags ILIKE $2)`.
-3. `whereClauses = ['((genres ILIKE $1 OR tags ILIKE $1) AND (genres ILIKE $2 OR tags ILIKE $2))']`.
+1. Iteration 1: `params = ['%RPG%']`, `param​Index = 2`, clause = `(genres ILIKE $1 OR tags ILIKE $1)`.
+2. Iteration 2: `params = ['%RPG%', '%Action%']`, `param​Index = 3`, clause = `(genres ILIKE $2 OR tags ILIKE $2)`.
+3. `where​Clauses = ['((genres ILIKE $1 OR tags ILIKE $1) AND (genres ILIKE $2 OR tags ILIKE $2))']`.
 
 The `ILIKE` operator performs case-insensitive pattern matching in PostgreSQL. `%RPG%` matches any string containing "RPG" anywhere.
 
@@ -1732,7 +1732,7 @@ if (playerCount && playerCount !== "Any") {
 }
 ```
 
-The `playerCount === 'Online'` -> `'Online PvP'` mapping handles a UI/data mismatch: the frontend sends "Online" but the database stores "Online PvP" in the categories column.
+The `player​Count === 'Online'` -> `'Online Pv​P'` mapping handles a UI/data mismatch: the frontend sends "Online" but the database stores "Online PvP" in the categories column.
 
 **Step 5 — SQL assembly**:
 
@@ -1748,7 +1748,7 @@ const sqlQuery = `
 `;
 ```
 
-If no filters are provided, `whereString` is empty, and the query returns the 10 most positively-reviewed games globally.
+If no filters are provided, `where​String` is empty, and the query returns the 10 most positively-reviewed games globally.
 
 **Step 6 — Query execution**:
 
@@ -1757,7 +1757,7 @@ const result = await query(sqlQuery, params);
 return this.mapRows(result.rows);
 ```
 
-### Row mapping — `mapRows`:
+### Row mapping — `map​Rows`:
 
 ```typescript
 private mapRows(rows: any[]): GameSearchResult[] {
@@ -1774,15 +1774,15 @@ private mapRows(rows: any[]): GameSearchResult[] {
 
 The `genres` column is stored as a comma-separated string in PostgreSQL (e.g., `"Indie,RPG,Adventure"`). The `split(',')` converts it to an array.
 
-The `price` column comes from PostgreSQL as a `DECIMAL(10,2)`, which the `pg` driver returns as a string (to avoid floating-point precision loss). `parseFloat(row.price)` converts it back.
+The `price` column comes from PostgreSQL as a `DECIMAL(10,2)`, which the `pg` driver returns as a string (to avoid floating-point precision loss). `parse​Float(row.​price)` converts it back.
 
-Note: `isFree: parseFloat(row.price) === 0` has an edge case — if `row.price` is `null`, `parseFloat(null)` returns `NaN`, and `NaN === 0` is `false`. This correctly treats null-price games as non-free.
+Note: `is​Free: parse​Float(row.​price) === 0` has an edge case — if `row.​price` is `null`, `parse​Float(null)` returns `Na​N`, and `Na​N === 0` is `false`. This correctly treats null-price games as non-free.
 
 ---
 
-### 8.3 `recommender.service.ts`
+### 8.3 `recommender.​service.​ts`
 
-**File**: [`recommender.service.ts`](backend/src/services/recommender.service.ts)
+**File**: [`recommender.​service.​ts`](backend/src/services/recommender.service.ts)
 
 This is the in-memory recommendation engine. It loads pre-computed similarity data from JSON files at startup and serves recommendations via O(1) lookups and linear-time scoring.
 
@@ -1819,13 +1819,13 @@ private idf: Map<string, number> = new Map();
 private isLoaded: boolean = false;
 ```
 
-1. **`similarityIndex`**: `Map<appId, SimilarGame[]>` — For each game, stores its top-20 most similar games (pre-computed by `build-recommender.ts`). Each entry is a `{ appId, name, similarity }` triple where `similarity` in (0.1, ~0.92].
+1. **`similarity​Index`**: `Map<app​Id, Similar​Game[]>` — For each game, stores its top-20 most similar games (pre-computed by `build-​recommender.​ts`). Each entry is a `{ app​Id, name, similarity }` triple where `similarity` in (0.1, ~0.92].
 
-2. **`gameVectors`**: `Map<appId, GameVector>` — For each game, stores its name, L2 magnitude, and top weighted terms (from TF-IDF). Used for tag-based recommendations and name lookups.
+2. **`game​Vectors`**: `Map<app​Id, Game​Vector>` — For each game, stores its name, L2 magnitude, and top weighted terms (from TF-IDF). Used for tag-based recommendations and name lookups.
 
 3. **`idf`**: `Map<term, number>` — Inverse Document Frequency values for each term in the corpus.
 
-### Constructor & `loadData()` — Mechanical Execution
+### Constructor & `load​Data()` — Mechanical Execution
 
 ```typescript
 constructor() {
@@ -1833,9 +1833,9 @@ constructor() {
 }
 ```
 
-The constructor calls `loadData()` synchronously. On the first `getRecommenderService()` call, this blocks the event loop.
+The constructor calls `load​Data()` synchronously. On the first `get​Recommender​Service()` call, this blocks the event loop.
 
-**`loadData()` execution**:
+**`load​Data()` execution**:
 
 **Step 1 — Similarity index loading**:
 
@@ -1849,11 +1849,11 @@ if (fs.existsSync(indexPath)) {
 }
 ```
 
-1. `fs.existsSync(indexPath)` — Synchronous stat check. Returns `false` if the file doesn't exist.
-2. `fs.readFileSync(indexPath, 'utf-8')` — Reads the entire file into memory as a single string. For a ~27,000-game index with 20 neighbors each, this file can be 50–100MB.
-3. `JSON.parse(rawString)` — Parses the JSON string into a nested JavaScript object. This is an O(N) operation where N is the string length. V8's JSON parser is highly optimized (faster than any hand-written parser).
-4. `Object.entries(indexData)` — Converts the object's key-value pairs into `[key, value]` tuples.
-5. `parseInt(appId)` — The JSON keys are strings (JSON spec requires string keys). This converts them back to numbers for the Map.
+1. `fs.​exists​Sync(index​Path)` — Synchronous stat check. Returns `false` if the file doesn't exist.
+2. `fs.​read​File​Sync(index​Path, 'utf-​8')` — Reads the entire file into memory as a single string. For a ~27,000-game index with 20 neighbors each, this file can be 50–100MB.
+3. `JSON.​parse(raw​String)` — Parses the JSON string into a nested JavaScript object. This is an O(N) operation where N is the string length. V8's JSON parser is highly optimized (faster than any hand-written parser).
+4. `Object.​entries(index​Data)` — Converts the object's key-value pairs into `[key, value]` tuples.
+5. `parse​Int(app​Id)` — The JSON keys are strings (JSON spec requires string keys). This converts them back to numbers for the Map.
 6. The Map is populated with one entry per game.
 
 **Step 2 — Vectors loading** (same pattern):
@@ -1865,7 +1865,7 @@ for (const v of vectors) {
 }
 ```
 
-The vectors file is a JSON array (not an object), so it's parsed directly into `GameVector[]`.
+The vectors file is a JSON array (not an object), so it's parsed directly into `Game​Vector[]`.
 
 **Step 3 — IDF loading** (same pattern):
 
@@ -1883,11 +1883,11 @@ this.isLoaded = this.similarityIndex.size > 0;
 
 The service is considered "ready" if at least one game has similarity data. The vectors and IDF are optional (they're only needed for tag-based recommendations).
 
-**Error handling**: If any file read or JSON parse fails, the catch block sets `this.isLoaded = false`. The service degrades gracefully — it won't crash, but all recommendation methods will return empty results.
+**Error handling**: If any file read or JSON parse fails, the catch block sets `this.​is​Loaded = false`. The service degrades gracefully — it won't crash, but all recommendation methods will return empty results.
 
-### Method: `getSimilarGames` — Mechanical Execution
+### Method: `get​Similar​Games` — Mechanical Execution
 
--> Source: [`getSimilarGames`](backend/src/services/recommender.service.ts#L93-L100)
+-> Source: [`get​Similar​Games`](backend/src/services/recommender.service.ts#L93-L100)
 
 ```typescript
 getSimilarGames(appId: number, limit: number = 10): SimilarGame[] {
@@ -1897,13 +1897,13 @@ getSimilarGames(appId: number, limit: number = 10): SimilarGame[] {
 }
 ```
 
-**Step 1** — `Map.get(appId)` is O(1) average-case (V8 uses a hash table internally for Maps with numeric keys).
+**Step 1** — `Map.​get(app​Id)` is O(1) average-case (V8 uses a hash table internally for Maps with numeric keys).
 **Step 2** — If the game isn't in the index, return `[]`.
-**Step 3** — `similar.slice(0, limit)` creates a shallow copy of the first `limit` elements. O(limit). The array is pre-sorted by `similarity` descending (from `build-recommender.ts`).
+**Step 3** — `similar.​slice(0, limit)` creates a shallow copy of the first `limit` elements. O(limit). The array is pre-sorted by `similarity` descending (from `build-​recommender.​ts`).
 
-### Method: `getRecommendationsForLibrary` — Playtime-weighted Aggregation
+### Method: `get​Recommendations​For​Library` — Playtime-weighted Aggregation
 
--> Source: [`getRecommendationsForLibrary`](backend/src/services/recommender.service.ts#L102-L178)
+-> Source: [`get​Recommendations​For​Library`](backend/src/services/recommender.service.ts#L102-L178)
 
 ```typescript
 getRecommendationsForLibrary(
@@ -1951,7 +1951,7 @@ Where `log1p(x) = ln(1 + x)`.
 
 **Why `log1p` instead of `log`**:
 
-- `log(0) = -Infinity`, which would crash the scoring. `log1p(0) = ln(1) = 0`, which is safe.
+- `log(0) = -​Infinity`, which would crash the scoring. `log1p(0) = ln(1) = 0`, which is safe.
 - The logarithm compresses the playtime scale. Without it, a user with 10,000 hours in CS2 and 10 hours in everything else would produce recommendations dominated entirely by CS2-similar games.
 
 **Example**: User has CS2 (10,000 min), Dota 2 (100 min), total = 10,100.
@@ -1963,7 +1963,7 @@ weight(Dota) = log1p(100) / log1p(10100)   ~ 4.62 / 9.22 ~ 0.501
 
 CS2 gets ~2x the weight of Dota, not 100x. The log compression provides a balanced signal.
 
-**Edge case**: If `totalPlaytime === 0` (all games have 0 minutes), each game gets equal weight `1/L`.
+**Edge case**: If `total​Playtime === 0` (all games have 0 minutes), each game gets equal weight `1/​L`.
 
 **Step 4 — Aggregate candidate scores (O(L × K))**:
 
@@ -1999,8 +1999,8 @@ for (const ownedGame of ownedGames) {
 
 For each owned game, retrieve its top-K similar games. For each candidate:
 
-1. Skip if user already owns it (`ownedSet.has` — O(1)).
-2. Compute `addedScore = similarity × weight`.
+1. Skip if user already owns it (`owned​Set.​has` — O(1)).
+2. Compute `added​Score = similarity × weight`.
 3. If the candidate was already seen (from another owned game's list), **add** the score. This produces a natural "voting" effect: a candidate similar to 5 owned games scores higher than one similar to only 1.
 4. Track which owned games ("sources") contributed to each recommendation.
 
@@ -2017,11 +2017,11 @@ return recommendations.slice(0, limit);
 reason: `Similar to: ${data.sources.slice(0, 3).join(", ")}${data.sources.length > 3 ? "..." : ""}`;
 ```
 
-Shows up to 3 source game names. If more than 3, appends `"..."`.
+Shows up to 3 source game names. If more than 3, appends `".​.​.​"`.
 
-### Method: `getRecommendationsByTags` — Tag-based Scoring
+### Method: `get​Recommendations​By​Tags` — Tag-based Scoring
 
--> Source: [`getRecommendationsByTags`](backend/src/services/recommender.service.ts#L180-L229)
+-> Source: [`get​Recommendations​By​Tags`](backend/src/services/recommender.service.ts#L180-L229)
 
 ```typescript
 getRecommendationsByTags(
@@ -2060,7 +2060,7 @@ for (const [appId, vector] of this.gameVectors) {
 
 For each game in the index:
 
-1. Get the game's pre-computed `topTerms` (TF-IDF weighted terms).
+1. Get the game's pre-computed `top​Terms` (TF-IDF weighted terms).
 2. Find intersection of the game's terms with the requested tags.
 3. Sum the TF-IDF weights of matched terms.
 
@@ -2068,9 +2068,9 @@ For each game in the index:
 
 **Step 3** — Sort descending by score, slice top-K, generate reason strings.
 
-### Method: `getGameInfo` — Simple Lookup
+### Method: `get​Game​Info` — Simple Lookup
 
--> Source: [`getGameInfo`](backend/src/services/recommender.service.ts#L231-L242)
+-> Source: [`get​Game​Info`](backend/src/services/recommender.service.ts#L231-L242)
 
 ```typescript
 getGameInfo(appId: number): { name: string; topTerms: string[] } | null {
@@ -2084,9 +2084,9 @@ O(1) Map lookup. Returns the game's name and TF-IDF terms, or `null` if not in t
 
 ---
 
-### 8.4 `user-profile.service.ts`
+### 8.4 `user-​profile.​service.​ts`
 
-**File**: [`user-profile.service.ts`](backend/src/services/user-profile.service.ts)
+**File**: [`user-​profile.​service.​ts`](backend/src/services/user-profile.service.ts)
 
 This is the most mathematically dense module in the backend. It implements a 4-phase pipeline to build a user profile and a 3-signal composite scoring engine to rank recommendation candidates.
 
@@ -2100,7 +2100,7 @@ const WEIGHT_SOCIAL = 0.2; // gamma — social proof from friend graph
 const RECENCY_BOOST = 1.5; // Multiplier for recently-played games
 ```
 
-### `ScoredRecommendation` Interface
+### `Scored​Recommendation` Interface
 
 ```typescript
 export interface ScoredRecommendation {
@@ -2124,11 +2124,11 @@ export interface ScoredRecommendation {
 }
 ```
 
-This interface bundles both the scoring metadata and the display-ready fields needed by the Angular frontend's `GameCardComponent`. This avoids a second API call to fetch game details after recommendations are generated.
+This interface bundles both the scoring metadata and the display-ready fields needed by the Angular frontend's `Game​Card​Component`. This avoids a second API call to fetch game details after recommendations are generated.
 
-### Function: `buildGenreVector` — L1-Normalized Genre Preference Vector
+### Function: `build​Genre​Vector` — L1-Normalized Genre Preference Vector
 
--> Source: [`buildGenreVector`](backend/src/services/user-profile.service.ts#L56-L119)
+-> Source: [`build​Genre​Vector`](backend/src/services/user-profile.service.ts#L56-L119)
 
 ```typescript
 async function buildGenreVector(
@@ -2141,8 +2141,8 @@ async function buildGenreVector(
 
 Let L be the user's library of games. For each game g_i in L, let:
 
-- `pt_i` = playtimeMinutes for game i
-- `G_i` = set of genres/tags for game i (fetched from PostgreSQL)
+- `pt_​i` = playtimeMinutes for game i
+- `G_​i` = set of genres/tags for game i (fetched from PostgreSQL)
 - `recent(i)` = 1 if game i was played in the last 2 weeks, 0 otherwise
 
 For each genre g across all games:
@@ -2170,7 +2170,7 @@ For a library of 200 games, this generates:
 SELECT app_id, genres, tags FROM games WHERE app_id IN ($1, $2, ..., $200)
 ```
 
-This is a single SQL round-trip. PostgreSQL uses an index scan on the `app_id` PRIMARY KEY — each lookup is O(log N) where N is the table size, so the total is O(L × log N).
+This is a single SQL round-trip. PostgreSQL uses an index scan on the `app_​id` PRIMARY KEY — each lookup is O(log N) where N is the table size, so the total is O(L × log N).
 
 **Step 2 — Build genre lookup map**:
 
@@ -2257,13 +2257,13 @@ vector(Action) = 10.363 / 29.956 = 0.346
 vector(Puzzle) = 4.615 / 29.956  = 0.154
 ```
 
-After normalization, `SUM_g vector(g) = 1.0`. Each `vector(g)` represents the fraction of weighted engagement attributable to genre g.
+After normalization, `SUM_​g vector(g) = 1.​0`. Each `vector(g)` represents the fraction of weighted engagement attributable to genre g.
 
 **Complexity**: O(L × G) where L = library size, G = average genres per game.
 
-### Function: `buildFriendOverlapSet` — Social Proof Signal
+### Function: `build​Friend​Overlap​Set` — Social Proof Signal
 
--> Source: [`buildFriendOverlapSet`](backend/src/services/user-profile.service.ts#L123-L147)
+-> Source: [`build​Friend​Overlap​Set`](backend/src/services/user-profile.service.ts#L123-L147)
 
 ```typescript
 function buildFriendOverlapSet(
@@ -2297,13 +2297,13 @@ for (const [appId, count] of ownershipCount) {
 return overlapSet;
 ```
 
-Only games owned by >= `minOverlap` (default 2) friends are included. This set represents "social proof" — games that are popular in the user's friend graph.
+Only games owned by >= `min​Overlap` (default 2) friends are included. This set represents "social proof" — games that are popular in the user's friend graph.
 
 **Complexity**: O(F × G) where F = friends analyzed (<=10), G = average games per friend.
 
-### Function: `buildUserProfile` — Core Profile Builder
+### Function: `build​User​Profile` — Core Profile Builder
 
--> Source: [`buildUserProfile`](backend/src/services/user-profile.service.ts#L151-L212)
+-> Source: [`build​User​Profile`](backend/src/services/user-profile.service.ts#L151-L212)
 
 ```typescript
 export async function buildUserProfile(steamId: string): Promise<UserProfile>;
@@ -2320,9 +2320,9 @@ const [libraryResult, recentGamesResult, friendListResult] =
   ]);
 ```
 
-Three independent API calls fire simultaneously. `Promise.allSettled` ensures all complete regardless of individual failures.
+Three independent API calls fire simultaneously. `Promise.​all​Settled` ensures all complete regardless of individual failures.
 
-Wall-clock time: `max(t_library, t_recent, t_friends)` ~ 500ms–2s (depending on Steam API latency).
+Wall-clock time: `max(t_​library, t_​recent, t_​friends)` ~ 500ms–2s (depending on Steam API latency).
 
 **Result extraction**:
 
@@ -2362,9 +2362,9 @@ const ownedAppIds = new Set(library.map((g) => g.appId));
 
 Three data structures are built:
 
-1. `genreVector`: L1-normalized genre preferences (async — DB query).
-2. `friendOverlapSet`: Games owned by >=2 friends (sync — pure computation).
-3. `ownedAppIds`: Set of all owned game IDs (sync — used for O(1) exclusion).
+1. `genre​Vector`: L1-normalized genre preferences (async — DB query).
+2. `friend​Overlap​Set`: Games owned by >=2 friends (sync — pure computation).
+3. `owned​App​Ids`: Set of all owned game IDs (sync — used for O(1) exclusion).
 
 **Top genres derivation**:
 
@@ -2375,7 +2375,7 @@ const topGenres: UserGenreProfile[] = [...genreVector.entries()]
   .map(([genre, weight]) => ({ genre, weight: parseFloat(weight.toFixed(4)) }));
 ```
 
-Converts the Map to a sorted array and takes the top 10. The `.toFixed(4)` rounds to 4 decimal places (e.g., 0.3462 instead of 0.34615384615384615). This is a display concern — the full precision is preserved in the Map for scoring.
+Converts the Map to a sorted array and takes the top 10. The `.​to​Fixed(4)` rounds to 4 decimal places (e.g., 0.3462 instead of 0.34615384615384615). This is a display concern — the full precision is preserved in the Map for scoring.
 
 **Player summary fetch**:
 
@@ -2391,9 +2391,9 @@ try {
 
 This is wrapped in a try/catch because the player summary is purely cosmetic. A failure here should not prevent recommendations.
 
-### Function: `scoreWithUserContext` — 3-Signal Composite Scoring Engine
+### Function: `score​With​User​Context` — 3-Signal Composite Scoring Engine
 
--> Source: [`scoreWithUserContext`](backend/src/services/user-profile.service.ts#L216-L336)
+-> Source: [`score​With​User​Context`](backend/src/services/user-profile.service.ts#L216-L336)
 
 ```typescript
 export async function scoreWithUserContext(
@@ -2429,7 +2429,7 @@ for (const game of profile.library) {
 For each owned game, retrieve its top-30 similar games. For each candidate:
 
 1. Skip if user already owns it (O(1) Set lookup).
-2. If seen before from another owned game, keep the **higher** similarity score (not accumulated like in `getRecommendationsForLibrary`).
+2. If seen before from another owned game, keep the **higher** similarity score (not accumulated like in `get​Recommendations​For​Library`).
 
 This collects potentially thousands of unique candidates.
 
@@ -2479,13 +2479,13 @@ finalScore(c) = alpha × jaccardScore(c) + beta × genreAlignmentScore(c) + gamm
 
 Where alpha = 0.50, beta = 0.30, gamma = 0.20.
 
-**Signal 1 — `jaccardScore(c)`**:
+**Signal 1 — `jaccard​Score(c)`**:
 
 ```typescript
 // Already computed — it's the max pre-computed similarity across owned games
 ```
 
-**Signal 2 — `genreAlignmentScore(c)`**:
+**Signal 2 — `genre​Alignment​Score(c)`**:
 
 ```typescript
 const genreAlignmentScore = genres.reduce(
@@ -2496,7 +2496,7 @@ const genreAlignmentScore = genres.reduce(
 
 This is the dot product of the candidate's genre set against the user's preference vector. For each genre in the candidate's genre list, look up its weight in the user's genre vector and sum.
 
-**Example**: User's vector: `{RPG: 0.50, Action: 0.35, Puzzle: 0.15}`. Candidate genres: `{RPG, Action}`.
+**Example**: User's vector: `{RPG: 0.​50, Action: 0.​35, Puzzle: 0.​15}`. Candidate genres: `{RPG, Action}`.
 
 ```
 genreAlignmentScore = 0.50 + 0.35 = 0.85
@@ -2504,13 +2504,13 @@ genreAlignmentScore = 0.50 + 0.35 = 0.85
 
 Note: This is a one-sided sum (not cosine similarity). The user's vector is L1-normalized but the candidate's genres are unweighted.
 
-**Signal 3 — `socialScore(c)`**:
+**Signal 3 — `social​Score(c)`**:
 
 ```typescript
 const socialScore = profile.friendOverlapSet.has(appId) ? 1.0 : 0.0;
 ```
 
-Binary signal: 1 if >=2 friends own this game, 0 otherwise. The social boost is `gamma × 1.0 = 0.20`.
+Binary signal: 1 if >=2 friends own this game, 0 otherwise. The social boost is `gamma × 1.​0 = 0.​20`.
 
 **Reason generation**:
 
@@ -2546,7 +2546,7 @@ scored.push({
 });
 ```
 
-Note: `developers`, `publishers`, and `releaseDate` are hardcoded as empty/null. These fields exist in the `ScoredRecommendation` interface (for the `GameCardComponent`) but are not fetched from the database in the current implementation.
+Note: `developers`, `publishers`, and `release​Date` are hardcoded as empty/null. These fields exist in the `Scored​Recommendation` interface (for the `Game​Card​Component`) but are not fetched from the database in the current implementation.
 
 **Step 6 — Sort and truncate**:
 
@@ -2563,9 +2563,9 @@ Timsort (O(N log N)). Returns top `limit` results.
 
 These scripts form an offline ETL (Extract, Transform, Load) pipeline that prepares the recommendation engine's data. They are run manually before the server starts, not during request handling.
 
-### 9.1 `download-dataset.ts`
+### 9.1 `download-​dataset.​ts`
 
-**File**: [`download-dataset.ts`](backend/src/scripts/download-dataset.ts)
+**File**: [`download-​dataset.​ts`](backend/src/scripts/download-dataset.ts)
 
 This script checks if the raw Kaggle dataset exists and provides download instructions if not.
 
@@ -2577,7 +2577,7 @@ This script checks if the raw Kaggle dataset exists and provides download instru
 fs.mkdirSync(DATA_DIR, { recursive: true });
 ```
 
-`{ recursive: true }` creates all parent directories if they don't exist (equivalent to `mkdir -p`). No-ops if the directory already exists.
+`{ recursive: true }` creates all parent directories if they don't exist (equivalent to `mkdir -​p`). No-ops if the directory already exists.
 
 **Step 2 — Existence check**:
 
@@ -2594,7 +2594,7 @@ async function checkExistingData(): Promise<boolean> {
 }
 ```
 
-`fs.statSync` returns an `fs.Stats` object with `size` (in bytes), `mtime` (last modification), etc. The `size / (1024 * 1024)` converts bytes to megabytes.
+`fs.​stat​Sync` returns an `fs.​Stats` object with `size` (in bytes), `mtime` (last modification), etc. The `size /​ (1024 * 1024)` converts bytes to megabytes.
 
 **Step 3 — Download helper (currently unused)**:
 
@@ -2620,18 +2620,18 @@ async function downloadFromUrl(url: string, dest: string): Promise<boolean> {
 This function handles HTTP redirects recursively. When a 301/302 is received:
 
 1. Close the partially-written file.
-2. Delete it (`fs.unlinkSync`).
-3. Recursively call `downloadFromUrl` with the redirect URL.
+2. Delete it (`fs.​unlink​Sync`).
+3. Recursively call `download​From​Url` with the redirect URL.
 4. Resolve the outer Promise with the recursive result.
 
 This is currently commented out because the Kaggle dataset requires authentication.
 
-### 9.2 `process-dataset.ts`
+### 9.2 `process-​dataset.​ts`
 
-**File**: [`process-dataset.ts`](backend/src/scripts/process-dataset.ts)
+**File**: [`process-​dataset.​ts`](backend/src/scripts/process-dataset.ts)
 
-**Input**: `data/raw/games.csv`
-**Output**: Multiple JSON files in `data/processed/`
+**Input**: `data/​raw/​games.​csv`
+**Output**: Multiple JSON files in `data/​processed/​`
 
 #### Interfaces
 
@@ -2655,11 +2655,11 @@ interface RawGame {
 }
 ```
 
-All fields are `string` because CSV parsing always produces strings. The `processGame` function converts each field to its proper type.
+All fields are `string` because CSV parsing always produces strings. The `process​Game` function converts each field to its proper type.
 
-#### Function: `parseList` — Semicolon Splitting
+#### Function: `parse​List` — Semicolon Splitting
 
--> Source: [`parseList`](backend/src/scripts/process-dataset.ts#L75-L78)
+-> Source: [`parse​List`](backend/src/scripts/process-dataset.ts#L75-L78)
 
 ```typescript
 function parseList(value: string): string[] {
@@ -2673,13 +2673,13 @@ function parseList(value: string): string[] {
 
 The Kaggle CSV uses semicolons (not commas) to separate multi-value fields. For `"Action;RPG;Indie"`:
 
-1. `.split(';')` -> `['Action', 'RPG', 'Indie']`.
-2. `.map(s => s.trim())` -> removes whitespace.
-3. `.filter(s => s.length > 0)` -> removes empty strings (from trailing semicolons like `"Action;"`).
+1. `.​split(';')` -> `['Action', 'RPG', 'Indie']`.
+2. `.​map(s => s.​trim())` -> removes whitespace.
+3. `.​filter(s => s.​length > 0)` -> removes empty strings (from trailing semicolons like `"Action;"`).
 
-#### Function: `parseOwnerRange` — Range String Parsing
+#### Function: `parse​Owner​Range` — Range String Parsing
 
--> Source: [`parseOwnerRange`](backend/src/scripts/process-dataset.ts#L83-L93)
+-> Source: [`parse​Owner​Range`](backend/src/scripts/process-dataset.ts#L83-L93)
 
 ```typescript
 function parseOwnerRange(value: string): { min: number; max: number } {
@@ -2692,16 +2692,16 @@ function parseOwnerRange(value: string): { min: number; max: number } {
 }
 ```
 
-For `"10,000 - 20,000"`:
+For `"10,000 -​ 20,000"`:
 
-1. Remove commas: `"10000 - 20000"`.
-2. Remove whitespace: `"10000-20000"`.
-3. Split on `-`: `['10000', '20000']`.
+1. Remove commas: `"10000 -​ 20000"`.
+2. Remove whitespace: `"10000-​20000"`.
+3. Split on `-​`: `['10000', '20000']`.
 4. Parse: `{ min: 10000, max: 20000 }`.
 
-#### Function: `processGame` — Single Record Processing
+#### Function: `process​Game` — Single Record Processing
 
--> Source: [`processGame`](backend/src/scripts/process-dataset.ts#L98-L142)
+-> Source: [`process​Game`](backend/src/scripts/process-dataset.ts#L98-L142)
 
 ```typescript
 function processGame(raw: RawGame): ProcessedGame | null;
@@ -2759,7 +2759,7 @@ featureVector: allTags.join(" ");
 
 Space-separated tags for potential TF-IDF processing: `"action rpg indie open world"`.
 
-#### Function: `calculateStats` — Dataset Statistics
+#### Function: `calculate​Stats` — Dataset Statistics
 
 Iterates all processed games once, computing:
 
@@ -2769,17 +2769,17 @@ Iterates all processed games once, computing:
 - Average rating ratio (only for games with reviews).
 - Top 50 tags by frequency.
 
-#### Function: `saveProcessedData` — Output Generation
+#### Function: `save​Processed​Data` — Output Generation
 
 Produces 5 output files:
 
-1. `games.json` — Full processed game objects (all fields).
-2. `games-light.json` — Lightweight version omitting descriptions.
-3. `stats.json` — Dataset statistics.
-4. `tag-vocabulary.json` — Top 50 tags by frequency.
-5. `app-id-map.json` — `{ appId: name }` mapping.
+1. `games.​json` — Full processed game objects (all fields).
+2. `games-​light.​json` — Lightweight version omitting descriptions.
+3. `stats.​json` — Dataset statistics.
+4. `tag-​vocabulary.​json` — Top 50 tags by frequency.
+5. `app-​id-​map.​json` — `{ app​Id: name }` mapping.
 
-All files use `JSON.stringify(data, null, 2)` for human-readable formatting (2-space indentation).
+All files use `JSON.​stringify(data, null, 2)` for human-readable formatting (2-space indentation).
 
 #### Main Flow
 
@@ -2794,21 +2794,21 @@ async function main(): Promise<void> {
 }
 ```
 
-### 9.3 `build-recommender.ts`
+### 9.3 `build-​recommender.​ts`
 
-**File**: [`build-recommender.ts`](backend/src/scripts/build-recommender.ts)
+**File**: [`build-​recommender.​ts`](backend/src/scripts/build-recommender.ts)
 
 This is the offline computation engine that builds the similarity index. It reads all games from PostgreSQL, computes pairwise similarity scores, and saves the top-K neighbors for each game.
 
 #### Score Weights
 
--> See [`SCORE_WEIGHTS`](backend/src/scripts/build-recommender.ts#L53-L62)
+-> See [`SCORE_​WEIGHTS`](backend/src/scripts/build-recommender.ts#L53-L62)
 
 Total weight: 0.92. The remaining 0.08 was the `metacritic` weight from the Python prototype (dropped in TypeScript).
 
-#### Function: `fetchGamesFromDB` — Data Loading
+#### Function: `fetch​Games​From​DB` — Data Loading
 
--> Source: [`fetchGamesFromDB`](backend/src/scripts/build-recommender.ts#L64-L120)
+-> Source: [`fetch​Games​From​DB`](backend/src/scripts/build-recommender.ts#L64-L120)
 
 ```typescript
 async function fetchGamesFromDB(): Promise<LightGame[]>;
@@ -2831,9 +2831,9 @@ const studiosSet = new Set<string>(
 
 These Sets are computed **once** per game. Without precomputation, the O(N²) pairwise loop would create 4 new Sets per comparison × 729 million comparisons = ~2.9 billion Set instantiations. Precomputing reduces this to 4 × N.
 
-#### Function: `computeGlobalMaxes` — Normalization Constants
+#### Function: `compute​Global​Maxes` — Normalization Constants
 
--> Source: [`computeGlobalMaxes`](backend/src/scripts/build-recommender.ts#L122-L134)
+-> Source: [`compute​Global​Maxes`](backend/src/scripts/build-recommender.ts#L122-L134)
 
 ```typescript
 function computeGlobalMaxes(games: LightGame[]): GlobalMaxes;
@@ -2841,13 +2841,13 @@ function computeGlobalMaxes(games: LightGame[]): GlobalMaxes;
 
 Scans all games once (O(N)) to find the maximum price, popularity, and playtime values. These are used as denominators in score normalization.
 
-- `maxPrice` starts at 60 (not 0) — this prevents edge cases when all games are free.
-- `maxPop = max(positive + negative + ownersMin)` across all games.
-- `maxPt = max(averagePlaytime)` across all games.
+- `max​Price` starts at 60 (not 0) — this prevents edge cases when all games are free.
+- `max​Pop = max(positive + negative + owners​Min)` across all games.
+- `max​Pt = max(average​Playtime)` across all games.
 
-#### Function: `getJaccard` — Optimized Set Intersection
+#### Function: `get​Jaccard` — Optimized Set Intersection
 
--> Source: [`getJaccard`](backend/src/scripts/build-recommender.ts#L136-L149)
+-> Source: [`get​Jaccard`](backend/src/scripts/build-recommender.ts#L136-L149)
 
 ```typescript
 function getJaccard(setA: Set<string>, setB: Set<string>): number {
@@ -2864,13 +2864,13 @@ function getJaccard(setA: Set<string>, setB: Set<string>): number {
 
 **Mathematical definition**: J(A, B) = |A intersection B| / |A union B|
 
-**Optimization**: Iterate the smaller set. `Set.has()` is O(1). Total: O(min(|A|, |B|)).
+**Optimization**: Iterate the smaller set. `Set.​has()` is O(1). Total: O(min(|A|, |B|)).
 
 **Union computed algebraically**: |A union B| = |A| + |B| - |A intersection B|. No actual union set is constructed.
 
-#### Function: `getStudioOverlap` — Binary Match
+#### Function: `get​Studio​Overlap` — Binary Match
 
--> Source: [`getStudioOverlap`](backend/src/scripts/build-recommender.ts#L151-L159)
+-> Source: [`get​Studio​Overlap`](backend/src/scripts/build-recommender.ts#L151-L159)
 
 ```typescript
 function getStudioOverlap(setA: Set<string>, setB: Set<string>): number {
@@ -2883,11 +2883,11 @@ function getStudioOverlap(setA: Set<string>, setB: Set<string>): number {
 }
 ```
 
-Returns `1.0` if any developer or publisher is shared between two games, `0.0` otherwise. Short-circuits on the first match (O(1) best case).
+Returns `1.​0` if any developer or publisher is shared between two games, `0.​0` otherwise. Short-circuits on the first match (O(1) best case).
 
-#### Function: `calculateScore` — 8-Factor Weighted Score
+#### Function: `calculate​Score` — 8-Factor Weighted Score
 
--> Source: [`calculateScore`](backend/src/scripts/build-recommender.ts#L161-L191)
+-> Source: [`calculate​Score`](backend/src/scripts/build-recommender.ts#L161-L191)
 
 For each pair (target, candidate):
 
@@ -2903,10 +2903,10 @@ function calculateScore(
 2. **Tags (0.25)**: Jaccard of tag sets.
 3. **Categories (0.10)**: Jaccard of category sets.
 4. **Developer (0.04)**: Binary studio overlap.
-5. **Price (0.10)**: `1 - min(|candPrice - prefPrice| / maxPrice, 1.0)`.
-6. **Review ratio (0.10)**: Candidate's `positiveRatings / totalRatings`.
-7. **Popularity (0.05)**: `log1p(pop) / log1p(maxPop)`.
-8. **Playtime (0.03)**: `log1p(playtime) / log1p(maxPlaytime)`.
+5. **Price (0.10)**: `1 -​ min(|cand​Price -​ pref​Price| /​ max​Price, 1.​0)`.
+6. **Review ratio (0.10)**: Candidate's `positive​Ratings /​ total​Ratings`.
+7. **Popularity (0.05)**: `log1p(pop) /​ log1p(max​Pop)`.
+8. **Playtime (0.03)**: `log1p(playtime) /​ log1p(max​Playtime)`.
 
 #### The Pairwise Loop — O(N²) Complexity
 
@@ -2918,7 +2918,7 @@ for (let i = 0; i < games.length; i++) {
 }
 ```
 
-Inside `findSimilarGames`, every game is compared to every other game:
+Inside `find​Similar​Games`, every game is compared to every other game:
 
 ```typescript
 for (const other of games) {
@@ -2932,7 +2932,7 @@ for (const other of games) {
 
 For N ~ 27,000 games (filtered to >=50 reviews), this is ~729 million pairwise comparisons. Progress is logged every 1,000 games with ETA.
 
-The threshold `similarity > 0.1` filters out very dissimilar games, reducing storage requirements.
+The threshold `similarity > 0.​1` filters out very dissimilar games, reducing storage requirements.
 
 #### Output
 
@@ -2944,11 +2944,11 @@ function saveRecommenderData(index: Map<number, SimilarGame[]>): void {
 }
 ```
 
-`Object.fromEntries(index)` converts the `Map<number, SimilarGame[]>` to a plain object `{ "730": [...], "570": [...] }`. This is necessary because `JSON.stringify` doesn't natively serialize `Map` objects.
+`Object.​from​Entries(index)` converts the `Map<number, Similar​Game[]>` to a plain object `{ "730": [.​.​.​], "570": [.​.​.​] }`. This is necessary because `JSON.​stringify` doesn't natively serialize `Map` objects.
 
 ### 9.4 Inspection Utilities
 
-**`inspect-csv-columns.ts`**: 7 lines. Reads the CSV header and prints columns with indices:
+**`inspect-​csv-​columns.​ts`**: 7 lines. Reads the CSV header and prints columns with indices:
 
 ```typescript
 const first = fs.readFileSync(path, "utf-8").split("\n")[0];
@@ -2956,10 +2956,10 @@ const cols = first.split(",").map((c, i) => `${i + 1}. ${c.trim()}`);
 console.log("Columns in CSV:\n" + cols.join("\n"));
 ```
 
-**`inspect-csv-and-interface.ts`**: A schema validation tool:
+**`inspect-​csv-​and-​interface.​ts`**: A schema validation tool:
 
-1. Parses the CSV header using `csv-parse` (handles quoted commas correctly).
-2. Reads `process-dataset.ts` source code and extracts `RawGame` interface fields via regex:
+1. Parses the CSV header using `csv-​parse` (handles quoted commas correctly).
+2. Reads `process-​dataset.​ts` source code and extracts `Raw​Game` interface fields via regex:
    ```typescript
    const interfaceMatch = source.match(/interface RawGame\s*\{([^}]+)\}/s);
    ```
@@ -2970,35 +2970,35 @@ console.log("Columns in CSV:\n" + cols.join("\n"));
 
 ## 10. Shell Scripts
 
-### 10.1 `dev-start.sh`
+### 10.1 `dev-​start.​sh`
 
-**File**: `backend/scripts/dev-start.sh`
+**File**: `backend/​scripts/​dev-​start.​sh`
 
 Launches both the backend and frontend in parallel, with graceful shutdown.
 
 **Mechanical execution**:
 
-1. **Pre-flight checks**: Runs `check-data.sh` and `db-health.sh`.
+1. **Pre-flight checks**: Runs `check-​data.​sh` and `db-​health.​sh`.
 2. **Background processes**: `npm run dev &` and `npx ng serve &`. The `&` runs each in the background, capturing PIDs via `$!`.
 3. **Signal trap**: `trap cleanup SIGINT SIGTERM` registers a handler for Ctrl+C.
-4. **Cleanup function**: `kill $BACKEND_PID $FRONTEND_PID; wait $BACKEND_PID $FRONTEND_PID` sends SIGTERM and waits for graceful exit.
+4. **Cleanup function**: `kill $BACKEND_​PID $FRONTEND_​PID; wait $BACKEND_​PID $FRONTEND_​PID` sends SIGTERM and waits for graceful exit.
 5. **Wait loop**: `wait` blocks the script until both background processes exit.
 
-### 10.2 `db-health.sh`
+### 10.2 `db-​health.​sh`
 
-**File**: `backend/scripts/db-health.sh`
+**File**: `backend/​scripts/​db-​health.​sh`
 
 A 5-step PostgreSQL health check:
 
-1. `pg_isready` — TCP connectivity test.
-2. `SELECT to_regclass('public.games')` — Table existence check.
+1. `pg_​isready` — TCP connectivity test.
+2. `SELECT to_​regclass('public.​games')` — Table existence check.
 3. `SELECT COUNT(*)` — Row count + basic statistics.
-4. `SELECT ... ORDER BY positive_votes DESC LIMIT 5` — Data sanity check.
+4. `SELECT .​.​.​ ORDER BY positive_​votes DESC LIMIT 5` — Data sanity check.
 5. Index count query — Performance optimization verification.
 
-### 10.3 `test-api.sh`
+### 10.3 `test-​api.​sh`
 
-**File**: `backend/scripts/test-api.sh`
+**File**: `backend/​scripts/​test-​api.​sh`
 
 Smoke tests every API endpoint via `curl`:
 
@@ -3006,35 +3006,35 @@ Smoke tests every API endpoint via `curl`:
 curl -s -o /tmp/pse_api_response.json -w '%{http_code} %{time_total}'
 ```
 
-- `-s` (silent) suppresses progress bars.
-- `-o /tmp/...` writes the response body to a file.
-- `-w '%{http_code} %{time_total}'` prints HTTP status and timing.
+- `-​s` (silent) suppresses progress bars.
+- `-​o /​tmp/​.​.​.​` writes the response body to a file.
+- `-​w '%{http_​code} %{time_​total}'` prints HTTP status and timing.
 
-User-specific endpoints require `STEAM_ID` environment variable.
+User-specific endpoints require `STEAM_​ID` environment variable.
 
-### 10.4 `check-data.sh`
+### 10.4 `check-​data.​sh`
 
-**File**: `backend/scripts/check-data.sh`
+**File**: `backend/​scripts/​check-​data.​sh`
 
 Validates the data pipeline across three stages:
 
-1. **Raw data**: `games.csv` or `games.json` existence.
-2. **Processed data**: All 5 JSON files from `process-dataset.ts`.
-3. **Recommender data**: `similarity-index.json`, `vectors.json`, `idf.json`.
+1. **Raw data**: `games.​csv` or `games.​json` existence.
+2. **Processed data**: All 5 JSON files from `process-​dataset.​ts`.
+3. **Recommender data**: `similarity-​index.​json`, `vectors.​json`, `idf.​json`.
 
-JSON validation via `python3 -m json.tool`. Empty files flagged as corrupt.
+JSON validation via `python3 -​m json.​tool`. Empty files flagged as corrupt.
 
 ---
 
 ## 11. Python Scripts
 
-### 11.1 `games_to_db.py`
+### 11.1 `games_​to_​db.​py`
 
-**File**: [`games_to_db.py`](backend/games_to_db.py)
+**File**: [`games_​to_​db.​py`](backend/games_to_db.py)
 
-This Python script is the primary data loader. It reads `games.json` and inserts all games into the PostgreSQL `games` table.
+This Python script is the primary data loader. It reads `games.​json` and inserts all games into the PostgreSQL `games` table.
 
-#### Function: `create_table` — Schema Definition
+#### Function: `create_​table` — Schema Definition
 
 Creates a `games` table with 28 columns:
 
@@ -3057,7 +3057,7 @@ CREATE TABLE games (
 
 `DROP TABLE IF EXISTS games CASCADE;` ensures idempotent re-runs. `CASCADE` drops dependent objects (indexes, foreign keys).
 
-#### Function: `parse_game` — Field Extraction
+#### Function: `parse_​game` — Field Extraction
 
 ```python
 def parse_game(app_id, game):
@@ -3071,18 +3071,18 @@ def parse_game(app_id, game):
 
 Notable transformations:
 
-- `game.get('name', 'Unknown')[:500]` — Truncates to 500 chars (matches VARCHAR(500)).
-- `','.join(game.get('developers', []))` — Converts array to comma-separated string.
-- `game.get('tags', {}).keys()` — Tags in the JSON are a dict (`{"Action": 50, "RPG": 30}`). Only keys are stored; vote counts are discarded.
+- `game.​get('name', 'Unknown')[:500]` — Truncates to 500 chars (matches VARCHAR(500)).
+- `','.​join(game.​get('developers', []))` — Converts array to comma-separated string.
+- `game.​get('tags', {}).​keys()` — Tags in the JSON are a dict (`{"Action": 50, "RPG": 30}`). Only keys are stored; vote counts are discarded.
 
-#### Function: `load_games_batch` — Optimized Batch Insert
+#### Function: `load_​games_​batch` — Optimized Batch Insert
 
 ```python
 BATCH_SIZE = 1000
 COMMIT_EVERY = 10000
 ```
 
-**Step 1** — Load JSON: `json.load(f)` reads the entire file into a Python dict.
+**Step 1** — Load JSON: `json.​load(f)` reads the entire file into a Python dict.
 
 **Step 2** — Iterate and batch:
 
@@ -3097,16 +3097,16 @@ for app_id, game in dataset.items():
             batch = []
 ```
 
-`execute_values` generates a single `INSERT ... VALUES (row1), (row2), ..., (row1000)` statement. This is dramatically faster than 1,000 individual INSERTs:
+`execute_​values` generates a single `INSERT .​.​.​ VALUES (row1), (row2), .​.​.​, (row1000)` statement. This is dramatically faster than 1,000 individual INSERTs:
 
 - 1 network round-trip instead of 1,000.
 - PostgreSQL optimizes multi-row inserts internally.
 
-`ON CONFLICT (app_id) DO NOTHING` makes re-runs idempotent.
+`ON CONFLICT (app_​id) DO NOTHING` makes re-runs idempotent.
 
 **Step 3** — Periodic commits: Every 10,000 rows. Balances durability vs performance.
 
-#### Function: `load_games_streaming` — Memory-Efficient Alternative
+#### Function: `load_​games_​streaming` — Memory-Efficient Alternative
 
 For files >500MB, uses `ijson` for SAX-style JSON streaming:
 
@@ -3118,7 +3118,7 @@ for app_id, game in parser:
 
 Memory usage: O(batch_size) instead of O(file_size).
 
-#### Function: `create_indexes`
+#### Function: `create_​indexes`
 
 ```sql
 CREATE INDEX IF NOT EXISTS idx_games_price ON games (price);
@@ -3126,7 +3126,7 @@ CREATE INDEX IF NOT EXISTS idx_games_positive ON games (positive_votes);
 CREATE INDEX IF NOT EXISTS idx_games_metacritic ON games (metacritic_score);
 ```
 
-B-tree indexes for columns used in `ORDER BY` and `WHERE` clauses. `idx_games_positive` directly accelerates the `ORDER BY positive_votes DESC` in `search.service.ts`.
+B-tree indexes for columns used in `ORDER BY` and `WHERE` clauses. `idx_​games_​positive` directly accelerates the `ORDER BY positive_​votes DESC` in `search.​service.​ts`.
 
 ---
 
@@ -3136,9 +3136,9 @@ The test suite follows a 2-layer strategy:
 
 ### Layer 1: Unit Tests (isolated logic, mocked I/O)
 
-#### `recommender.service.test.ts`
+#### `recommender.​service.​test.​ts`
 
-**File**: [`recommender.service.test.ts`](backend/src/services/__tests__/recommender.service.test.ts)
+**File**: [`recommender.​service.​test.​ts`](backend/src/services/__tests__/recommender.service.test.ts)
 
 **Mocking strategy**: Mocks `fs` to inject deterministic test data:
 
@@ -3161,28 +3161,28 @@ const FAKE_SIMILARITY_INDEX = {
 
 **Test cases**:
 
-1. **`isReady()` — readiness detection**:
-   - Test: When `similarity-index.json` loads -> `isReady() === true`.
-   - Test: When file missing -> `isReady() === false`.
+1. **`is​Ready()` — readiness detection**:
+   - Test: When `similarity-​index.​json` loads -> `is​Ready() === true`.
+   - Test: When file missing -> `is​Ready() === false`.
 
-2. **`getSimilarGames()` — O(1) lookup**:
+2. **`get​Similar​Games()` — O(1) lookup**:
    - Test: Returns correct sorted results for known appId.
    - Test: Respects `limit` parameter.
    - Test: Returns `[]` for unknown appId.
    - Test: Returns `[]` for game with empty similarity list.
 
-3. **`getRecommendationsForLibrary()` — aggregation engine**:
+3. **`get​Recommendations​For​Library()` — aggregation engine**:
    - Test: Empty input -> empty output.
    - Test: Not-ready state -> empty output.
    - Test: **Ownership exclusion** — owned games must not appear.
    - Test: **Cross-library aggregation** — Game 10 appears in both 730's and 570's lists -> should rank highest.
    - Test: **Playtime weighting** — heavily-played games contribute proportionally more weight.
 
-#### `search.service.test.ts`
+#### `search.​service.​test.​ts`
 
-**File**: `backend/src/services/__tests__/search.service.test.ts`
+**File**: `backend/​src/​services/​_​_​tests_​_​/​search.​service.​test.​ts`
 
-**Mocking strategy**: Mocks the `query` function from `db.ts`.
+**Mocking strategy**: Mocks the `query` function from `db.​ts`.
 
 **Test cases**:
 
@@ -3192,17 +3192,17 @@ const FAKE_SIMILARITY_INDEX = {
 
 ### Layer 2: Route Integration Tests (full Express pipeline)
 
-#### `game.routes.test.ts`
+#### `game.​routes.​test.​ts`
 
-**Mocking**: Mocks `getSteamService` to return a fake service.
+**Mocking**: Mocks `get​Steam​Service` to return a fake service.
 
 **Test cases**:
 
-- 400 for invalid appId (`/api/game/abc`).
-- 404 for unknown game (`/api/game/999`).
-- 200 for valid game (`/api/game/730`).
+- 400 for invalid appId (`/​api/​game/​abc`).
+- 404 for unknown game (`/​api/​game/​999`).
+- 200 for valid game (`/​api/​game/​730`).
 
-#### `search.routes.test.ts`
+#### `search.​routes.​test.​ts`
 
 **Test layers**:
 
@@ -3211,7 +3211,7 @@ const FAKE_SIMILARITY_INDEX = {
 - **Layer C**: Response body shape contract.
 - **Layer D**: Error handling (service throws -> 500).
 
-#### `validate.middleware.test.ts`
+#### `validate.​middleware.​test.​ts`
 
 Tests validation middleware in isolation with mock Express objects. Verifies valid input calls `next()` and invalid input returns 400.
 
@@ -3350,32 +3350,32 @@ This section deconstructs every major backend operation into its **root O(1) pri
 Every algorithm in this backend is composed from the following O(1) atomic operations:
 
 | Primitive   | Operation                                    | Time                | Space          | Hardware                                                |
-| ----------- | -------------------------------------------- | ------------------- | -------------- | ------------------------------------------------------- |
-| `MAP_GET`   | `Map.get(key)` — V8 hash table lookup        | O(1) amortized      | O(1)           | Hash computation -> bucket index -> pointer dereference |
-| `MAP_SET`   | `Map.set(key, value)` — V8 hash table insert | O(1) amortized      | O(1) per entry | Hash -> probe -> write to heap                          |
-| `SET_HAS`   | `Set.has(value)` — V8 hash set membership    | O(1) amortized      | O(1)           | Hash -> bucket scan -> boolean                          |
-| `SET_ADD`   | `Set.add(value)` — V8 hash set insert        | O(1) amortized      | O(1) per entry | Hash -> probe -> write                                  |
-| `ARR_PUSH`  | `Array.push(value)` — amortized append       | O(1) amortized      | O(1) amortized | Write to backing store, possible realloc (2x growth)    |
-| `ARR_IDX`   | `Array[i]` — direct index access             | O(1)                | O(1)           | Base pointer + offset computation                       |
-| `NUM_ADD`   | `a + b` — IEEE 754 double addition           | O(1)                | O(1)           | FPU `FADD` instruction                                  |
-| `NUM_MUL`   | `a * b` — IEEE 754 double multiply           | O(1)                | O(1)           | FPU `FMUL` instruction                                  |
-| `NUM_DIV`   | `a / b` — IEEE 754 double division           | O(1)                | O(1)           | FPU `FDIV` instruction                                  |
-| `NUM_CMP`   | `a > b` — numeric comparison                 | O(1)                | O(1)           | `FCMP` + conditional flags                              |
-| `LOG1P`     | `Math.log1p(x)` — ln(1+x)                    | O(1)                | O(1)           | FPU `FYL2XP1` or polynomial approx                      |
-| `PARSE_INT` | `parseInt(s, 10)` — string -> integer        | O(d) where d=digits | O(1)           | Byte scan + multiply-accumulate                         |
-| `STR_LOWER` | `s.toLowerCase()` — case folding             | O(n)                | O(n)           | Byte-by-byte copy with case map                         |
-| `STR_SPLIT` | `s.split(delim)` — tokenization              | O(n)                | O(k) k=tokens  | Linear scan + heap alloc per token                      |
-| `STR_TRIM`  | `s.trim()` — whitespace removal              | O(n)                | O(n)           | Scan from both ends                                     |
+| ------------ | -------------------------------------------- | ------------------- | -------------- | ------------------------------------------------------- |
+| `MAP_​GET`   | `Map.​get(key)` — V8 hash table lookup        | O(1) amortized      | O(1)           | Hash computation -> bucket index -> pointer dereference |
+| `MAP_​SET`   | `Map.​set(key, value)` — V8 hash table insert | O(1) amortized      | O(1) per entry | Hash -> probe -> write to heap                          |
+| `SET_​HAS`   | `Set.​has(value)` — V8 hash set membership    | O(1) amortized      | O(1)           | Hash -> bucket scan -> boolean                          |
+| `SET_​ADD`   | `Set.​add(value)` — V8 hash set insert        | O(1) amortized      | O(1) per entry | Hash -> probe -> write                                  |
+| `ARR_​PUSH`  | `Array.​push(value)` — amortized append       | O(1) amortized      | O(1) amortized | Write to backing store, possible realloc (2x growth)    |
+| `ARR_​IDX`   | `Array[i]` — direct index access             | O(1)                | O(1)           | Base pointer + offset computation                       |
+| `NUM_​ADD`   | `a + b` — IEEE 754 double addition           | O(1)                | O(1)           | FPU `FADD` instruction                                  |
+| `NUM_​MUL`   | `a * b` — IEEE 754 double multiply           | O(1)                | O(1)           | FPU `FMUL` instruction                                  |
+| `NUM_​DIV`   | `a /​ b` — IEEE 754 double division           | O(1)                | O(1)           | FPU `FDIV` instruction                                  |
+| `NUM_​CMP`   | `a > b` — numeric comparison                 | O(1)                | O(1)           | `FCMP` + conditional flags                              |
+| `LOG1P`     | `Math.​log1p(x)` — ln(1+x)                    | O(1)                | O(1)           | FPU `FYL2XP1` or polynomial approx                      |
+| `PARSE_​INT` | `parse​Int(s, 10)` — string -> integer        | O(d) where d=digits | O(1)           | Byte scan + multiply-accumulate                         |
+| `STR_​LOWER` | `s.​to​Lower​Case()` — case folding             | O(n)                | O(n)           | Byte-by-byte copy with case map                         |
+| `STR_​SPLIT` | `s.​split(delim)` — tokenization              | O(n)                | O(k) k=tokens  | Linear scan + heap alloc per token                      |
+| `STR_​TRIM`  | `s.​trim()` — whitespace removal              | O(n)                | O(n)           | Scan from both ends                                     |
 
-**V8 Map/Set internals**: V8 uses a deterministic hash table variant (ordered insertion). Hash computation for integers: identity function masked to table size. For strings: `StringHasher` computes a 32-bit hash via iterative multiply-add. Collision resolution: open addressing with quadratic probing. Load factor threshold: 0.75 triggers reallocation (2x capacity).
+**V8 Map/Set internals**: V8 uses a deterministic hash table variant (ordered insertion). Hash computation for integers: identity function masked to table size. For strings: `String​Hasher` computes a 32-bit hash via iterative multiply-add. Collision resolution: open addressing with quadratic probing. Load factor threshold: 0.75 triggers reallocation (2x capacity).
 
 ---
 
 ### 14.2 Algorithmic Composition — From Primitives to Algorithms
 
-#### 14.2.1 Jaccard Similarity — `getJaccard(A, B)`
+#### 14.2.1 Jaccard Similarity — `get​Jaccard(A, B)`
 
--> Source: [`getJaccard`](backend/src/scripts/build-recommender.ts#L136-L149)
+-> Source: [`get​Jaccard`](backend/src/scripts/build-recommender.ts#L136-L149)
 
 **Formal definition**: J(A, B) = |A intersection B| / |A union B|
 
@@ -3408,13 +3408,13 @@ FUNCTION getJaccard(setA: Set<string>, setB: Set<string>)  ->  float:
 
 - **Time**: O(min(|A|, |B|)) — dominated by Step 3
 - **Space**: O(1) — no auxiliary data structures allocated
-- **Primitive count**: min(|A|,|B|) × `SET_HAS` + 4 × `NUM_ADD/SUB` + 1 × `NUM_DIV`
+- **Primitive count**: min(|A|,|B|) × `SET_​HAS` + 4 × `NUM_​ADD/​SUB` + 1 × `NUM_​DIV`
 
 ---
 
-#### 14.2.2 Playtime-Weighted Score Aggregation — `getRecommendationsForLibrary`
+#### 14.2.2 Playtime-Weighted Score Aggregation — `get​Recommendations​For​Library`
 
--> Source: [`getRecommendationsForLibrary`](backend/src/services/recommender.service.ts#L102-L178)
+-> Source: [`get​Recommendations​For​Library`](backend/src/services/recommender.service.ts#L102-L178)
 
 **Primitive decomposition**:
 
@@ -3426,7 +3426,7 @@ FOR game IN ownedGames:                         # L iterations
   ownedSet.ADD(game.appId)                      # L × SET_ADD
 ```
 
-Primitives: L × `SET_ADD`
+Primitives: L × `SET_​ADD`
 
 **Phase B — Weight Computation** (O(L)):
 
@@ -3441,7 +3441,7 @@ FOR game IN ownedGames:                         # L iterations
   gameWeights.SET(game.appId, w)                # 1× MAP_SET
 ```
 
-Primitives: L × `NUM_ADD` + L × (2 × `LOG1P` + 1 × `NUM_DIV` + 1 × `MAP_SET`)
+Primitives: L × `NUM_​ADD` + L × (2 × `LOG1P` + 1 × `NUM_​DIV` + 1 × `MAP_​SET`)
 
 **Phase C — Candidate Scoring** (O(L × K)):
 
@@ -3459,7 +3459,7 @@ FOR ownedGame IN ownedGames:                    # L iterations
       scores.SET(rec.appId, {score: addedScore}) # 1× MAP_SET
 ```
 
-Primitives per inner iteration: 1 × `SET_HAS` + 1 × `NUM_MUL` + 1 × `MAP_GET` + 1 × (`NUM_ADD` or `MAP_SET`)
+Primitives per inner iteration: 1 × `SET_​HAS` + 1 × `NUM_​MUL` + 1 × `MAP_​GET` + 1 × (`NUM_​ADD` or `MAP_​SET`)
 
 **Phase D — Sort** (O(C log C)):
 
@@ -3467,7 +3467,7 @@ Primitives per inner iteration: 1 × `SET_HAS` + 1 × `NUM_MUL` + 1 × `MAP_GET`
 recommendations.SORT((a, b)  ->  b.score - a.score)  # Timsort: C log C × NUM_CMP
 ```
 
-Timsort decomposes to: C × `NUM_CMP` per merge pass × log_2(C) passes
+Timsort decomposes to: C × `NUM_​CMP` per merge pass × log_2(C) passes
 
 **Total asymptotic complexity**:
 
@@ -3476,9 +3476,9 @@ Timsort decomposes to: C × `NUM_CMP` per merge pass × log_2(C) passes
 
 ---
 
-#### 14.2.3 L1-Normalized Genre Vector — `buildGenreVector`
+#### 14.2.3 L1-Normalized Genre Vector — `build​Genre​Vector`
 
--> Source: [`buildGenreVector`](backend/src/services/user-profile.service.ts#L56-L119)
+-> Source: [`build​Genre​Vector`](backend/src/services/user-profile.service.ts#L56-L119)
 
 **Formal definition**:
 
@@ -3511,7 +3511,7 @@ FOR row IN dbResult.rows:                       # R rows returned
   genreMap.SET(row.app_id, Array.from(merged))  # MAP_SET
 ```
 
-Primitives per row: 2 × `STR_SPLIT` + G × (`STR_TRIM` + `STR_LOWER` + `SET_ADD`) + 1 × `MAP_SET`
+Primitives per row: 2 × `STR_​SPLIT` + G × (`STR_​TRIM` + `STR_​LOWER` + `SET_​ADD`) + 1 × `MAP_​SET`
 
 **Phase C — Weighted Accumulation** (O(L × G)):
 
@@ -3542,9 +3542,9 @@ FOR [genre, weight] IN rawVector:               # |V| iterations
 
 ---
 
-#### 14.2.4 3-Signal Composite Scoring — `scoreWithUserContext`
+#### 14.2.4 3-Signal Composite Scoring — `score​With​User​Context`
 
--> Source: [`scoreWithUserContext`](backend/src/services/user-profile.service.ts#L216-L336)
+-> Source: [`score​With​User​Context`](backend/src/services/user-profile.service.ts#L216-L336)
 
 **Formal definition**:
 
@@ -3576,9 +3576,9 @@ final computation: 3 × NUM_MUL + 2 × NUM_ADD = 5 primitives
 
 ---
 
-#### 14.2.5 8-Factor Weighted Similarity — `calculateScore`
+#### 14.2.5 8-Factor Weighted Similarity — `calculate​Score`
 
--> Source: [`calculateScore`](backend/src/scripts/build-recommender.ts#L161-L191)
+-> Source: [`calculate​Score`](backend/src/scripts/build-recommender.ts#L161-L191)
 
 **Primitive decomposition per game pair**:
 
@@ -3594,9 +3594,9 @@ score += 0.05 × (LOG1P(b.pop) / LOG1P(maxPop))               # 2× LOG1P + 1× 
 score += 0.03 × (LOG1P(b.playtime) / LOG1P(maxPt))           # 2× LOG1P + 1× NUM_DIV
 ```
 
-**Fixed-cost primitives**: 8 × `NUM_MUL` + 7 × `NUM_ADD` + 2 × `NUM_DIV` + 4 × `LOG1P` + 4 × `NUM_CMP` = **25 arithmetic ops**
+**Fixed-cost primitives**: 8 × `NUM_​MUL` + 7 × `NUM_​ADD` + 2 × `NUM_​DIV` + 4 × `LOG1P` + 4 × `NUM_​CMP` = **25 arithmetic ops**
 
-**Variable-cost (Jaccard calls)**: ~3-4 × `SET_HAS` per Jaccard (avg set size ~5) × 4 calls = **~16 hash lookups**
+**Variable-cost (Jaccard calls)**: ~3-4 × `SET_​HAS` per Jaccard (avg set size ~5) × 4 calls = **~16 hash lookups**
 
 **Total per pair**: ~41 primitive operations
 
@@ -3606,9 +3606,9 @@ score += 0.03 × (LOG1P(b.playtime) / LOG1P(maxPt))           # 2× LOG1P + 1× 
 
 ### 14.3 System-Level Execution Traces
 
-#### 14.3.1 `fs.readFileSync(path, 'utf-8')` — File Read
+#### 14.3.1 `fs.​read​File​Sync(path, 'utf-​8')` — File Read
 
-Used in `RecommenderService.loadData()` to load `similarity-index.json`.
+Used in `Recommender​Service.​load​Data()` to load `similarity-​index.​json`.
 
 ```
 Application Layer:
@@ -3657,9 +3657,9 @@ Memory Profile:
 
 ---
 
-#### 14.3.2 `JSON.parse(string)` — JSON Deserialization
+#### 14.3.2 `JSON.​parse(string)` — JSON Deserialization
 
-Used immediately after `fs.readFileSync` to parse the similarity index.
+Used immediately after `fs.​read​File​Sync` to parse the similarity index.
 
 ```
 Application Layer:
@@ -3702,9 +3702,9 @@ Memory Profile:
 
 ---
 
-#### 14.3.3 `pool.query(sql, params)` — PostgreSQL Query Execution
+#### 14.3.3 `pool.​query(sql, params)` — PostgreSQL Query Execution
 
-Used in `searchByGenres`, `buildGenreVector`, and `scoreWithUserContext`.
+Used in `search​By​Genres`, `build​Genre​Vector`, and `score​With​User​Context`.
 
 ```
 Application Layer:
@@ -3771,9 +3771,9 @@ Memory Profile (application side):
 
 ---
 
-#### 14.3.4 `axios.get(url, config)` — HTTP Request to Steam API
+#### 14.3.4 `axios.​get(url, config)` — HTTP Request to Steam API
 
-Used in `SteamService` for all Steam API calls.
+Used in `Steam​Service` for all Steam API calls.
 
 ```
 Application Layer:
@@ -3836,7 +3836,7 @@ Memory Profile:
 
 ---
 
-#### 14.3.5 `express.json()` Middleware — Request Body Parsing
+#### 14.3.5 `express.​json()` Middleware — Request Body Parsing
 
 ```
 Application Layer:
@@ -3884,21 +3884,21 @@ Memory Profile:
 
 #### 14.4.1 Express Middleware Interface
 
-**Abstract boundary**: `(req: Request, res: Response, next: NextFunction) => void`
+**Abstract boundary**: `(req: Request, res: Response, next: Next​Function) => void`
 
 **Primitive virtual methods**:
 
 | Method             | Input Vector           | Output Vector                   | Side Effects                                                              |
-| ------------------ | ---------------------- | ------------------------------- | ------------------------------------------------------------------------- |
-| `req.params[key]`  | key: string            | string \| undefined             | None (read-only)                                                          |
-| `req.query[key]`   | key: string            | string \| string[] \| undefined | None (read-only)                                                          |
-| `req.body`         | —                      | any (parsed JSON)               | None (set by body-parser)                                                 |
-| `res.status(code)` | code: number (100-599) | Response (chainable this)       | Mutates `res.statusCode`                                                  |
-| `res.json(body)`   | body: any              | void                            | Serializes body -> sets Content-Type -> writes to socket -> ends response |
+| ------------------ | ---------------------- | ------------------------- | ------------------------------------------------------------------------- |
+| `req.​params[key]`  | key: string            | string \| undefined             | None (read-only)                                                          |
+| `req.​query[key]`   | key: string            | string \| string[] \| undefined | None (read-only)                                                          |
+| `req.​body`         | —                      | any (parsed JSON)               | None (set by body-parser)                                                 |
+| `res.​status(code)` | code: number (100-599) | Response (chainable this)       | Mutates `res.​status​Code`                                                  |
+| `res.​json(body)`   | body: any              | void                            | Serializes body -> sets Content-Type -> writes to socket -> ends response |
 | `next()`           | —                      | void                            | Transfers control to next middleware in stack                             |
 | `next(err)`        | err: Error             | void                            | Skips remaining normal middleware -> jumps to error handler               |
 
-**`res.json(body)` execution pipeline**:
+**`res.​json(body)` execution pipeline**:
 
 ```
 res.json(body)
@@ -3913,7 +3913,7 @@ res.json(body)
           └─ Kernel: TCP send buffer  ->  segmentation  ->  NIC
 ```
 
-**Memory side-effects of `res.json()`**:
+**Memory side-effects of `res.​json()`**:
 
 - **Stack**: 2 frames (res.json -> res.end)
 - **Heap**: JSON string allocation (~1x body size)
@@ -3924,16 +3924,16 @@ res.json(body)
 
 #### 14.4.2 Zod Schema Interface
 
-**Abstract boundary**: `ZodSchema<T>`
+**Abstract boundary**: `Zod​Schema<T>`
 
 **Primitive virtual methods**:
 
 | Method                    | Input Vector  | Output                                                        | Side Effects                        |
-| ------------------------- | ------------- | ------------------------------------------------------------- | ----------------------------------- |
-| `schema.parseAsync(data)` | data: unknown | Promise<T>                                                    | Heap: allocates ZodError on failure |
-| `schema.safeParse(data)`  | data: unknown | {success: true, data: T} \| {success: false, error: ZodError} | None (pure)                         |
+| ------------------------- | ------------- | -------------------------- | ----------------------------------- |
+| `schema.​parse​Async(data)` | data: unknown | Promise<T>                                                    | Heap: allocates ZodError on failure |
+| `schema.​safe​Parse(data)`  | data: unknown | {success: true, data: T} \| {success: false, error: ZodError} | None (pure)                         |
 
-**`parseAsync` execution pipeline**:
+**`parse​Async` execution pipeline**:
 
 ```
 schema.parseAsync({ body, query, params })
@@ -3968,19 +3968,19 @@ Memory side-effects:
 
 ---
 
-#### 14.4.3 `pg.Pool` Interface
+#### 14.4.3 `pg.​Pool` Interface
 
-**Abstract boundary**: `Pool` from `node-postgres`
+**Abstract boundary**: `Pool` from `node-​postgres`
 
 **Primitive virtual methods**:
 
 | Method                         | Input Vector                | Output                  | Side Effects                                |
 | ------------------------------ | --------------------------- | ----------------------- | ------------------------------------------- |
-| `pool.query<T>(text, params?)` | text: string, params: any[] | Promise<QueryResult<T>> | Network I/O, connection acquisition/release |
-| `pool.connect()`               | —                           | Promise<PoolClient>     | Network I/O, TCP connection, auth           |
-| `pool.end()`                   | —                           | Promise<void>           | Close all connections, drain idle queue     |
+| `pool.​query<T>(text, params?)` | text: string, params: any[] | Promise<QueryResult<T>> | Network I/O, connection acquisition/release |
+| `pool.​connect()`               | —                           | Promise<PoolClient>     | Network I/O, TCP connection, auth           |
+| `pool.​end()`                   | —                           | Promise<void>           | Close all connections, drain idle queue     |
 
-**`QueryResult<T>` output structure**:
+**`Query​Result<T>` output structure**:
 
 ```typescript
 interface QueryResult<T> {
@@ -4006,25 +4006,25 @@ IDLE ──────────► ACTIVE ──────────► 
 
 **Pool internal state**:
 
-- `_idle: Client[]` — available connections (LIFO stack for cache locality)
-- `_pendingQueue: Deferred[]` — requests waiting for a connection
-- `_clients: Client[]` — all connections (idle + active)
-- `_ending: boolean` — shutdown flag
+- `_​idle: Client[]` — available connections (LIFO stack for cache locality)
+- `_​pending​Queue: Deferred[]` — requests waiting for a connection
+- `_​clients: Client[]` — all connections (idle + active)
+- `_​ending: boolean` — shutdown flag
 
 ---
 
 #### 14.4.4 Axios HTTP Client Interface
 
-**Abstract boundary**: `AxiosInstance`
+**Abstract boundary**: `Axios​Instance`
 
 **Primitive virtual methods**:
 
 | Method                                | Input Vector                                     | Output                    | Side Effects                     |
 | ------------------------------------- | ------------------------------------------------ | ------------------------- | -------------------------------- |
-| `client.get<T>(url, config?)`         | url: string, config?: {params, headers, timeout} | Promise<AxiosResponse<T>> | Network I/O (TLS + HTTP)         |
-| `client.post<T>(url, data?, config?)` | url: string, data?: any                          | Promise<AxiosResponse<T>> | Network I/O + body serialization |
+| `client.​get<T>(url, config?)`         | url: string, config?: {params, headers, timeout} | Promise<AxiosResponse<T>> | Network I/O (TLS + HTTP)         |
+| `client.​post<T>(url, data?, config?)` | url: string, data?: any                          | Promise<AxiosResponse<T>> | Network I/O + body serialization |
 
-**`AxiosResponse<T>` output structure**:
+**`Axios​Response<T>` output structure**:
 
 ```typescript
 interface AxiosResponse<T> {
@@ -4061,35 +4061,35 @@ Axios error handling:
 
 ---
 
-#### 14.4.5 `RecommenderService` — Singleton Interface
+#### 14.4.5 `Recommender​Service` — Singleton Interface
 
-**Abstract boundary**: Class `RecommenderService` (no abstract base, but functionally an interface)
+**Abstract boundary**: Class `Recommender​Service` (no abstract base, but functionally an interface)
 
--> Source: [`RecommenderService`](backend/src/services/recommender.service.ts#L34-L243)
+-> Source: [`Recommender​Service`](backend/src/services/recommender.service.ts#L34-L243)
 
 **Interface contract**:
 
 | Method                                             | Input Vector                                                 | Output                   | Time             | Space    | I/O  |
-| -------------------------------------------------- | ------------------------------------------------------------ | ------------------------ | ---------------- | -------- | ---- |
-| `isReady()`                                        | —                                                            | boolean                  | O(1)             | O(1)     | None |
-| `getSimilarGames(appId, limit?)`                   | appId: number, limit: number=10                              | SimilarGame[]            | O(1) + O(limit)  | O(limit) | None |
-| `getRecommendationsForLibrary(games, limit?)`      | games: {appId, playtimeMinutes}[], limit: number=20          | RecommendationResult[]   | O(L×K + C log C) | O(L+C)   | None |
-| `getRecommendationsByTags(tags, exclude?, limit?)` | tags: string[], excludeAppIds: number[]=[], limit: number=20 | RecommendationResult[]   | O(N×T×K)         | O(N)     | None |
-| `getGameInfo(appId)`                               | appId: number                                                | {name, topTerms} \| null | O(1)             | O(1)     | None |
+| -------------------------------------------------- | ------------------------------------------------------------ | ---------------------- | ---------------- | ------------ | ------------ |
+| `is​Ready()`                                        | —                                                            | boolean                  | O(1)             | O(1)     | None |
+| `get​Similar​Games(app​Id, limit?)`                   | appId: number, limit: number=10                              | SimilarGame[]            | O(1) + O(limit)  | O(limit) | None |
+| `get​Recommendations​For​Library(games, limit?)`      | games: {appId, playtimeMinutes}[], limit: number=20          | RecommendationResult[]   | O(L×K + C log C) | O(L+C)   | None |
+| `get​Recommendations​By​Tags(tags, exclude?, limit?)` | tags: string[], excludeAppIds: number[]=[], limit: number=20 | RecommendationResult[]   | O(N×T×K)         | O(N)     | None |
+| `get​Game​Info(app​Id)`                               | appId: number                                                | {name, topTerms} \| null | O(1)             | O(1)     | None |
 
-**Singleton state footprint** (after `loadData()`):
+**Singleton state footprint** (after `load​Data()`):
 
 | Data Structure          | Entries | Estimated Heap Size | Access Pattern       |
-| ----------------------- | ------- | ------------------- | -------------------- |
-| `similarityIndex` (Map) | ~27,000 | ~50MB               | O(1) lookup by appId |
-| `gameVectors` (Map)     | ~27,000 | ~15MB               | O(1) lookup by appId |
+| ----------------------- | ------------ | ------------------- | -------------------- |
+| `similarity​Index` (Map) | ~27,000 | ~50MB               | O(1) lookup by appId |
+| `game​Vectors` (Map)     | ~27,000 | ~15MB               | O(1) lookup by appId |
 | `idf` (Map)             | ~5,000  | ~0.5MB              | O(1) lookup by term  |
 | **Total resident**      | —       | **~65MB**           | —                    |
 
 **Invariants**:
 
-- `isLoaded === (similarityIndex.size > 0)` — always true after construction
-- `similarityIndex.get(appId)` arrays are pre-sorted by `similarity` descending
+- `is​Loaded === (similarity​Index.​size > 0)` — always true after construction
+- `similarity​Index.​get(app​Id)` arrays are pre-sorted by `similarity` descending
 - All methods are **pure functions over immutable state** after construction (thread-safe in concept, though Node.js is single-threaded)
 
 ---
@@ -4102,7 +4102,7 @@ This section deconstructs every abstracted runtime concept used in the backend, 
 
 ### 15.1 V8 Engine Architecture
 
-V8 is the JavaScript engine that powers Node.js. Every `.ts` file in this project is first compiled to `.js` by the TypeScript compiler (`tsc`), then executed by V8.
+V8 is the JavaScript engine that powers Node.js. Every `.​ts` file in this project is first compiled to `.​js` by the TypeScript compiler (`tsc`), then executed by V8.
 
 #### 15.1.1 Compilation Pipeline
 
@@ -4143,8 +4143,8 @@ Machine Code (x86-64 on Intel Mac, ARM64 on Apple Silicon)
 
 **How this applies to the backend**:
 
-- `recommender.service.ts` methods like `getSimilarGames` are called thousands of times during scoring. TurboFan JIT-compiles them after ~100 invocations.
-- `Map.get()` calls in hot loops get inline-cached: V8 remembers the Map's internal shape and generates a direct memory offset read instead of a hash table lookup.
+- `recommender.​service.​ts` methods like `get​Similar​Games` are called thousands of times during scoring. TurboFan JIT-compiles them after ~100 invocations.
+- `Map.​get()` calls in hot loops get inline-cached: V8 remembers the Map's internal shape and generates a direct memory offset read instead of a hash table lookup.
 
 #### 15.1.2 Hidden Classes (Shapes / Maps)
 
@@ -4161,9 +4161,9 @@ game.appId = 730;
 game.name = "CS2";
 ```
 
-**Transition chain**: `C0 -> C1 -> C2`
+**Transition chain**: `C0 -​> C1 -​> C2`
 
-**Why this matters**: When V8 sees many objects with the same shape (e.g., all `SimilarGame` objects have `{appId, name, similarity}`), it creates a single hidden class and shares it. Property access becomes a fixed-offset memory read (like a C struct) instead of a dictionary lookup.
+**Why this matters**: When V8 sees many objects with the same shape (e.g., all `Similar​Game` objects have `{app​Id, name, similarity}`), it creates a single hidden class and shares it. Property access becomes a fixed-offset memory read (like a C struct) instead of a dictionary lookup.
 
 **Performance trap**: Adding properties in different orders creates different hidden classes:
 
@@ -4176,17 +4176,17 @@ b.y = 2;
 b.x = 1; // Hidden class: {y:0, x:1}  -- DIFFERENT!
 ```
 
-V8 cannot share the hidden class between `a` and `b`. This forces polymorphic inline caches, which are slower. The TypeScript interfaces in `steam.types.ts` prevent this by ensuring consistent property order.
+V8 cannot share the hidden class between `a` and `b`. This forces polymorphic inline caches, which are slower. The TypeScript interfaces in `steam.​types.​ts` prevent this by ensuring consistent property order.
 
 #### 15.1.3 Inline Caches (ICs)
 
-When V8 executes `obj.property`, it doesn't do a dictionary lookup every time. Instead:
+When V8 executes `obj.​property`, it doesn't do a dictionary lookup every time. Instead:
 
 1. **First call (uninitialized)**: Full property lookup via hidden class chain. V8 records the hidden class and property offset.
 2. **Second call (monomorphic)**: If same hidden class, V8 uses the cached offset directly. One pointer comparison + one memory read.
 3. **Many different shapes (megamorphic)**: Falls back to generic dictionary lookup. Significantly slower.
 
-**In the backend**: The `for...of` loops in `getRecommendationsForLibrary` iterate `SimilarGame[]` objects. All `SimilarGame` objects have the same hidden class (created by `JSON.parse` with consistent key order), so property access is monomorphic -- every `.appId` and `.similarity` read is a single memory offset operation.
+**In the backend**: The `for.​.​.​of` loops in `get​Recommendations​For​Library` iterate `Similar​Game[]` objects. All `Similar​Game` objects have the same hidden class (created by `JSON.​parse` with consistent key order), so property access is monomorphic -- every `.​app​Id` and `.​similarity` read is a single memory offset operation.
 
 ---
 
@@ -4194,7 +4194,7 @@ When V8 executes `obj.property`, it doesn't do a dictionary lookup every time. I
 
 #### 15.2.1 The Call Stack
 
-The call stack is a contiguous region of memory (default 1MB in V8, configurable via `--stack-size`). Each function call pushes a **stack frame**.
+The call stack is a contiguous region of memory (default 1MB in V8, configurable via `-​-​stack-​size`). Each function call pushes a **stack frame**.
 
 ```
 Stack Frame Layout (x86-64):
@@ -4238,8 +4238,8 @@ function recurse() {
 **How the backend avoids stack overflow**:
 
 - All I/O is async (Promises), so the call stack never grows linearly with data size.
-- The `for` loops in `getRecommendationsForLibrary` and `calculateScore` are iterative, not recursive.
-- `JSON.parse` uses an internal iterative parser (not recursive descent) for deeply nested structures.
+- The `for` loops in `get​Recommendations​For​Library` and `calculate​Score` are iterative, not recursive.
+- `JSON.​parse` uses an internal iterative parser (not recursive descent) for deeply nested structures.
 
 #### 15.2.2 The Heap
 
@@ -4281,9 +4281,9 @@ V8 Heap Layout:
 
 **How the backend uses the heap**:
 
-- `similarityIndex` Map (~50MB) lives in Old Space (promoted after first GC cycle).
+- `similarity​Index` Map (~50MB) lives in Old Space (promoted after first GC cycle).
 - Each HTTP request creates temporary objects (req, res, parsed body) in New Space. These die quickly and are collected by Scavenge.
-- `JSON.parse` of the 50MB similarity index triggers a Major GC during startup because the input string + output objects temporarily double heap usage.
+- `JSON.​parse` of the 50MB similarity index triggers a Major GC during startup because the input string + output objects temporarily double heap usage.
 
 ---
 
@@ -4332,7 +4332,7 @@ let y = 5;
 
 1. During parsing, V8 records that `y` exists in this block scope.
 2. At runtime, `y` is in the TDZ from the start of the block until the `let y = 5` line executes.
-3. Any access to `y` before initialization throws `ReferenceError`.
+3. Any access to `y` before initialization throws `Reference​Error`.
 4. After `let y = 5` executes, `y` is initialized and accessible.
 
 `const` behaves identically to `let` for hoisting, but additionally prevents reassignment (the binding is immutable, not the value).
@@ -4357,7 +4357,7 @@ const greet = () => {
 };
 ```
 
-**In the backend**: All services use `const` + arrow functions (e.g., `const validate = (schema) => ...`), so they are NOT hoisted. Import order matters.
+**In the backend**: All services use `const` + arrow functions (e.g., `const validate = (schema) => .​.​.​`), so they are NOT hoisted. Import order matters.
 
 #### 15.3.4 Import Hoisting in ES Modules / CommonJS
 
@@ -4376,7 +4376,7 @@ import { config } from "./config"; // This is evaluated FIRST, regardless of pos
 console.log(config.port); // config is already available
 ```
 
-TypeScript compiles `import` to `require()` (CommonJS target in `tsconfig.json`), so the actual runtime behavior follows CommonJS ordering.
+TypeScript compiles `import` to `require()` (CommonJS target in `tsconfig.​json`), so the actual runtime behavior follows CommonJS ordering.
 
 ---
 
@@ -4430,7 +4430,7 @@ counter() call:
 
 #### 15.4.2 Closures in the Backend
 
-**Singleton pattern** (`steam.service.ts`):
+**Singleton pattern** (`steam.​service.​ts`):
 
 ```typescript
 let steamServiceInstance: SteamService | null = null; // Module-level closure variable
@@ -4443,9 +4443,9 @@ export function getSteamService(): SteamService {
 }
 ```
 
-`steamServiceInstance` is a module-scoped variable captured by `getSteamService`. It persists for the lifetime of the process.
+`steam​Service​Instance` is a module-scoped variable captured by `get​Steam​Service`. It persists for the lifetime of the process.
 
-**Middleware factory** (`validate.middleware.ts`):
+**Middleware factory** (`validate.​middleware.​ts`):
 
 ```typescript
 export const validate = (schema: ZodSchema) => {    // schema is captured
@@ -4455,7 +4455,7 @@ export const validate = (schema: ZodSchema) => {    // schema is captured
 };
 ```
 
-Each call to `validate(someSchema)` creates a new closure that captures that specific schema. The Zod schema object lives on the heap and is referenced by the closure's Context.
+Each call to `validate(some​Schema)` creates a new closure that captures that specific schema. The Zod schema object lives on the heap and is referenced by the closure's Context.
 
 ---
 
@@ -4502,7 +4502,7 @@ Heap:
     .apiKey -> "ABC123..."
 ```
 
-**Key insight**: Methods live on the prototype (one copy shared by all instances). Properties live on each instance. `new SteamService()` does NOT copy methods -- it sets `instance.__proto__` to `SteamService.prototype`.
+**Key insight**: Methods live on the prototype (one copy shared by all instances). Properties live on each instance. `new Steam​Service()` does NOT copy methods -- it sets `instance.​_​_​proto_​_​` to `Steam​Service.​prototype`.
 
 #### 15.5.2 `extends Error` -- Prototype Chain
 
@@ -4588,15 +4588,15 @@ Node.js runs on a single thread. All concurrent I/O is managed by the event loop
 
 **Macrotasks** (one per event loop iteration):
 
-- `setTimeout`, `setInterval`
+- `set​Timeout`, `set​Interval`
 - I/O callbacks (file read, network response, DB query result)
-- `setImmediate`
+- `set​Immediate`
 
 **Microtasks** (ALL processed between each macrotask):
 
-- `Promise.then/catch/finally` callbacks
-- `process.nextTick` callbacks
-- `queueMicrotask` callbacks
+- `Promise.​then/​catch/​finally` callbacks
+- `process.​next​Tick` callbacks
+- `queue​Microtask` callbacks
 
 **Execution order guarantee**:
 
@@ -4609,7 +4609,7 @@ Node.js runs on a single thread. All concurrent I/O is managed by the event loop
 ```
 
 **Critical implication for the backend**:
-When `scoreWithUserContext` does:
+When `score​With​User​Context` does:
 
 ```typescript
 const [libraryResult, recentResult, friendResult] = await Promise.allSettled([...]);
@@ -4636,7 +4636,7 @@ A Promise is a state machine with three states:
                                   [immutable -- cannot transition again]
 ```
 
-**V8 internal representation** (simplified from `src/builtins/promise.tq`):
+**V8 internal representation** (simplified from `src/​builtins/​promise.​tq`):
 
 ```
 Promise (JSPromise object on heap):
@@ -4663,17 +4663,17 @@ const p = new Promise((resolve, reject) => {
 1. V8 allocates a `JSPromise` object on the heap: `{state: PENDING, result: undefined, reactions: []}`
 2. V8 creates two function objects: `resolve` and `reject`, both closing over the Promise
 3. V8 calls the executor function synchronously with `(resolve, reject)`
-4. Inside the executor, `setTimeout` registers a timer callback (macrotask)
+4. Inside the executor, `set​Timeout` registers a timer callback (macrotask)
 5. The executor returns. The Promise is still PENDING
-6. `new Promise(...)` returns the Promise object. Stored in `p`
+6. `new Promise(.​.​.​)` returns the Promise object. Stored in `p`
 7. ...1000ms later, the timer fires (macrotask in TIMERS phase)
 8. `resolve(42)` is called:
-   a. Set `p.state = FULFILLED`
-   b. Set `p.result = 42`
-   c. For each reaction in `p.reactions`, enqueue a microtask: `() => reaction.fulfill_handler(42)`
-9. Microtask queue is drained: all `.then()` handlers execute
+   a. Set `p.​state = FULFILLED`
+   b. Set `p.​result = 42`
+   c. For each reaction in `p.​reactions`, enqueue a microtask: `() => reaction.​fulfill_​handler(42)`
+9. Microtask queue is drained: all `.​then()` handlers execute
 
-#### 15.7.3 `.then()` Chaining -- How It Works
+#### 15.7.3 `.​then()` Chaining -- How It Works
 
 ```typescript
 promise
@@ -4681,7 +4681,7 @@ promise
   .then((doubled) => doubled + 1); // Returns Promise C
 ```
 
-**Step 1**: `.then(handler)` creates a new Promise (B) and pushes a reaction onto `promise.reactions`:
+**Step 1**: `.​then(handler)` creates a new Promise (B) and pushes a reaction onto `promise.​reactions`:
 
 ```
 promise.reactions = [
@@ -4691,15 +4691,15 @@ promise.reactions = [
 
 **Step 2**: When `promise` resolves with value `42`:
 
-1. Enqueue microtask: `() => { const result = handler(42); resolvePromise(B, result); }`
+1. Enqueue microtask: `() => { const result = handler(42); resolve​Promise(B, result); }`
 2. Microtask executes: `result = 42 * 2 = 84`. B resolves with `84`.
-3. B's reactions fire: enqueue microtask for the next `.then()`.
+3. B's reactions fire: enqueue microtask for the next `.​then()`.
 
-**Each `.then()` creates a new Promise.** A chain of 5 `.then()` calls allocates 5 Promise objects on the heap.
+**Each `.​then()` creates a new Promise.** A chain of 5 `.​then()` calls allocates 5 Promise objects on the heap.
 
-#### 15.7.4 `Promise.allSettled()` -- Mechanical Execution
+#### 15.7.4 `Promise.​all​Settled()` -- Mechanical Execution
 
-Used in `buildUserProfile` and `getMultipleOwnedGames`.
+Used in `build​User​Profile` and `get​Multiple​Owned​Games`.
 
 ```typescript
 Promise.allSettled([promiseA, promiseB, promiseC]);
@@ -4725,16 +4725,16 @@ Promise.allSettled([promiseA, promiseB, promiseC]);
 5. Return R
 ```
 
-**Key difference from `Promise.all()`**:
+**Key difference from `Promise.​all()`**:
 
-- `Promise.all()`: Rejects immediately when ANY promise rejects. Other promises are abandoned (but still execute -- they just have no effect).
-- `Promise.allSettled()`: Waits for ALL promises, regardless of success/failure. Returns the full results array.
+- `Promise.​all()`: Rejects immediately when ANY promise rejects. Other promises are abandoned (but still execute -- they just have no effect).
+- `Promise.​all​Settled()`: Waits for ALL promises, regardless of success/failure. Returns the full results array.
 
-**Why `allSettled` is used in the backend**: When fetching friend libraries, some friends may have private profiles (API returns 401). `Promise.allSettled` ensures the 9 successful responses are still collected even if 1 fails.
+**Why `all​Settled` is used in the backend**: When fetching friend libraries, some friends may have private profiles (API returns 401). `Promise.​all​Settled` ensures the 9 successful responses are still collected even if 1 fails.
 
-#### 15.7.5 `async/await` -- Desugaring
+#### 15.7.5 `async/​await` -- Desugaring
 
-`async/await` is syntactic sugar over Promises and generators. V8 transforms:
+`async/​await` is syntactic sugar over Promises and generators. V8 transforms:
 
 ```typescript
 async function buildUserProfile(steamId: string) {
@@ -4781,7 +4781,7 @@ function buildUserProfile(steamId: string) {
 
 1. Saves the current function state (local variables, instruction pointer)
 2. Returns a Promise to the caller
-3. Registers a `.then()` handler on the awaited Promise
+3. Registers a `.​then()` handler on the awaited Promise
 4. When the awaited Promise resolves, the microtask resumes the function from the saved state
 
 **Stack behavior**: When hitting `await`, the async function's frame is REMOVED from the call stack. The event loop is free to process other work. When the Promise resolves, a NEW frame is pushed.
@@ -4828,7 +4828,7 @@ const handler = (req, res) => {
 };
 ```
 
-**In the backend**: Express route handlers use arrow functions, so `this` is irrelevant. The `SteamService` class methods use regular methods (implicit binding via `this.apiClient`).
+**In the backend**: Express route handlers use arrow functions, so `this` is irrelevant. The `Steam​Service` class methods use regular methods (implicit binding via `this.​api​Client`).
 
 ---
 
@@ -4850,11 +4850,11 @@ function add(a, b) {
 
 **What gets erased**:
 
-- All type annotations (`: number`, `: string`, `: Promise<UserLibrary>`)
-- Interfaces (`interface OwnedGame { ... }`) -- completely removed
-- Generic parameters (`<T extends QueryResultRow>`)
+- All type annotations (`: number`, `: string`, `: Promise<User​Library>`)
+- Interfaces (`interface Owned​Game { .​.​.​ }`) -- completely removed
+- Generic parameters (`<T extends Query​Result​Row>`)
 - Access modifiers (`private`, `public`, `protected`)
-- Type assertions (`as SimilarGame[]`)
+- Type assertions (`as Similar​Game[]`)
 
 **What is NOT erased**:
 
@@ -4862,7 +4862,7 @@ function add(a, b) {
 - `class` declarations -- compiled to constructor functions + prototype assignments
 - Decorators (if enabled) -- compiled to function calls
 
-**Implication**: At runtime, there is zero type checking. A `Map<number, SimilarGame[]>` is just a `Map` with no runtime enforcement of key/value types. All type safety is compile-time only.
+**Implication**: At runtime, there is zero type checking. A `Map<number, Similar​Game[]>` is just a `Map` with no runtime enforcement of key/value types. All type safety is compile-time only.
 
 ---
 
@@ -4870,7 +4870,7 @@ function add(a, b) {
 
 ### 16.1 Module Resolution -- `require()` Algorithm
 
-When Node.js executes `require('./config')`, it follows a deterministic resolution algorithm:
+When Node.js executes `require('.​/​config')`, it follows a deterministic resolution algorithm:
 
 ```
 require(X) from module at path Y:
@@ -4892,11 +4892,11 @@ require(X) from module at path Y:
         d. Stop at filesystem root
 ```
 
-**Caching**: Node.js caches every module after first load in `require.cache`. Subsequent `require()` calls return the cached `module.exports` without re-executing the file. This is why the singleton pattern works -- `getSteamService()` returns the same instance across all route files.
+**Caching**: Node.js caches every module after first load in `require.​cache`. Subsequent `require()` calls return the cached `module.​exports` without re-executing the file. This is why the singleton pattern works -- `get​Steam​Service()` returns the same instance across all route files.
 
 **Circular dependency handling**: If A requires B and B requires A:
 
-1. A starts loading, gets a partial `module.exports = {}`
+1. A starts loading, gets a partial `module.​exports = {}`
 2. A requires B -> B starts loading
 3. B requires A -> Gets A's PARTIAL exports (whatever has been assigned so far)
 4. B finishes loading
@@ -4904,7 +4904,7 @@ require(X) from module at path Y:
 
 The backend avoids circular dependencies through layered architecture: routes -> services -> config/db (one-directional).
 
-### 16.2 `process.env` -- Environment Variable Mechanics
+### 16.2 `process.​env` -- Environment Variable Mechanics
 
 ```typescript
 process.env.STEAM_API_KEY;
@@ -4913,12 +4913,12 @@ process.env.STEAM_API_KEY;
 **Internal execution**:
 
 1. `process` is a global object created during Node.js startup (C++ side: `node::Environment`)
-2. `.env` is a proxy-like object populated from the OS environment:
+2. `.​env` is a proxy-like object populated from the OS environment:
    - On startup: `char** environ` (C runtime) -> JavaScript object
    - `environ` is inherited from the parent process (the shell)
-3. All values are **strings**. `process.env.PORT` returns `"3000"`, not `3000`.
+3. All values are **strings**. `process.​env.​PORT` returns `"3000"`, not `3000`.
 4. Reading: O(1) property access on a JS object
-5. Writing: `process.env.FOO = 'bar'` calls `setenv("FOO", "bar", 1)` -- a C library call that modifies the process's environment block. Child processes inherit this change.
+5. Writing: `process.​env.​FOO = 'bar'` calls `setenv("FOO", "bar", 1)` -- a C library call that modifies the process's environment block. Child processes inherit this change.
 
 **`dotenv` interaction**:
 
@@ -4926,12 +4926,12 @@ process.env.STEAM_API_KEY;
 dotenv.config({ path: ".env" });
 ```
 
-1. Reads the `.env` file synchronously (`fs.readFileSync`)
+1. Reads the `.​env` file synchronously (`fs.​read​File​Sync`)
 2. Parses each line as `KEY=VALUE`
-3. Calls `process.env[KEY] = VALUE` for each entry
-4. Returns `{ parsed: { KEY: VALUE, ... } }`
+3. Calls `process.​env[KEY] = VALUE` for each entry
+4. Returns `{ parsed: { KEY: VALUE, .​.​.​ } }`
 
-The `config.ts` module calls `dotenv.config()` twice (root `.env` and local `.env`), then uses JavaScript's `||` fallback chain to select the first non-empty value.
+The `config.​ts` module calls `dotenv.​config()` twice (root `.​env` and local `.​env`), then uses JavaScript's `||` fallback chain to select the first non-empty value.
 
 ### 16.3 Buffers and Binary Data
 
@@ -4948,21 +4948,21 @@ buf[0] = 0x48; // Direct byte access, no GC involvement
 
 **How Buffers interact with the backend**:
 
-- `fs.readFileSync(path, 'utf-8')`: Reads raw bytes into a Buffer, then decodes to a string. Without `'utf-8'`, returns the raw Buffer.
-- HTTP response bodies arrive as Buffer chunks via `req.on('data', chunk => ...)`. Express's `body-parser` concatenates these chunks and decodes them.
+- `fs.​read​File​Sync(path, 'utf-​8')`: Reads raw bytes into a Buffer, then decodes to a string. Without `'utf-​8'`, returns the raw Buffer.
+- HTTP response bodies arrive as Buffer chunks via `req.​on('data', chunk => .​.​.​)`. Express's `body-​parser` concatenates these chunks and decodes them.
 - PostgreSQL wire protocol: `pg` module receives binary DataRow messages as Buffers and parses column values from byte offsets.
 
 ---
 
-## 17. `node_modules` Library Internals
+## 17. `node_​modules` Library Internals
 
-This section deconstructs the key library files that power the backend's abstractions. These are the actual `.js` files in `node_modules/` that execute at runtime.
+This section deconstructs the key library files that power the backend's abstractions. These are the actual `.​js` files in `node_​modules/​` that execute at runtime.
 
 ---
 
 ### 17.1 Express -- Application and Router Mechanics
 
-**Source**: `node_modules/express/lib/`
+**Source**: `node_​modules/​express/​lib/​`
 
 #### 17.1.1 `express()` -- Application Construction
 
@@ -4985,7 +4985,7 @@ createApplication()                         // Returns app (a function!)
 
 **Key insight**: The `app` object returned by `express()` is itself a function with the signature `(req, res, next)`. This is why `app` can be used as a middleware in other Express apps.
 
-#### 17.1.2 `app.use()` -- Middleware Registration
+#### 17.1.2 `app.​use()` -- Middleware Registration
 
 ```
 app.use(cors())                             // lib/application.js
@@ -5051,8 +5051,8 @@ Node.js HTTP Server
 **Critical mechanics**:
 
 - `next()` is called by each middleware to continue the chain. If a middleware forgets to call `next()`, the request hangs forever.
-- `res.json()` sends the response AND calls `res.end()`. After this, the middleware chain stops (no more `next()` calls).
-- Error middleware has 4 parameters: `(err, req, res, next)`. Express distinguishes them by `Function.length` (the number of declared parameters).
+- `res.​json()` sends the response AND calls `res.​end()`. After this, the middleware chain stops (no more `next()` calls).
+- Error middleware has 4 parameters: `(err, req, res, next)`. Express distinguishes them by `Function.​length` (the number of declared parameters).
 
 #### 17.1.4 `Router` -- Sub-Application Mounting
 
@@ -5065,19 +5065,19 @@ router.get("/:steamId/library", validate(schema), handler);
 app.use("/api/user", router);
 ```
 
-When a request comes in for `GET /api/user/76561198012345678/library`:
+When a request comes in for `GET /​api/​user/​76561198012345678/​library`:
 
-1. `app._router` tries each layer. Layer at index 2 has `path: '/api/user'`.
-2. Path matches. Express strips the matched prefix: `req.url` becomes `'/76561198012345678/library'`.
+1. `app.​_​router` tries each layer. Layer at index 2 has `path: '/​api/​user'`.
+2. Path matches. Express strips the matched prefix: `req.​url` becomes `'/​76561198012345678/​library'`.
 3. The sub-router's `handle()` is called with the trimmed URL.
-4. Sub-router layer `'/:steamId/library'` matches. `req.params.steamId = '76561198012345678'`.
+4. Sub-router layer `'/​:steam​Id/​library'` matches. `req.​params.​steam​Id = '76561198012345678'`.
 5. Middleware chain: `validate(schema)` -> `handler`.
 
 ---
 
 ### 17.2 CORS -- `cors` Module
 
-**Source**: `node_modules/cors/lib/index.js`
+**Source**: `node_​modules/​cors/​lib/​index.​js`
 
 ```
 cors(options)                               // Returns middleware function
@@ -5103,17 +5103,17 @@ function corsMiddleware(req, res, next) {
   }
 ```
 
-**Why `cors()` is called with no arguments in `index.ts`**: The default configuration allows ALL origins (`*`), ALL standard methods, and ALL headers. This is permissive but appropriate for a development API.
+**Why `cors()` is called with no arguments in `index.​ts`**: The default configuration allows ALL origins (`*`), ALL standard methods, and ALL headers. This is permissive but appropriate for a development API.
 
-**Preflight mechanics**: Browsers send a preflight `OPTIONS` request before any cross-origin request that uses custom headers (like `Content-Type: application/json`). The Angular frontend (port 4200) making requests to the Express backend (port 3000) triggers this on every API call.
+**Preflight mechanics**: Browsers send a preflight `OPTIONS` request before any cross-origin request that uses custom headers (like `Content-​Type: application/​json`). The Angular frontend (port 4200) making requests to the Express backend (port 3000) triggers this on every API call.
 
 ---
 
 ### 17.3 Axios -- HTTP Client Internals
 
-**Source**: `node_modules/axios/lib/`
+**Source**: `node_​modules/​axios/​lib/​`
 
-#### 17.3.1 `axios.create(config)`
+#### 17.3.1 `axios.​create(config)`
 
 ```
 axios.create({ baseURL: 'https://api.steampowered.com' })
@@ -5135,7 +5135,7 @@ axios.create({ baseURL: 'https://api.steampowered.com' })
   return wrapper
 ```
 
-#### 17.3.2 `instance.get(url, config)` -- Full Request Pipeline
+#### 17.3.2 `instance.​get(url, config)` -- Full Request Pipeline
 
 ```
 this.apiClient.get('/IPlayerService/GetOwnedGames/v1/', { params: {...} })
@@ -5209,13 +5209,13 @@ httpAdapter(config)                              // lib/adapters/http.js
   |    }
 ```
 
-**Error handling in `SteamService`**: When Axios rejects (status >= 400), the `.catch()` in each service method checks `error.response?.status` to distinguish between HTTP errors (401, 403, 404) and network errors (no response at all).
+**Error handling in `Steam​Service`**: When Axios rejects (status >= 400), the `.​catch()` in each service method checks `error.​response?.​status` to distinguish between HTTP errors (401, 403, 404) and network errors (no response at all).
 
 ---
 
 ### 17.4 `pg` -- PostgreSQL Client Internals
 
-**Source**: `node_modules/pg/lib/` and `node_modules/pg-pool/`
+**Source**: `node_​modules/​pg/​lib/​` and `node_​modules/​pg-​pool/​`
 
 #### 17.4.1 `new Pool(config)` -- Connection Pool
 
@@ -5235,7 +5235,7 @@ new Pool({ host, database, user, port })        // pg-pool/index.js
   this._ended = false
 ```
 
-#### 17.4.2 `pool.query(text, params)` -- Full Query Pipeline
+#### 17.4.2 `pool.​query(text, params)` -- Full Query Pipeline
 
 ```
 pool.query('SELECT * FROM games WHERE app_id IN ($1,$2)', [730, 570])
@@ -5331,13 +5331,13 @@ Pool.prototype.query(text, values)               // pg-pool/index.js
   |  return result  // { rows: [...], rowCount: 2, command: 'SELECT' }
 ```
 
-**Parameterized queries prevent SQL injection**: The `$1`, `$2` placeholders are parsed by PostgreSQL as typed parameters. The values are sent in a separate Bind message, never interpolated into the SQL string. Even if `values[0]` were `"'; DROP TABLE games; --"`, PostgreSQL treats it as a literal string value, not SQL.
+**Parameterized queries prevent SQL injection**: The `$1`, `$2` placeholders are parsed by PostgreSQL as typed parameters. The values are sent in a separate Bind message, never interpolated into the SQL string. Even if `values[0]` were `"'; DROP TABLE games; -​-​"`, PostgreSQL treats it as a literal string value, not SQL.
 
 ---
 
 ### 17.5 Zod -- Schema Validation Internals
 
-**Source**: `node_modules/zod/lib/`
+**Source**: `node_​modules/​zod/​lib/​`
 
 #### 17.5.1 Schema Composition
 
@@ -5377,9 +5377,9 @@ ZodObject {
 }
 ```
 
-Each `.length()` and `.regex()` call does NOT create a new schema. Instead, it pushes a check object onto `_def.checks` and returns `this` (fluent pattern).
+Each `.​length()` and `.​regex()` call does NOT create a new schema. Instead, it pushes a check object onto `_​def.​checks` and returns `this` (fluent pattern).
 
-#### 17.5.2 `schema.parseAsync(data)` -- Validation Pipeline
+#### 17.5.2 `schema.​parse​Async(data)` -- Validation Pipeline
 
 ```
 schema.parseAsync({ body: req.body, query: req.query, params: req.params })
@@ -5435,7 +5435,7 @@ ZodString._parse(input):
 
 ### 17.6 `dotenv` -- Environment File Parser
 
-**Source**: `node_modules/dotenv/lib/main.js`
+**Source**: `node_​modules/​dotenv/​lib/​main.​js`
 
 ```
 dotenv.config({ path: '.env' })
@@ -5471,7 +5471,7 @@ dotenv.config({ path: '.env' })
   return { parsed }
 ```
 
-**Key behavior**: `dotenv` does NOT overwrite existing environment variables. If `PGHOST` is already set in the shell (e.g., via `export PGHOST=db.example.com`), the `.env` file's `PGHOST=localhost` is ignored. The backend's `config.ts` works around this by reading the `parsed` result directly instead of relying on `process.env`.
+**Key behavior**: `dotenv` does NOT overwrite existing environment variables. If `PGHOST` is already set in the shell (e.g., via `export PGHOST=db.​example.​com`), the `.​env` file's `PGHOST=localhost` is ignored. The backend's `config.​ts` works around this by reading the `parsed` result directly instead of relying on `process.​env`.
 
 ---
 
@@ -5485,10 +5485,10 @@ This section addresses the fundamental execution realities that the preceding se
 
 #### 18.1.1 The Problem: Synchronous CPU-Bound Blocking
 
--> Source: [`scoreWithUserContext`](backend/src/services/user-profile.service.ts#L216-L336)
--> Source: [`getRecommendationsByTags`](backend/src/services/recommender.service.ts#L180-L229)
+-> Source: [`score​With​User​Context`](backend/src/services/user-profile.service.ts#L216-L336)
+-> Source: [`get​Recommendations​By​Tags`](backend/src/services/recommender.service.ts#L180-L229)
 
-Node.js executes all JavaScript on a **single main thread**. The libuv event loop can only advance (call `kqueue()` on macOS or `epoll_wait()` on Linux to poll for I/O) when the V8 call stack is **empty**. Any synchronous computation that occupies the call stack blocks the entire event loop.
+Node.js executes all JavaScript on a **single main thread**. The libuv event loop can only advance (call `kqueue()` on macOS or `epoll_​wait()` on Linux to poll for I/O) when the V8 call stack is **empty**. Any synchronous computation that occupies the call stack blocks the entire event loop.
 
 **Mechanical timeline of event loop starvation**:
 
@@ -5512,18 +5512,18 @@ Time (ms)  | Call Stack               | Event Loop State
 
 The two CPU-bound operations in the scoring pipeline:
 
-1. **Candidate iteration** in `scoreWithUserContext`: O(C \* G) where C = unique candidates (~2000), G = avg genres per game (~5).
+1. **Candidate iteration** in `score​With​User​Context`: O(C \* G) where C = unique candidates (~2000), G = avg genres per game (~5).
    - ~10,000 iterations, each performing ~6 MAP_GET + 2 NUM_MUL operations
    - At V8's optimized throughput of ~200M ops/sec: ~10,000 \* 8 / 200,000,000 = **0.4ms** (negligible)
 
-2. **Sorting** via `scored.sort((a, b) => b.score - a.score)`: O(C log C) comparisons.
+2. **Sorting** via `scored.​sort((a, b) => b.​score -​ a.​score)`: O(C log C) comparisons.
    - Timsort: ~2000 \* log2(2000) = ~22,000 comparisons
    - Each comparison: 1 NUM_SUB + 1 NUM_CMP = 2 ops
    - **0.2ms** (negligible)
 
-3. **Critical case -- `getRecommendationsByTags`**: O(N _ T _ K) where N = 27,000 games, T = tag count, K = topTerms per game.
-   - Inner loop at line 201: `normalizedTags.filter(t => gameTags.includes(t))`
-   - `Array.includes()` is O(K) linear scan, not O(1) hash lookup
+3. **Critical case -- `get​Recommendations​By​Tags`**: O(N _ T _ K) where N = 27,000 games, T = tag count, K = topTerms per game.
+   - Inner loop at line 201: `normalized​Tags.​filter(t => game​Tags.​includes(t))`
+   - `Array.​includes()` is O(K) linear scan, not O(1) hash lookup
    - 27,000 _ 5 tags _ 10 topTerms = **1,350,000** string comparisons
    - String comparison: ~10 bytes avg, ~5 CPU cycles per byte = ~50 cycles
    - At 3GHz: 1,350,000 \* 50 / 3,000,000,000 = **22ms**
@@ -5531,7 +5531,7 @@ The two CPU-bound operations in the scoring pipeline:
 
 #### 18.1.2 Event Loop Phase Interaction
 
-When `scoreWithUserContext` executes its `await Promise.allSettled([...])`:
+When `score​With​User​Context` executes its `await Promise.​all​Settled([.​.​.​])`:
 
 ```
 Step 1: Three Promises created (Steam API calls)
@@ -5562,7 +5562,7 @@ CPU-bound block: 10-40ms of synchronous execution
 
 #### 18.1.3 Mitigation Strategies
 
-**Strategy 1: Chunked processing with `setImmediate()`** (yields to event loop between chunks):
+**Strategy 1: Chunked processing with `set​Immediate()`** (yields to event loop between chunks):
 
 ```typescript
 async function processInChunks<T, R>(
@@ -5582,7 +5582,7 @@ async function processInChunks<T, R>(
 }
 ```
 
-**Mechanical effect of `setImmediate()`**:
+**Mechanical effect of `set​Immediate()`**:
 
 ```
 Event Loop Phase    | What Happens
@@ -5595,7 +5595,7 @@ CHECK               | setImmediate() callback fires -> resume scoring
 CLOSE CALLBACKS     | Socket close handlers
 ```
 
-By awaiting `setImmediate()`, we force V8 to return control to the event loop, which processes the POLL phase (handling incoming HTTP requests and DB responses) before resuming the scoring computation in the CHECK phase.
+By awaiting `set​Immediate()`, we force V8 to return control to the event loop, which processes the POLL phase (handling incoming HTTP requests and DB responses) before resuming the scoring computation in the CHECK phase.
 
 **Strategy 2: Worker Threads** (separate V8 Isolate):
 
@@ -5629,7 +5629,7 @@ parentPort.postMessage(results);
 
 #### 18.2.1 B-Tree Index Mechanics
 
--> Source: [`searchByGenres`](backend/src/services/search.service.ts#L16-L62)
+-> Source: [`search​By​Genres`](backend/src/services/search.service.ts#L16-L62)
 
 A B-tree index stores keys in sorted order in a balanced tree structure:
 
@@ -5658,7 +5658,7 @@ For 27,000 rows: log_200(27,000) = ~2.3 -> **3 page reads** (often cached in sha
 
 #### 18.2.2 Why `ILIKE '%RPG%'` Defeats the B-Tree
 
-The query generated by `searchByGenres`:
+The query generated by `search​By​Genres`:
 
 ```sql
 WHERE (genres ILIKE $1 OR tags ILIKE $1) -- $1 = '%RPG%'
@@ -5761,7 +5761,7 @@ CREATE INDEX idx_games_genres_fts ON games USING GIN (genres_tsv);
 WHERE genres_tsv @@ to_tsquery('english', 'RPG & Multiplayer')
 ```
 
-**Advantage**: True linguistic stemming ('running' matches 'run'), stop word removal, ranking with `ts_rank()`.
+**Advantage**: True linguistic stemming ('running' matches 'run'), stop word removal, ranking with `ts_​rank()`.
 
 **Disadvantage**: Requires schema modification and trigger maintenance. The `ILIKE` approach works for the current dataset size (27K rows) without schema changes.
 
@@ -5771,9 +5771,9 @@ WHERE genres_tsv @@ to_tsquery('english', 'RPG & Multiplayer')
 
 #### 18.3.1 Term Frequency (TF)
 
--> Source: [`GameVector`](backend/src/services/recommender.service.ts#L20-L25)
+-> Source: [`Game​Vector`](backend/src/services/recommender.service.ts#L20-L25)
 
-For a game document `d` with tag/genre terms `t_1, t_2, ..., t_k`:
+For a game document `d` with tag/genre terms `t_​1, t_​2, .​.​.​, t_​k`:
 
 **Raw Term Frequency**:
 
@@ -5791,7 +5791,7 @@ This is a **binary TF** model, which simplifies to set membership.
 
 #### 18.3.2 Inverse Document Frequency (IDF)
 
-The `idf.json` file stores pre-computed IDF values. The standard IDF formula is:
+The `idf.​json` file stores pre-computed IDF values. The standard IDF formula is:
 
 ```
 idf(t) = log(N / df(t))
@@ -5834,11 +5834,11 @@ w(t, d) = idf(t)    if t in terms(d)
 w(t, d) = 0          otherwise
 ```
 
-The `GameVector.topTerms[i].weight` field stores exactly `idf(t)` for each term.
+The `Game​Vector.​top​Terms[i].​weight` field stores exactly `idf(t)` for each term.
 
 #### 18.3.4 L2 Norm (Magnitude)
 
-The `GameVector.magnitude` field stores the L2 norm of the weight vector:
+The `Game​Vector.​magnitude` field stores the L2 norm of the weight vector:
 
 ```
 ||v_d||_2 = sqrt( SUM_i [ w(t_i, d)^2 ] )
@@ -5856,7 +5856,7 @@ The `GameVector.magnitude` field stores the L2 norm of the weight vector:
 
 #### 18.3.5 The Scoring Anomaly: L1 Sum vs Cosine Similarity
 
--> Source: [`getRecommendationsByTags`](backend/src/services/recommender.service.ts#L204-L208)
+-> Source: [`get​Recommendations​By​Tags`](backend/src/services/recommender.service.ts#L204-L208)
 
 The actual scoring code performs:
 
@@ -5888,7 +5888,7 @@ With binary TF, `w(t,q) = 1` for query terms, so:
 v_d . v_q = SUM_{t in intersection} idf(t)    <-- same numerator as L1 sum!
 ```
 
-**The critical difference**: Cosine similarity divides by `||v_d||_2 * ||v_q||_2`, which normalizes by document length. The L1 sum does NOT normalize.
+**The critical difference**: Cosine similarity divides by `||v_​d||_​2 * ||v_​q||_​2`, which normalizes by document length. The L1 sum does NOT normalize.
 
 **Consequence**: Games with more matching tags get higher scores regardless of how many total tags they have. A game with 50 tags matching 3 query terms scores the same as a game with 3 tags matching 3 query terms. In cosine similarity, the 3-tag game would score higher (more focused match).
 
@@ -5900,7 +5900,7 @@ v_d . v_q = SUM_{t in intersection} idf(t)    <-- same numerator as L1 sum!
 
 #### 18.3.6 Computational Cost of Linear Scan
 
-The `getRecommendationsByTags` method performs a **full corpus scan**:
+The `get​Recommendations​By​Tags` method performs a **full corpus scan**:
 
 ```
 FOR each game in gameVectors (27,000 iterations):
@@ -5915,11 +5915,11 @@ Total: O(N * T * K) = O(27,000 * 5 * 10) = O(1,350,000)
 
 Each iteration involves:
 
-- `Array.map()`: K heap allocations (new string array)
-- `Array.filter()`: T \* K string comparisons via `Array.includes()` (linear scan, not hash lookup)
-- `Array.find()`: K string comparisons to retrieve weight
+- `Array.​map()`: K heap allocations (new string array)
+- `Array.​filter()`: T \* K string comparisons via `Array.​includes()` (linear scan, not hash lookup)
+- `Array.​find()`: K string comparisons to retrieve weight
 
-**Optimization**: Replace `Array.includes()` with `Set.has()`:
+**Optimization**: Replace `Array.​includes()` with `Set.​has()`:
 
 ```typescript
 const gameTagSet = new Set(vector.topTerms.map((t) => t.term));
@@ -5934,9 +5934,9 @@ const matchedTags = normalizedTags.filter((t) => gameTagSet.has(t));
 
 #### 18.4.1 The Problem: Concurrent Outbound Connections
 
--> Source: [`getMultipleOwnedGames`](backend/src/services/steam.service.ts#L279-L299)
+-> Source: [`get​Multiple​Owned​Games`](backend/src/services/steam.service.ts#L279-L299)
 
-When `buildUserProfile` fetches friend libraries, it fires up to 10 concurrent HTTP requests via `Promise.allSettled`:
+When `build​User​Profile` fetches friend libraries, it fires up to 10 concurrent HTTP requests via `Promise.​all​Settled`:
 
 ```typescript
 const results = await Promise.allSettled(
@@ -5983,7 +5983,7 @@ Kernel:
 
 #### 18.4.3 Concurrent Load Analysis
 
-**Scenario**: 100 concurrent users each triggering `buildUserProfile`:
+**Scenario**: 100 concurrent users each triggering `build​User​Profile`:
 
 ```
 Concurrent connections = 100 users * 10 friend fetches = 1,000 TLS sockets
@@ -6063,7 +6063,7 @@ this.apiClient = axios.create({
 });
 ```
 
-**Mechanical effect of `keepAlive: true`**:
+**Mechanical effect of `keep​Alive: true`**:
 
 ```
 Without keepAlive (current):
@@ -6077,9 +6077,9 @@ With keepAlive:
   Total: 450ms + 200ms = 650ms (28% faster)
 ```
 
-**`maxSockets: 20` prevents socket exhaustion**:
+**`max​Sockets: 20` prevents socket exhaustion**:
 
-- With `maxSockets=20`, at most 20 TCP connections exist to `api.steampowered.com` at any time
+- With `max​Sockets=20`, at most 20 TCP connections exist to `api.​steampowered.​com` at any time
 - Request 21+ queues internally in Node.js (NOT in the kernel)
 - 100 concurrent users \* 10 requests = 1000 requests queued, but only 20 sockets open
 - No file descriptor exhaustion, no TIME_WAIT accumulation
@@ -6106,7 +6106,7 @@ Steam's Web API enforces rate limits:
 - ~100,000 requests per day per API key
 - Undocumented per-second burst limit (~10-20 req/s)
 
-`maxSockets: 20` implicitly rate-limits outbound requests to ~20 concurrent requests (plus serialized queuing), which aligns with the burst limit and prevents `429 Too Many Requests` responses.
+`max​Sockets: 20` implicitly rate-limits outbound requests to ~20 concurrent requests (plus serialized queuing), which aligns with the burst limit and prevents `429 Too Many Requests` responses.
 
 ---
 
@@ -6141,15 +6141,15 @@ Limit  (cost=1234.56..1234.58 rows=10 width=200) (actual time=45.2..45.3 rows=10
 **Reading the plan**:
 
 | Field                               | Meaning                                                                            |
-| ----------------------------------- | ---------------------------------------------------------------------------------- |
-| `cost=0.00..1100.00`                | Estimated cost: 0 startup, 1100 total (arbitrary units, ~1 unit = 1 seq page read) |
+| ----------------------------------- | --------------------------------------------------------------------------- |
+| `cost=0.​00.​.​1100.​00`                | Estimated cost: 0 startup, 1100 total (arbitrary units, ~1 unit = 1 seq page read) |
 | `rows=5400`                         | Estimated rows matching filter (planner's guess from table statistics)             |
-| `actual time=0.02..38.5`            | Real execution: first row at 0.02ms, last row at 38.5ms                            |
+| `actual time=0.​02.​.​38.​5`            | Real execution: first row at 0.02ms, last row at 38.5ms                            |
 | `rows=5234`                         | Actual rows matching (vs 5400 estimated)                                           |
 | `Rows Removed by Filter: 21766`     | 21,766 rows scanned but did not match `ILIKE '%RPG%'`                              |
 | `Buffers: shared hit=1500 read=188` | 1500 pages from shared_buffers cache, 188 from disk                                |
-| `Sort Method: top-N heapsort`       | PostgreSQL uses a heap of size N=10 instead of full sort (since LIMIT 10)          |
-| `Memory: 29kB`                      | Sort used 29KB of work_mem                                                         |
+| `Sort Method: top-​N heapsort`       | PostgreSQL uses a heap of size N=10 instead of full sort (since LIMIT 10)          |
+| `Memory: 29k​B`                      | Sort used 29KB of work_mem                                                         |
 
 **After GIN index**:
 
@@ -6174,7 +6174,7 @@ Limit  (cost=50.12..50.14 rows=10 width=200) (actual time=2.1..2.2 rows=10 loops
 
 ### 19.1 The Express Error Pipeline
 
- -> Source: [`index.ts`](backend/src/index.ts)
+ -> Source: [`index.​ts`](backend/src/index.ts)
 
 Express has two distinct middleware chains: the **normal chain** and the **error chain**. They are distinguished by function arity (number of declared parameters).
 
@@ -6229,9 +6229,9 @@ Error Middleware Chain:
   Response sent. Connection closed.
 ```
 
-#### 19.1.1 The `Function.length` Detection Mechanism
+#### 19.1.1 The `Function.​length` Detection Mechanism
 
-Express identifies error handlers by checking `fn.length`:
+Express identifies error handlers by checking `fn.​length`:
 
 ```javascript
 // Express source: lib/router/layer.js
@@ -6249,7 +6249,7 @@ Layer.prototype.handle_error = function handle_error(error, req, res, next) {
 };
 ```
 
-**Implication**: If you write an error handler with destructured or default parameters that reduce `fn.length` below 4, Express will silently skip it:
+**Implication**: If you write an error handler with destructured or default parameters that reduce `fn.​length` below 4, Express will silently skip it:
 
 ```typescript
 // BUG: This handler will NEVER be called because fn.length === 1
@@ -6274,19 +6274,19 @@ router.get('/profile/:steamId', async (req, res) => {
 **What happens mechanically**:
 1. The async handler returns a Promise (all `async` functions return Promises)
 2. Express calls the handler and receives the Promise
-3. Express does NOT call `.catch()` on the returned Promise
-4. When the Promise rejects, V8 enqueues a `unhandledRejection` microtask
-5. Node.js emits `process.on('unhandledRejection')` event
-6. Default behavior (Node 15+): print warning and continue (or crash if `--unhandled-rejections=throw`)
-7. The HTTP connection hangs -- `res.json()` was never called, and no error handler was invoked
+3. Express does NOT call `.​catch()` on the returned Promise
+4. When the Promise rejects, V8 enqueues a `unhandled​Rejection` microtask
+5. Node.js emits `process.​on('unhandled​Rejection')` event
+6. Default behavior (Node 15+): print warning and continue (or crash if `-​-​unhandled-​rejections=throw`)
+7. The HTTP connection hangs -- `res.​json()` was never called, and no error handler was invoked
 
-**The backend's solution**: Every async route handler wraps its body in `try/catch`, explicitly calling `res.status().json()` in the catch block. This is a manual workaround for Express 4's async gap.
+**The backend's solution**: Every async route handler wraps its body in `try/​catch`, explicitly calling `res.​status().​json()` in the catch block. This is a manual workaround for Express 4's async gap.
 
-**Express 5 fix**: Express 5 (beta) automatically calls `.catch()` on returned Promises, forwarding rejections to the error middleware chain.
+**Express 5 fix**: Express 5 (beta) automatically calls `.​catch()` on returned Promises, forwarding rejections to the error middleware chain.
 
 #### 19.1.3 Error Object Serialization
 
-When `res.json({ error: error.message })` is called with a `SteamApiError`:
+When `res.​json({ error: error.​message })` is called with a `Steam​Api​Error`:
 
 ```
 SteamApiError instance:
@@ -6301,13 +6301,13 @@ JSON.stringify({ error: error.message }):
   .statusCode is NOT included (not in the serialized object)
 ```
 
-The `Error.stack` property is non-enumerable (set by V8 via `Error.captureStackTrace`), so `JSON.stringify` skips it. This prevents stack traces from leaking to API consumers -- a security feature.
+The `Error.​stack` property is non-enumerable (set by V8 via `Error.​capture​Stack​Trace`), so `JSON.​stringify` skips it. This prevents stack traces from leaking to API consumers -- a security feature.
 
 ---
 
 ### 19.2 Stack Trace Capture Mechanics
 
-When `new SteamApiError(message, statusCode)` is constructed:
+When `new Steam​Api​Error(message, status​Code)` is constructed:
 
 ```
 V8 Internal:
@@ -6342,7 +6342,7 @@ V8 Internal:
      });
 ```
 
-**Performance cost**: Stack trace capture is expensive (~10-50us depending on depth). V8 has a configurable `Error.stackTraceLimit` (default: 10 frames). Each frame read requires V8 to decode bytecode offsets back to source positions via the source map.
+**Performance cost**: Stack trace capture is expensive (~10-50us depending on depth). V8 has a configurable `Error.​stack​Trace​Limit` (default: 10 frames). Each frame read requires V8 to decode bytecode offsets back to source positions via the source map.
 
 ---
 
@@ -6350,7 +6350,7 @@ V8 Internal:
 
 ### 20.1 Request Wire Format
 
-When the Angular frontend calls `GET /api/user/76561198012345678/library`, here is the exact byte sequence sent over the TCP socket:
+When the Angular frontend calls `GET /​api/​user/​76561198012345678/​library`, here is the exact byte sequence sent over the TCP socket:
 
 ```
 Bytes on the wire (after TLS decryption):
@@ -6407,7 +6407,7 @@ Express receives IncomingMessage:
 
 ### 20.2 Response Wire Format
 
-When `res.json({ steamId: '765...', gameCount: 150, games: [...] })` is called:
+When `res.​json({ steam​Id: '765.​.​.​', game​Count: 150, games: [.​.​.​] })` is called:
 
 ```
 Express res.json():
@@ -6442,7 +6442,7 @@ Kernel:
 
 ### 20.3 Keep-Alive Connection Reuse
 
-HTTP/1.1 defaults to persistent connections (`Connection: keep-alive`):
+HTTP/1.1 defaults to persistent connections (`Connection: keep-​alive`):
 
 ```
 Connection lifecycle (single TCP socket):
@@ -6468,7 +6468,7 @@ Connection lifecycle (single TCP socket):
 
 ### 20.4 Chunked Transfer Encoding
 
-For streaming responses where `Content-Length` is unknown at the start:
+For streaming responses where `Content-​Length` is unknown at the start:
 
 ```
 HTTP/1.1 200 OK\r\n
@@ -6482,7 +6482,7 @@ rue,"end":false}\r\n            (18 bytes of body)
 \r\n
 ```
 
-The backend uses `res.json()` which sets `Content-Length` (not chunked), but `res.write()` calls would trigger chunked encoding. This is relevant if the recommendation engine were to stream results.
+The backend uses `res.​json()` which sets `Content-​Length` (not chunked), but `res.​write()` calls would trigger chunked encoding. This is relevant if the recommendation engine were to stream results.
 
 ---
 
@@ -6518,7 +6518,7 @@ P99.9:       207ms (Full compaction during request)
 
 #### 21.1.2 The Similarity Index GC Pressure
 
-At startup, `loadData()` parses ~50MB of JSON:
+At startup, `load​Data()` parses ~50MB of JSON:
 
 ```
 Phase 1: fs.readFileSync -> 50MB Buffer (C++ heap, outside V8)
@@ -6537,9 +6537,9 @@ Memory timeline:
   t=300:  Heap: 175MB (stable -- all objects in Old Space)
 ```
 
-After startup, the similarity index is **immortal** -- it is never garbage collected because it is referenced by the singleton `RecommenderService`. This is ideal for GC performance: immortal objects in Old Space cause zero GC pressure during normal operation.
+After startup, the similarity index is **immortal** -- it is never garbage collected because it is referenced by the singleton `Recommender​Service`. This is ideal for GC performance: immortal objects in Old Space cause zero GC pressure during normal operation.
 
-**The transient danger**: During startup, the 250MB peak heap can trigger a 200ms Major GC pause. If the server starts accepting requests before `loadData()` completes, early requests hit this pause.
+**The transient danger**: During startup, the 250MB peak heap can trigger a 200ms Major GC pause. If the server starts accepting requests before `load​Data()` completes, early requests hit this pause.
 
 #### 21.1.3 Request-Level Object Lifecycle
 
@@ -6646,7 +6646,7 @@ pool.query() when all connections are busy and queue is growing:
 8. Server becomes unresponsive
 ```
 
-**Resolution**: Set `connectionTimeoutMillis: 5000` and `statement_timeout` in PostgreSQL:
+**Resolution**: Set `connection​Timeout​Millis: 5000` and `statement_​timeout` in PostgreSQL:
 ```sql
 ALTER SYSTEM SET statement_timeout = '5000';  -- Kill any query running > 5s
 ```
@@ -6686,7 +6686,7 @@ function processRequest(largeData: Buffer) {
 // After 1000 calls: cache holds 1000 closures, each retaining a large Buffer
 ```
 
-**In the backend**: The `similarityIndex` Map is the largest in-memory structure (~50MB). It is loaded once and never grows, so it is not a leak. However, if a future caching layer were added to `SteamService` without eviction, it would exhibit this growth pattern.
+**In the backend**: The `similarity​Index` Map is the largest in-memory structure (~50MB). It is loaded once and never grows, so it is not a leak. However, if a future caching layer were added to `Steam​Service` without eviction, it would exhibit this growth pattern.
 
 #### 21.3.3 Unbounded Cache Growth
 
@@ -6739,8 +6739,8 @@ class LRUCache<K, V> {
 
 ### 22.1 SQL Injection Prevention -- Formal Proof
 
- -> Source: [`db.ts`](backend/src/config/db.ts)
- -> Source: [`search.service.ts`](backend/src/services/search.service.ts)
+ -> Source: [`db.​ts`](backend/src/config/db.ts)
+ -> Source: [`search.​service.​ts`](backend/src/services/search.service.ts)
 
 **Claim**: Parameterized queries prevent SQL injection for all input strings.
 
@@ -6798,17 +6798,17 @@ The security invariant is: **the query structure (number of statements, clause t
 
 ### 22.2 Dynamic WHERE Clause Safety
 
- -> Source: [`searchByGenres`](backend/src/services/search.service.ts#L16-L62)
+ -> Source: [`search​By​Genres`](backend/src/services/search.service.ts#L16-L62)
 
-The `searchByGenres` method constructs WHERE clauses dynamically:
+The `search​By​Genres` method constructs WHERE clauses dynamically:
 ```typescript
 params.push(`%${g}%`);
 const clause = `(genres ILIKE $${paramIndex})`;
 ```
 
 **Is this safe?** Yes, because:
-1. The `$${paramIndex}` is a **positional parameter placeholder**, not user input.
-2. `paramIndex` is a counter (1, 2, 3...) controlled by the server.
+1. The `$${param​Index}` is a **positional parameter placeholder**, not user input.
+2. `param​Index` is a counter (1, 2, 3...) controlled by the server.
 3. The user-supplied string `g` is placed in the `params` array, which is sent via Bind -- never interpolated into SQL text.
 4. Even if `g` contains SQL keywords, they are treated as literal strings by the Bind phase.
 
@@ -6818,11 +6818,11 @@ const clause = `(genres ILIKE $${paramIndex})`;
 const clause = `(${userColumn} ILIKE $${paramIndex})`;  // <-- SQL injection via column name!
 ```
 
-The backend hardcodes all column names (`genres`, `tags`, `game_name`, `categories`), so this risk does not exist.
+The backend hardcodes all column names (`genres`, `tags`, `game_​name`, `categories`), so this risk does not exist.
 
 ### 22.3 CORS Origin Validation
 
- -> Source: [`index.ts`](backend/src/index.ts)
+ -> Source: [`index.​ts`](backend/src/index.ts)
 
 The backend uses `cors()` with no arguments, which sets:
 ```
@@ -6871,7 +6871,7 @@ Value = (-1)^S * 2^(E-1023) * (1 + M/2^52)
 ```
 
 **Precision limits**:
-- Maximum safe integer: `Number.MAX_SAFE_INTEGER = 2^53 - 1 = 9,007,199,254,740,991`
+- Maximum safe integer: `Number.​MAX_​SAFE_​INTEGER = 2^53 -​ 1 = 9,007,199,254,740,991`
 - Numbers above this lose precision: `9007199254740992 === 9007199254740993` is `true`
 - Decimal precision: ~15-17 significant digits
 
@@ -6892,7 +6892,7 @@ const id = 76561198012345679;  // 17 digits
 console.log(id);                // 76561198012345680 -- WRONG! Last digit corrupted
 ```
 
-**The backend's solution**: All Steam IDs are stored and transmitted as **strings** (`steamId: string` in `UserLibrary`, `PlayerSummary`, etc.). This avoids IEEE 754 truncation entirely.
+**The backend's solution**: All Steam IDs are stored and transmitted as **strings** (`steam​Id: string` in `User​Library`, `Player​Summary`, etc.). This avoids IEEE 754 truncation entirely.
 
 #### 23.2.2 Price Arithmetic
 
@@ -6914,7 +6914,7 @@ price: data.price_overview ? data.price_overview.final / 100 : null
 19.99 * 100;                  // 1998.9999999999998 (NOT 1999)
 ```
 
-**Why**: `0.1` cannot be represented exactly in binary:
+**Why**: `0.​1` cannot be represented exactly in binary:
 ```
 0.1 in binary: 0.0001100110011001100110011... (repeating)
 Stored as: 0.1000000000000000055511151231257827021181583404541015625
@@ -6934,7 +6934,7 @@ score = 0.25 * jaccard + 0.25 * tagSim + 0.10 * categorySim + ...
 scored.sort((a, b) => b.score - a.score);
 ```
 
-If two candidates have scores that differ by less than `Number.EPSILON` (2.22e-16), their relative order is determined by V8's Timsort stability: elements with equal comparison values retain their original order. This means insertion order (which is arbitrary -- Map iteration order) determines the tiebreaker.
+If two candidates have scores that differ by less than `Number.​EPSILON` (2.22e-16), their relative order is determined by V8's Timsort stability: elements with equal comparison values retain their original order. This means insertion order (which is arbitrary -- Map iteration order) determines the tiebreaker.
 
 For recommendation quality, this is irrelevant (two games with score difference < 1e-16 are effectively equivalent recommendations).
 
@@ -7020,7 +7020,7 @@ re.test("76561198012345678");  // Uses cached compiled code
 re.test("76561198012345679");  // Same compiled code, different input
 ```
 
-The Zod schema objects store the regex pattern (`this._def.checks[i].regex`). The regex is compiled once when the schema is created (at module load time) and reused for every validation call.
+The Zod schema objects store the regex pattern (`this.​_​def.​checks[i].​regex`). The regex is compiled once when the schema is created (at module load time) and reused for every validation call.
 
 ---
 
@@ -7091,15 +7091,15 @@ async function gracefulShutdown(signal: string) {
 **Why graceful shutdown matters**:
 - Without it, in-flight database queries are aborted mid-transaction (potential data corruption for writes)
 - Without it, clients receive `ECONNRESET` instead of a proper HTTP response
-- Without it, the PostgreSQL connection pool leaks connections (PostgreSQL backend processes remain until `idle_in_transaction_session_timeout`)
+- Without it, the PostgreSQL connection pool leaks connections (PostgreSQL backend processes remain until `idle_​in_​transaction_​session_​timeout`)
 
 ---
 
-## 26. `JSON.stringify` -- Serialization Cost Analysis
+## 26. `JSON.​stringify` -- Serialization Cost Analysis
 
 ### 26.1 Mechanical Execution
 
-Every `res.json()` call invokes `JSON.stringify()`. For the recommendation endpoint returning 20 results:
+Every `res.​json()` call invokes `JSON.​stringify()`. For the recommendation endpoint returning 20 results:
 
 ```
 JSON.stringify(data):
@@ -7145,7 +7145,7 @@ Cost for full user library (1000 games):
 
 ### 26.2 Circular Reference Detection
 
-`JSON.stringify` throws `TypeError: cyclic object value` for circular references.
+`JSON.​stringify` throws `Type​Error: cyclic object value` for circular references.
 
 V8 maintains a **stack of visited objects** during serialization. Before recursing into an object, it checks if the object is already on the stack:
 
@@ -7165,7 +7165,7 @@ Serialize object A:
 
 ## 27. Node.js Process Lifecycle
 
-### 27.1 Startup Sequence -- From `node index.js` to Accepting Requests
+### 27.1 Startup Sequence -- From `node index.​js` to Accepting Requests
 
 ```
 Shell: $ node dist/index.js
@@ -7485,7 +7485,7 @@ Client                                    Server
 
 **Security trade-off**: 0-RTT data is vulnerable to **replay attacks**. An attacker can capture and resend the 0-RTT data. Safe for GET requests (idempotent), unsafe for POST (state-changing).
 
-**Axios with `keepAlive: true`**: The TLS session stays active on the persistent TCP connection. No re-handshake needed for subsequent requests on the same socket. TLS resumption only matters when a new TCP connection is opened.
+**Axios with `keep​Alive: true`**: The TLS session stays active on the persistent TCP connection. No re-handshake needed for subsequent requests on the same socket. TLS resumption only matters when a new TCP connection is opened.
 
 ### 29.3 TLS Record Layer
 
@@ -7579,7 +7579,7 @@ Pointer tagging (64-bit, pointer compression enabled):
     Object slot contains pointer to HeapNumber
 ```
 
-**Performance implication**: `appId` (integer) is stored as Smi (inline, no GC pressure). `score` (float) requires a HeapNumber allocation (16 bytes, GC tracked). In loops processing thousands of `SimilarGame` objects, the HeapNumber allocations for `similarity` float values contribute to NewSpace fill rate and GC frequency.
+**Performance implication**: `app​Id` (integer) is stored as Smi (inline, no GC pressure). `score` (float) requires a HeapNumber allocation (16 bytes, GC tracked). In loops processing thousands of `Similar​Game` objects, the HeapNumber allocations for `similarity` float values contribute to NewSpace fill rate and GC frequency.
 
 ### 30.3 Object Promotion -- NewSpace to OldSpace
 
@@ -7600,7 +7600,7 @@ Scavenge GC #3+:
   Only Major GC (Mark-Sweep-Compact) can collect it
 ```
 
-**In the backend**: The `similarityIndex` Map and its 540,000+ `SimilarGame` objects are promoted to OldSpace during startup (they survive the first 2 GC cycles during `loadData()`). They become immortal residents of OldSpace, consuming ~50MB permanently but causing zero GC overhead during steady-state operation.
+**In the backend**: The `similarity​Index` Map and its 540,000+ `Similar​Game` objects are promoted to OldSpace during startup (they survive the first 2 GC cycles during `load​Data()`). They become immortal residents of OldSpace, consuming ~50MB permanently but causing zero GC overhead during steady-state operation.
 
 ### 30.4 Object Finalization -- When Objects Die
 
@@ -7689,7 +7689,7 @@ With backpressure handling:
 
 ### 31.3 Pipe Mechanics
 
-`stream.pipe(destination)` is syntactic sugar for:
+`stream.​pipe(destination)` is syntactic sugar for:
 
 ```javascript
 source.on('data', (chunk) => {
@@ -7716,7 +7716,7 @@ source.on('error', (err) => {
 
 ---
 
-## 32. Timer Internals -- `setTimeout` and `setInterval`
+## 32. Timer Internals -- `set​Timeout` and `set​Interval`
 
 ### 32.1 Timer Heap Data Structure
 
@@ -7764,7 +7764,7 @@ Ideal:   |----100ms----|callback|
 Reality: |----100ms----|--50ms I/O--|callback|  (150ms actual delay)
 ```
 
-**`setInterval` drift accumulation**:
+**`set​Interval` drift accumulation**:
 ```javascript
 setInterval(callback, 1000)  // Intended: fire every 1000ms
 
@@ -7782,7 +7782,7 @@ Node.js mitigation:
   This prevents drift accumulation.
 ```
 
-**In the backend**: `idleTimeoutMillis` in pg.Pool uses `setTimeout` to close idle database connections. Timer imprecision means connections may live 1-50ms longer than configured, which is negligible.
+**In the backend**: `idle​Timeout​Millis` in pg.Pool uses `set​Timeout` to close idle database connections. Timer imprecision means connections may live 1-50ms longer than configured, which is negligible.
 
 ---
 
@@ -7790,7 +7790,7 @@ Node.js mitigation:
 
 ### 33.1 CommonJS (Backend's Module System)
 
-The TypeScript compiler outputs CommonJS (`"module": "commonjs"` in `tsconfig.json`):
+The TypeScript compiler outputs CommonJS (`"module": "commonjs"` in `tsconfig.​json`):
 
 ```typescript
 // TypeScript source:
@@ -7841,7 +7841,7 @@ module._compile(source, filename)
   return module.exports
 ```
 
-**The `module.exports` vs `exports` distinction**:
+**The `module.​exports` vs `exports` distinction**:
 
 ```javascript
 // Inside the wrapper function:
@@ -7885,7 +7885,7 @@ Phase 3: Evaluation (execute module code)
 ```
 
 **Key difference from CommonJS**:
-- CommonJS: `require()` returns a **copy** of `module.exports` at the time of the call
+- CommonJS: `require()` returns a **copy** of `module.​exports` at the time of the call
 - ESM: `import` creates a **live binding** that always reflects the current value
 
 ---
@@ -7971,7 +7971,7 @@ Phase 5: Emitter
 
 ### 34.2 Source Maps -- Debugging Compiled Code
 
-The `.js.map` files allow debuggers and stack traces to map compiled JS back to TypeScript:
+The `.​js.​map` files allow debuggers and stack traces to map compiled JS back to TypeScript:
 
 ```
 Source map structure:
@@ -7988,11 +7988,11 @@ VLQ encoding maps:
   Generated line 85, column 20 -> Original line 142, column 16 in steam.service.ts
 ```
 
-When `Error.captureStackTrace` generates a stack trace, Node.js reads the source map (if `--enable-source-maps` flag) and translates compiled JS positions back to TypeScript line numbers. This is why stack traces in development show `.ts` file references despite V8 executing `.js` files.
+When `Error.​capture​Stack​Trace` generates a stack trace, Node.js reads the source map (if `-​-​enable-​source-​maps` flag) and translates compiled JS positions back to TypeScript line numbers. This is why stack traces in development show `.​ts` file references despite V8 executing `.​js` files.
 
 ---
 
-## 35. npm Package Resolution & `node_modules` Structure
+## 35. npm Package Resolution & `node_​modules` Structure
 
 ### 35.1 Dependency Resolution Algorithm
 
@@ -8046,7 +8046,7 @@ Phase 3: Install
   Generate package-lock.json (exact versions, integrity hashes)
 ```
 
-### 35.2 `package-lock.json` -- Reproducible Builds
+### 35.2 `package-​lock.​json` -- Reproducible Builds
 
 ```json
 {
@@ -8151,4 +8151,4 @@ Pool exhaustion:
     UV_THREADPOOL_SIZE=16 node index.js  (max 1024)
 ```
 
-**In the backend**: The `loadData()` method uses `fs.readFileSync()` (synchronous, BLOCKS the main thread). If changed to `fs.readFile()` (async), it would use the thread pool instead, allowing the server to start accepting connections before the similarity index is fully loaded.
+**In the backend**: The `load​Data()` method uses `fs.​read​File​Sync()` (synchronous, BLOCKS the main thread). If changed to `fs.​read​File()` (async), it would use the thread pool instead, allowing the server to start accepting connections before the similarity index is fully loaded.
