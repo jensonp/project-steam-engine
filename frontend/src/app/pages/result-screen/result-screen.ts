@@ -1,11 +1,13 @@
-import { Component, AfterViewInit, OnDestroy, NgZone, ChangeDetectorRef, ViewChild, ElementRef, Renderer2 } from '@angular/core';
+import { Component, AfterViewInit, OnDestroy, OnInit, NgZone, ChangeDetectorRef, ViewChild, ElementRef, Renderer2 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { GameCardComponent } from '../../components/game-card/game-card.component';
 import { GlassSettingsComponent } from '../../components/glass-settings/glass-settings.component';
 import { Game } from '../../types/steam.types';
 import { Router, RouterLink } from '@angular/router';
 import { GlassSettingsService, GlassSettings } from '../../services/glass-settings.service';
+import { BackendService } from '../../services/backend-service';
 import { MatButtonModule } from '@angular/material/button';
+import { Subscription } from 'rxjs';
 
 interface LiquidGLApi {
   (options: Record<string, unknown>): unknown;
@@ -26,17 +28,19 @@ declare global {
   styleUrl: './result-screen.css',
   imports: [CommonModule, GameCardComponent, RouterLink, GlassSettingsComponent, MatButtonModule]
 })
-export class ResultScreen implements AfterViewInit, OnDestroy {
+export class ResultScreen implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('animatedBg') animatedBgCanvas?: ElementRef<HTMLCanvasElement>;
   @ViewChild('resultScreen') resultScreenEl?: ElementRef<HTMLElement>;
 
   results: Game[] = [];
   private glassInstance: unknown = null;
   private animationFrameId: number | null = null;
+  private subs = new Subscription();
 
   constructor(
     private router: Router,
     public glassService: GlassSettingsService,
+    private backendService: BackendService,
     private ngZone: NgZone,
     private cdr: ChangeDetectorRef,
     private renderer2: Renderer2
@@ -44,11 +48,32 @@ export class ResultScreen implements AfterViewInit, OnDestroy {
     if (this.glassService.settings().enabled) {
       this.glassService.saveSettings({ enabled: false });
     }
-
+    
+    // Fallback: Check router state first in case page was reloaded manually
     const state = this.router.getCurrentNavigation()?.extras.state as { results: Game[] };
     if (state?.results) {
       this.results = state.results;
     }
+  }
+
+  ngOnInit(): void {
+    // Subscribe to both general search results AND personalized recommendations
+    // Whichever emits data last will overwrite the view. 
+    this.subs.add(this.backendService.searchResults$.subscribe(results => {
+      if (results && results.length > 0) {
+        this.results = results;
+        this.cdr.detectChanges();
+      }
+    }));
+    
+    this.subs.add(this.backendService.recommendations$.subscribe(recs => {
+      if (recs && recs.length > 0) {
+        // Map ScoredRecommendation to Game if needed, or update child components to handle both
+        // The HTML template uses generic fields present in both, so it's structurally compatible.
+        this.results = recs as unknown as Game[]; 
+        this.cdr.detectChanges();
+      }
+    }));
   }
 
   get glassEnabled(): boolean {
@@ -67,6 +92,7 @@ export class ResultScreen implements AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.deactivateGlass();
+    this.subs.unsubscribe();
   }
 
   onBack(): void {

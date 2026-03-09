@@ -1,24 +1,78 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { Game } from '../types/steam.types';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { BehaviorSubject, Observable, throwError } from 'rxjs';
+import { catchError, finalize, tap } from 'rxjs/operators';
+import { Game, UserProfile, ScoredRecommendation } from '../types/steam.types';
+
+// State interface for strict typing
+interface AppState {
+  steamId: string;
+  apiKey: string;
+  userProfile: UserProfile | null;
+  recommendations: ScoredRecommendation[];
+  searchResults: Game[];
+  isLoadingProfile: boolean;
+  isLoadingRecommendations: boolean;
+  isLoadingSearch: boolean;
+  error: string | null;
+}
+
+const initialState: AppState = {
+  steamId: '',
+  apiKey: '',
+  userProfile: null,
+  recommendations: [],
+  searchResults: [],
+  isLoadingProfile: false,
+  isLoadingRecommendations: false,
+  isLoadingSearch: false,
+  error: null
+};
 
 @Injectable({
   providedIn: 'root',
 })
 export class BackendService {
-  backendUrl = 'http://localhost:3000';
-  private steamId: string = '';
-  private apiKey: string = '';
+  private readonly backendUrl = 'http://localhost:3000';
   
+  // Single Source of Truth (The Store)
+  private state = new BehaviorSubject<AppState>(initialState);
+
+  // ─── Queries (Observables) ──────────────────────────────────────────────────
+  steamId$ = new Observable<string>(subscriber => this.state.subscribe(s => subscriber.next(s.steamId)));
+  apiKey$ = new Observable<string>(subscriber => this.state.subscribe(s => subscriber.next(s.apiKey)));
+  userProfile$ = new Observable<UserProfile | null>(subscriber => this.state.subscribe(s => subscriber.next(s.userProfile)));
+  recommendations$ = new Observable<ScoredRecommendation[]>(subscriber => this.state.subscribe(s => subscriber.next(s.recommendations)));
+  searchResults$ = new Observable<Game[]>(subscriber => this.state.subscribe(s => subscriber.next(s.searchResults)));
+  
+  isLoadingProfile$ = new Observable<boolean>(subscriber => this.state.subscribe(s => subscriber.next(s.isLoadingProfile)));
+  isLoadingRecommendations$ = new Observable<boolean>(subscriber => this.state.subscribe(s => subscriber.next(s.isLoadingRecommendations)));
+  isLoadingSearch$ = new Observable<boolean>(subscriber => this.state.subscribe(s => subscriber.next(s.isLoadingSearch)));
+  error$ = new Observable<string | null>(subscriber => this.state.subscribe(s => subscriber.next(s.error)));
+
   constructor(private http: HttpClient) {}
+
+  // Helper to update partial state immutably
+  private patchState(partialState: Partial<AppState>) {
+    this.state.next({ ...this.state.value, ...partialState });
+  }
+
+  // ─── Commands (Actions) ─────────────────────────────────────────────────────
+
+  setSteamId(id: string): void {
+    this.patchState({ steamId: id, error: null });
+  }
+
+  setApiKey(key: string): void {
+    this.patchState({ apiKey: key, error: null });
+  }
 
   // Request backend to index user data based on the provided Steam ID
   // This should not be called without a valid Steam ID and API key set in the service, otherwise the backend will reject the request and log an error
   indexUser(): void {
-    const url = `${this.backendUrl}/login/${encodeURIComponent(this.steamId)}`;
+    const url = `${this.backendUrl}/login/${encodeURIComponent(this.state.value.steamId)}`;
     let params = new HttpParams();
-    params = params.set('apiKey', this.apiKey);
+    params = params.set('apiKey', this.state.value.apiKey);
 
     this.http.post(url, { params }).subscribe({ // request backend to index the user given the steamId
       next: (response) => {
@@ -30,37 +84,67 @@ export class BackendService {
     });
   }
 
-  // Return list of recommended games for the user based on the query and their user data
-  getRecommendations(genres: string, keyword: string, playerCount: string): Observable<Game[]> {
+  // Command: Fetch personalized recommendations
+  loadPersonalizedRecommendations(limit: number = 20): void {
+    const currentState = this.state.value;
+    if (!currentState.steamId) {
+      this.patchState({ error: 'Please set a Steam ID first.' });
+      return;
+    }
+
+    this.patchState({ isLoadingRecommendations: true, error: null });
+
+    const url = `${this.backendUrl}/api/recommend/user/${encodeURIComponent(currentState.steamId)}`;
+    const params = new HttpParams().set('limit', limit.toString());
+
+    this.http.get<ScoredRecommendation[]>(url, { params }).pipe(
+      tap(recommendations => this.patchState({ recommendations })),
+      catchError(error => {
+        this.patchState({ error: error.message || 'Failed to load recommendations' });
+        return throwError(() => error);
+      }),
+      finalize(() => this.patchState({ isLoadingRecommendations: false }))
+    ).subscribe();
+  }
+
+  // Command: Fetch User Profile
+  loadUserProfile(): void {
+    const currentState = this.state.value;
+    if (!currentState.steamId) return;
+
+    this.patchState({ isLoadingProfile: true, error: null });
+    
+    const url = `${this.backendUrl}/api/recommend/user/${encodeURIComponent(currentState.steamId)}/profile`;
+    
+    this.http.get<UserProfile>(url).pipe(
+      tap(userProfile => this.patchState({ userProfile })),
+      catchError(error => {
+        this.patchState({ error: error.message || 'Failed to load user profile' });
+        return throwError(() => error);
+      }),
+      finalize(() => this.patchState({ isLoadingProfile: false }))
+    ).subscribe();
+  }
+
+  // Command: Execute Search
+  executeSearch(genres: string, keyword: string, playerCount: string): void {
+    this.patchState({ isLoadingSearch: true, error: null });
+
     const url = `${this.backendUrl}/api/search`;
     let params = new HttpParams();
 
-    if (genres && genres.length > 0) {
-      params = params.set('genres', genres);
-    }
-    
-    if (keyword && keyword.trim().length > 0) {
-      params = params.set('keyword', keyword.trim());
-    }
-    
-    if (playerCount && playerCount !== 'Any') {
-      params = params.set('playerCount', playerCount);
-    }
+    if (genres?.length > 0) params = params.set('genres', genres);
+    if (keyword?.trim().length > 0) params = params.set('keyword', keyword.trim());
+    if (playerCount && playerCount !== 'Any') params = params.set('playerCount', playerCount);
 
-    return this.http.get<Game[]>(url, { params });
-  }
-
-  // Fetch the aggregated Steam profile (genre vector, friend stats, top genres)
-  getUserProfile(steamId: string): Observable<any> {
-    const url = `${this.backendUrl}/api/recommend/user/${encodeURIComponent(steamId)}/profile`;
-    return this.http.get<any>(url);
-  }
-
-  // Fetch personalized recommendations driven by the user's Steam library + friend graph
-  getPersonalizedRecommendations(steamId: string, limit: number = 20): Observable<any[]> {
-    const url = `${this.backendUrl}/api/recommend/user/${encodeURIComponent(steamId)}`;
-    let params = new HttpParams().set('limit', limit.toString());
-    return this.http.get<any[]>(url, { params });
+    this.http.get<Game[]>(url, { params }).pipe(
+      tap(searchResults => this.patchState({ searchResults })),
+      catchError(error => {
+        this.patchState({ error: error.message || 'Search failed' });
+        return throwError(() => error);
+      }),
+      finalize(() => this.patchState({ isLoadingSearch: false }))
+    ).subscribe();
   }
 
   // Trigger the backend to index the Steam storefront dataset into PSQL
@@ -69,19 +153,12 @@ export class BackendService {
     return this.http.post(url, {});
   }
 
+  // Legacy getters/setters (to avoid breaking components instantly)
   getSteamId(): string {
-    return this.steamId;
+    return this.state.value.steamId;
   }
-
-  setSteamId(id: string): void {
-    this.steamId = id;
-  }
-
+  
   getApiKey(): string {
-    return this.apiKey;
-  }
-
-  setApiKey(key: string): void {
-    this.apiKey = key;
+    return this.state.value.apiKey;
   }
 }

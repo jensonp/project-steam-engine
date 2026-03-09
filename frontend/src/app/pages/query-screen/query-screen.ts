@@ -9,6 +9,8 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { BackendService } from '../../services/backend-service';
 import { Router } from '@angular/router';
+import { Subscription } from 'rxjs';
+import { UserProfile, Game, ScoredRecommendation } from '../../types/steam.types';
 
 @Component({
   selector: 'app-query-screen',
@@ -52,85 +54,78 @@ export class QueryScreen {
   selected_player_count: string = '';
   keyword_input: string = '';
   steamId_input: string = '';
+  
   steamID_configured: boolean = false;
   apiKey_configured: boolean = false;
+  
+  // Strict RxJS State Subscriptions
   isLoading = false;
   isLoadingProfile = false;
-  error = '';
-  userProfile: any = null;
+  error: string | null = null;
+  userProfile: UserProfile | null = null;
+  
+  private subs = new Subscription();
 
   constructor(private backendService: BackendService, private router: Router) {
     this.steamID_configured = Boolean(this.backendService.getSteamId());
     this.apiKey_configured = Boolean(this.backendService.getApiKey());
   }
 
+  ngOnInit() {
+    this.subs.add(this.backendService.isLoadingSearch$.subscribe(l => this.isLoading = l));
+    this.subs.add(this.backendService.isLoadingRecommendations$.subscribe(l => this.isLoading = l));
+    this.subs.add(this.backendService.isLoadingProfile$.subscribe(l => this.isLoadingProfile = l));
+    this.subs.add(this.backendService.error$.subscribe(e => this.error = e));
+    this.subs.add(this.backendService.userProfile$.subscribe(p => this.userProfile = p));
+
+    // Listen to changes in search and recommendation lists and navigate immediately upon receiving data
+    this.subs.add(this.backendService.searchResults$.subscribe(results => {
+      // Only navigate if we actually have a result payload emitted explicitly
+      if (results && results.length > 0 && !this.isLoading) {
+        this.router.navigate(['/results'], { state: { results } });
+      }
+    }));
+
+    this.subs.add(this.backendService.recommendations$.subscribe(results => {
+      if (results && results.length > 0 && !this.isLoading) {
+        this.router.navigate(['/results'], { state: { results } });
+      }
+    }));
+  }
+
+  ngOnDestroy() {
+    this.subs.unsubscribe();
+  }
+
   /**
    * Fetches the user's Steam profile (genre vector, friend stats, top genres)
    * and populates the profile card in the UI.
    */
+  /**
+   * Fetches the user's Steam profile via Command/Query
+   */
   loadSteamProfile(): void {
     if (!this.steamId_input || this.steamId_input.length !== 17) return;
 
-    this.isLoadingProfile = true;
-    this.error = '';
-    this.userProfile = null;
-
-    this.backendService.getUserProfile(this.steamId_input).subscribe({
-      next: (profile) => {
-        this.userProfile = profile;
-        this.isLoadingProfile = false;
-      },
-      error: (err) => {
-        console.error('Error loading Steam profile:', err);
-        this.error = 'Failed to load Steam profile. Ensure your Steam profile is set to public.';
-        this.isLoadingProfile = false;
-      }
-    });
+    this.backendService.setSteamId(this.steamId_input);
+    this.backendService.loadUserProfile();
   }
 
   /**
    * If a Steam profile is loaded, fires the personalized 3-signal recommendation engine.
    * Falls back to the generic genre/keyword search when no Steam ID is provided.
    */
+  /**
+   * Dispatches a command to load recommendations or generic search
+   */
   onQuery(): void {
-    this.isLoading = true;
-    this.error = '';
-
     if (this.userProfile && this.steamId_input) {
-      // Personalized path: Steam library + friend graph + genre alignment
-      this.backendService.getPersonalizedRecommendations(this.steamId_input, 20).subscribe({
-        next: (response) => {
-          this.isLoading = false;
-          this.router.navigate(['/results'], { state: { results: response } });
-        },
-        error: (err) => {
-          console.error('Error fetching personalized recommendations:', err);
-          this.error = 'An error occurred while fetching recommendations. Please try again.';
-          this.isLoading = false;
-        }
-      });
+      this.backendService.setSteamId(this.steamId_input);
+      this.backendService.loadPersonalizedRecommendations(20);
     } else {
-      // Generic path: genre / keyword / player count search
       const genresParam = this.selected_genre.join(',');
-      this.backendService.getRecommendations(genresParam, this.keyword_input, this.selected_player_count).subscribe({
-        next: (response) => {
-          this.isLoading = false;
-          this.router.navigate(['/results'], { state: { results: response } });
-        },
-        error: (error) => {
-          console.error('Error fetching recommendations:', error);
-          this.error = 'An error occurred while fetching recommendations. Please try again.';
-          this.isLoading = false;
-        }
-      });
+      this.backendService.executeSearch(genresParam, this.keyword_input, this.selected_player_count);
     }
   }
 
-  setLoading(loading: boolean): void {
-    this.isLoading = loading;
-  }
-
-  setError(error: string): void {
-    this.error = error;
-  }
 }

@@ -1,5 +1,7 @@
 import axios, { AxiosInstance } from 'axios';
+import Opossum from 'opossum';
 import { config } from '../config';
+import { circuitBreakerOptions, isSteamSystemError } from '../utils/circuit-breaker';
 import {
   OwnedGame,
   UserLibrary,
@@ -20,6 +22,10 @@ export class SteamService {
   private apiClient: AxiosInstance;
   private storeClient: AxiosInstance;
   private apiKey: string;
+  
+  // Circuit Breakers
+  private apiBreaker: Opossum;
+  private storeBreaker: Opossum;
 
   constructor(apiKey?: string) {
     this.apiKey = apiKey || config.steamApiKey;
@@ -41,6 +47,29 @@ export class SteamService {
       baseURL: config.steamStoreApiUrl,
       timeout: 30000,
     });
+
+    // Initialize Circuit Breakers
+    this.apiBreaker = new Opossum(this.executeApiRequest.bind(this), {
+      ...circuitBreakerOptions,
+      errorFilter: (err: any) => !isSteamSystemError(err) // Don't trip for 4xx errors
+    });
+
+    this.storeBreaker = new Opossum(this.executeStoreRequest.bind(this), {
+      ...circuitBreakerOptions,
+      errorFilter: (err: any) => !isSteamSystemError(err)
+    });
+  }
+
+  // Wrapper function for API requests to be used by Circuit Breaker
+  private async executeApiRequest(url: string, params: any): Promise<any> {
+    const response = await this.apiClient.get(url, { params });
+    return response.data;
+  }
+
+  // Wrapper function for Store requests to be used by Circuit Breaker
+  private async executeStoreRequest(url: string, params: any): Promise<any> {
+    const response = await this.storeClient.get(url, { params });
+    return response.data;
   }
 
   /**
@@ -52,30 +81,28 @@ export class SteamService {
     includeFreeGames: boolean = true
   ): Promise<UserLibrary> {
     try {
-      const response = await this.apiClient.get<SteamOwnedGamesResponse>(
+      const data = (await this.apiBreaker.fire(
         '/IPlayerService/GetOwnedGames/v1/',
         {
-          params: {
-            key: this.apiKey,
-            steamid: steamId,
-            include_appinfo: includeAppInfo ? 1 : 0,
-            include_played_free_games: includeFreeGames ? 1 : 0,
-            format: 'json',
-          },
+          key: this.apiKey,
+          steamid: steamId,
+          include_appinfo: includeAppInfo ? 1 : 0,
+          include_played_free_games: includeFreeGames ? 1 : 0,
+          format: 'json',
         }
-      );
+      )) as SteamOwnedGamesResponse;
 
-      const data = response.data.response;
+      const responseData = data.response;
 
       // Empty response usually means private profile
-      if (!data || !data.games) {
+      if (!responseData || !responseData.games) {
         throw new SteamApiError(
           'No data returned. User profile may be private.',
           403
         );
       }
 
-      const games: OwnedGame[] = data.games.map((game) => ({
+      const games: OwnedGame[] = responseData.games.map((game: any) => ({
         appId: game.appid,
         name: game.name || null,
         playtimeMinutes: game.playtime_forever || 0,
@@ -85,7 +112,7 @@ export class SteamService {
 
       return {
         steamId,
-        gameCount: data.game_count || games.length,
+        gameCount: responseData.game_count || games.length,
         games,
       };
     } catch (error) {
@@ -108,21 +135,19 @@ export class SteamService {
     count: number = 10
   ): Promise<OwnedGame[]> {
     try {
-      const response = await this.apiClient.get<SteamOwnedGamesResponse>(
+      const data = (await this.apiBreaker.fire(
         '/IPlayerService/GetRecentlyPlayedGames/v1/',
         {
-          params: {
-            key: this.apiKey,
-            steamid: steamId,
-            count,
-            format: 'json',
-          },
+          key: this.apiKey,
+          steamid: steamId,
+          count,
+          format: 'json',
         }
-      );
+      )) as SteamOwnedGamesResponse;
 
-      const games = response.data.response?.games || [];
+      const games = data.response?.games || [];
 
-      return games.map((game) => ({
+      return games.map((game: any) => ({
         appId: game.appid,
         name: game.name || null,
         playtimeMinutes: game.playtime_forever || 0,
@@ -144,18 +169,16 @@ export class SteamService {
    */
   async getPlayerSummary(steamId: string): Promise<PlayerSummary> {
     try {
-      const response = await this.apiClient.get<SteamPlayerSummaryResponse>(
+      const data = (await this.apiBreaker.fire(
         '/ISteamUser/GetPlayerSummaries/v2/',
         {
-          params: {
-            key: this.apiKey,
-            steamids: steamId,
-            format: 'json',
-          },
+          key: this.apiKey,
+          steamids: steamId,
+          format: 'json',
         }
-      );
+      )) as SteamPlayerSummaryResponse;
 
-      const players = response.data.response?.players || [];
+      const players = data.response?.players || [];
 
       if (players.length === 0) {
         throw new SteamApiError(`Player not found: ${steamId}`, 404);
@@ -187,18 +210,16 @@ export class SteamService {
    */
   async getAppDetails(appId: number): Promise<Game | null> {
     try {
-      const response = await this.storeClient.get<SteamAppDetailsResponse>(
+      const data = (await this.storeBreaker.fire(
         '/appdetails',
         {
-          params: {
-            appids: appId,
-            cc: 'us',
-            l: 'en',
-          },
+          appids: appId,
+          cc: 'us',
+          l: 'en',
         }
-      );
+      )) as SteamAppDetailsResponse;
 
-      const appData = response.data[String(appId)];
+      const appData = data[String(appId)];
 
       if (!appData?.success || !appData.data) {
         return null;
@@ -207,10 +228,10 @@ export class SteamService {
       const details = appData.data;
 
       // Extract genres
-      const genres = details.genres?.map((g) => g.description) || [];
+      const genres = details.genres?.map((g: any) => g.description) || [];
 
       // Extract categories as tags
-      const tags = details.categories?.map((c) => c.description) || [];
+      const tags = details.categories?.map((c: any) => c.description) || [];
 
       // Extract price
       let price: number | null = null;
@@ -246,20 +267,18 @@ export class SteamService {
    */
   async getFriendList(steamId: string): Promise<Friend[]> {
     try {
-      const response = await this.apiClient.get<SteamFriendListResponse>(
+      const data = (await this.apiBreaker.fire(
         '/ISteamUser/GetFriendList/v1/',
         {
-          params: {
-            key: this.apiKey,
-            steamid: steamId,
-            relationship: 'friend',
-            format: 'json',
-          },
+          key: this.apiKey,
+          steamid: steamId,
+          relationship: 'friend',
+          format: 'json',
         }
-      );
+      )) as SteamFriendListResponse;
 
-      const friends = response.data.friendslist?.friends || [];
-      return friends.map((f) => ({
+      const friends = data.friendslist?.friends || [];
+      return friends.map((f: any) => ({
         steamId: f.steamid,
         relationship: f.relationship,
         friendSince: f.friend_since,

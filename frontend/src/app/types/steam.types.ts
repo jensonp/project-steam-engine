@@ -22,6 +22,45 @@ export interface PlayerSummary {
   visibility: number;
 }
 
+export interface UserGenreProfile {
+  genre: string;
+  weight: number; 
+}
+
+export interface UserProfile {
+  steamId: string;
+  personaName: string;
+  avatar: string | null;
+  librarySize: number;
+  recentGamesCount: number;
+  topGenres: UserGenreProfile[];
+  friendsAnalyzed: number;
+  friendOverlapGames: number;
+  ownedAppIds: Set<number>;
+  friendOverlapSet: Set<number>;
+  genreVector: Map<string, number>;
+  library: OwnedGame[];
+}
+
+export interface ScoredRecommendation {
+  appId: number;
+  name: string;
+  score: number;
+  jaccardScore: number;
+  genreAlignmentScore: number;
+  socialScore: number;
+  reason: string;
+  headerImage: string | null;
+  genres: string[];
+  tags: string[];
+  description: string | null;
+  price: number | null;
+  isFree: boolean;
+  developers: string[];
+  publishers: string[];
+  releaseDate: string | null;
+}
+
 export interface Game {
   appId: number;
   name: string;

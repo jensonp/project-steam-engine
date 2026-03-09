@@ -1,4 +1,4 @@
-import { query } from '../config/db';
+import { PostgresGameMetadataRepository } from '../repositories/game.repository';
 
 export interface GameSearchResult {
   appId: number;
@@ -18,31 +18,34 @@ export class SearchService {
     const params: any[] = [];
     let paramIndex = 1;
 
-    // 1. Genre Flags
+    // 1. Genre/Tag Flags using pg_trgm
     if (genres.length > 0) {
       const genreConditions = genres.map(g => {
-        params.push(`%${g}%`);
-        const clause = `(genres ILIKE $${paramIndex} OR tags ILIKE $${paramIndex})`;
+        params.push(g);
+        const clause = `(genres %% $${paramIndex} OR tags %% $${paramIndex})`;
         paramIndex++;
         return clause;
       });
       whereClauses.push(`(${genreConditions.join(' AND ')})`);
     }
 
-    // 2. Keyword Filter (Title or Description)
+    // 2. Keyword Filter using tsvector native full-text search
+    let keywordParamIndex: number | null = null;
     if (keyword) {
-      params.push(`%${keyword}%`);
-      whereClauses.push(`(game_name ILIKE $${paramIndex} OR short_description ILIKE $${paramIndex})`);
+      params.push(keyword);
+      keywordParamIndex = paramIndex;
+      // Plainto_tsquery automatically handles spaces and word stemming
+      whereClauses.push(`search_vector @@ plainto_tsquery('english', $${paramIndex})`);
       paramIndex++;
     }
 
-    // 3. Player Count Filter (Multiplayer, Co-op, Single-player mappings)
+    // 3. Player Count Filter using pg_trgm overlap
     if (playerCount && playerCount !== 'Any') {
       let mappedTerm = playerCount;
       if (playerCount === 'Online') mappedTerm = 'Online PvP';
       
-      params.push(`%${mappedTerm}%`);
-      whereClauses.push(`categories ILIKE $${paramIndex}`);
+      params.push(mappedTerm);
+      whereClauses.push(`categories %% $${paramIndex}`);
       paramIndex++;
     }
 
@@ -53,12 +56,15 @@ export class SearchService {
       SELECT app_id, game_name, genres, price, header_image
       FROM games
       ${whereString}
-      ORDER BY positive_votes DESC
+      ${keyword 
+        ? `ORDER BY ts_rank_cd(search_vector, plainto_tsquery('english', $${keywordParamIndex})) DESC, positive_votes DESC` 
+        : `ORDER BY positive_votes DESC`}
       LIMIT 10
     `;
 
-    const result = await query(sqlQuery, params);
-    return this.mapRows(result.rows);
+    const repo = new PostgresGameMetadataRepository();
+    const rows = await repo.searchGames(sqlQuery, params);
+    return this.mapRows(rows);
   }
 
   /**

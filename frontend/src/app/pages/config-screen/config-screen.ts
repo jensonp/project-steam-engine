@@ -1,9 +1,10 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { UserSearchComponent } from '../../components/user-search/user-search.component';
 import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { BackendService } from '../../services/backend-service';
 import { MatProgressSpinner } from "@angular/material/progress-spinner";
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-config-screen',
@@ -12,22 +13,35 @@ import { MatProgressSpinner } from "@angular/material/progress-spinner";
   templateUrl: './config-screen.html',
   styleUrl: './config-screen.css',
 })
-export class ConfigScreen {
+export class ConfigScreen implements OnInit, OnDestroy {
   steamID_updated: boolean = false;
   apiKey_updated: boolean = false;
   apiKey_set: boolean = false;
-  steamID: string = '';
+  steamID: string = 'None';
   isIndexing: boolean = false;
+  
+  private subs = new Subscription();
 
-  constructor(private backendService: BackendService) {
-    this.steamID = this.backendService.getSteamId() || 'None'; // Initialize local steamID from backend service
-    this.apiKey_set = Boolean(this.backendService.getApiKey());
+  constructor(private backendService: BackendService) {}
+
+  ngOnInit() {
+    this.subs.add(this.backendService.steamId$.subscribe(id => {
+      this.steamID = id || 'None';
+    }));
+    
+    this.subs.add(this.backendService.apiKey$.subscribe((key: string) => {
+      this.apiKey_set = Boolean(key);
+    }));
+  }
+
+  ngOnDestroy() {
+    this.subs.unsubscribe();
   }
 
   onSteamIDReceived($event: string) {
     console.log('Received new Steam ID:', $event);
     this.steamID_updated = true;
-    this.steamID = this.backendService.getSteamId(); // Update local steamID from backend service
+    this.backendService.setSteamId($event); // Command updates behavior subject automatically
   }
 
   buildIndex() {
@@ -48,6 +62,6 @@ export class ConfigScreen {
   onAPIKeyEnter($event: string) {
     console.log('Received new API Key:', $event);
     this.apiKey_updated = true;
-    this.apiKey_set = true;
+    this.backendService.setApiKey($event); // Command updates behavior subject automatically
   }
 }

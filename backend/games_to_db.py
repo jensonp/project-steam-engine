@@ -58,7 +58,12 @@ def create_table(conn):
                 tags                TEXT,
                 windows_support     BOOLEAN DEFAULT FALSE,
                 mac_support         BOOLEAN DEFAULT FALSE,
-                linux_support       BOOLEAN DEFAULT FALSE
+                linux_support       BOOLEAN DEFAULT FALSE,
+                -- CQRS Search Optimization: Pre-computed text search vector
+                search_vector       tsvector GENERATED ALWAYS AS (
+                    setweight(to_tsvector('english', coalesce(game_name, '')), 'A') ||
+                    setweight(to_tsvector('english', coalesce(short_description, '')), 'B')
+                ) STORED
             );
         """)
         conn.commit()
@@ -252,8 +257,17 @@ def create_indexes(conn):
     with conn.cursor() as cur:
         cur.execute("""
             CREATE INDEX IF NOT EXISTS idx_games_price ON games (price);
-            CREATE INDEX IF NOT EXISTS idx_games_positive ON games (positive_votes);
-            CREATE INDEX IF NOT EXISTS idx_games_metacritic ON games (metacritic_score);
+            CREATE INDEX IF NOT EXISTS idx_games_positive ON games (positive_votes DESC);
+            CREATE INDEX IF NOT EXISTS idx_games_metacritic ON games (metacritic_score DESC);
+            
+            -- CQRS Search Optimization: GIN Index on text search vector for fast full-text search
+            CREATE INDEX IF NOT EXISTS idx_games_search ON games USING GIN (search_vector);
+            
+            -- Trigram index for fast ILIKE queries on arrays/text
+            CREATE EXTENSION IF NOT EXISTS pg_trgm;
+            CREATE INDEX IF NOT EXISTS idx_games_genres_trgm ON games USING GIN (genres gin_trgm_ops);
+            CREATE INDEX IF NOT EXISTS idx_games_tags_trgm ON games USING GIN (tags gin_trgm_ops);
+            CREATE INDEX IF NOT EXISTS idx_games_categories_trgm ON games USING GIN (categories gin_trgm_ops);
         """)
         conn.commit()
         print("Success: Created indexes")

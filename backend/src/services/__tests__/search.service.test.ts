@@ -27,7 +27,7 @@ describe('SearchService', () => {
     expect(sqlArg).not.toContain('WHERE');
   });
 
-  it('should generate compound ILIKE conditions when multiple genres are provided', async () => {
+  it('should generate compound GIN trgm overlap conditions when multiple genres are provided', async () => {
     (query as jest.Mock).mockResolvedValue({ rows: [] });
 
     await searchService.searchByGenres(['RPG', 'Action']);
@@ -38,10 +38,10 @@ describe('SearchService', () => {
     const [sqlText, params] = (query as jest.Mock).mock.calls[0];
     
     // Verify SQL structure
-    expect(sqlText).toContain('WHERE ((genres ILIKE $1 OR tags ILIKE $1) AND (genres ILIKE $2 OR tags ILIKE $2))');
+    expect(sqlText).toContain('WHERE ((genres %% $1 OR tags %% $1) AND (genres %% $2 OR tags %% $2))');
     
     // Verify parameterized inputs are safely wrapped in wildcards
-    expect(params).toEqual(['%RPG%', '%Action%']);
+    expect(params).toEqual(['RPG', 'Action']);
   });
 
   it('should map flat database rows into nested JSON objects correctly', async () => {

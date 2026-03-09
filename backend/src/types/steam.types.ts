@@ -62,6 +62,25 @@ export interface Game {
   isFree: boolean;
 }
 
+export interface ScoredRecommendation {
+  appId: number;
+  name: string;
+  score: number;
+  jaccardScore: number;
+  genreAlignmentScore: number;
+  socialScore: number;
+  reason: string;
+  headerImage: string | null;
+  genres: string[];
+  tags: string[];
+  description: string | null;
+  price: number | null;
+  isFree: boolean;
+  developers: string[];
+  publishers: string[];
+  releaseDate: string | null;
+}
+
 // Steam API Raw Response Types
 export interface SteamOwnedGamesResponse {
   response: {
