@@ -15,8 +15,6 @@ import { Subscription } from 'rxjs';
 })
 export class ConfigScreen implements OnInit, OnDestroy {
   steamID_updated: boolean = false;
-  apiKey_updated: boolean = false;
-  apiKey_set: boolean = false;
   steamID: string = 'None';
   isIndexing: boolean = false;
   
@@ -27,10 +25,6 @@ export class ConfigScreen implements OnInit, OnDestroy {
   ngOnInit() {
     this.subs.add(this.backendService.steamId$.subscribe(id => {
       this.steamID = id || 'None';
-    }));
-    
-    this.subs.add(this.backendService.apiKey$.subscribe((key: string) => {
-      this.apiKey_set = Boolean(key);
     }));
   }
 
@@ -57,11 +51,5 @@ export class ConfigScreen implements OnInit, OnDestroy {
         this.isIndexing = false;
       }
     });
-  }
-
-  onAPIKeyEnter($event: string) {
-    console.log('Received new API Key:', $event);
-    this.apiKey_updated = true;
-    this.backendService.setApiKey($event); // Command updates behavior subject automatically
   }
 }

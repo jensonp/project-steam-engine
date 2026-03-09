@@ -25,10 +25,9 @@ import { BackendService } from '../../services/backend-service';
 })
 export class UserSearchComponent {
   @Output() hasSteamID = new EventEmitter<string>();
-  @Output() hasAPIKey = new EventEmitter<string>();
   
   @Input() entered_text: string = '';
-  @Input() credential_type: 'Steam ID' | 'API Key' = 'Steam ID';
+  @Input() credential_type: 'Steam ID' = 'Steam ID';
   isLoading = false;
   error = '';
 
@@ -51,20 +50,6 @@ export class UserSearchComponent {
     if (this.credential_type === 'Steam ID') {
       this.onSteamIdEnter();
     } 
-    else if (this.credential_type === 'API Key') {
-      this.onAPIKeyEnter();
-    }
-  }
-
-  onAPIKeyEnter(): void {
-    this.isLoading = true;
-    if (this.entered_text.trim()) { // Only set API key if it's not empty, otherwise the backend will reject requests and log an error
-      this.error = '';
-      this.backendService.setApiKey(this.entered_text.trim());
-    }
-
-    this.hasAPIKey.emit(this.entered_text.trim());
-    this.isLoading = false;
   }
 
   setLoading(loading: boolean): void {

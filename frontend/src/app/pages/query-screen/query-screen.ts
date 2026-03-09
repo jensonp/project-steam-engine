@@ -56,7 +56,6 @@ export class QueryScreen {
   steamId_input: string = '';
   
   steamID_configured: boolean = false;
-  apiKey_configured: boolean = false;
   
   // Strict RxJS State Subscriptions
   isLoading = false;
@@ -68,7 +67,6 @@ export class QueryScreen {
 
   constructor(private backendService: BackendService, private router: Router) {
     this.steamID_configured = Boolean(this.backendService.getSteamId());
-    this.apiKey_configured = Boolean(this.backendService.getApiKey());
   }
 
   ngOnInit() {

@@ -126,10 +126,16 @@ export class RecommenderService {
       gameWeights.set(game.appId, weight);
     }
 
+    // Fix: Limit processing to top 100 most played games to prevent OOM
+    // "Whale" users with 5000+ games will instantly crash the Node V8 Thread if evaluated entirely
+    const topGames = [...ownedGames]
+      .sort((a, b) => b.playtimeMinutes - a.playtimeMinutes)
+      .slice(0, 100);
+
     // Aggregate recommendations from all owned games
     const recommendationScores = new Map<number, { score: number; sources: string[] }>();
 
-    for (const ownedGame of ownedGames) {
+    for (const ownedGame of topGames) {
       const similar = this.similarityIndex.get(ownedGame.appId);
       if (!similar) continue;
 
@@ -145,7 +151,8 @@ export class RecommenderService {
 
         if (currentScore) {
           currentScore.score += addedScore;
-          if (!currentScore.sources.includes(sourceName)) {
+          // Fix: Limit source strings to 3 items maximum to avoid giant GC collections
+          if (currentScore.sources.length < 3 && !currentScore.sources.includes(sourceName)) {
             currentScore.sources.push(sourceName);
           }
         } else {

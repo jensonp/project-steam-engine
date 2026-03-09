@@ -137,7 +137,36 @@ def load_games_batch(conn, limit=None):
             categories, genres, tags, windows_support,
             mac_support, linux_support
         ) VALUES %s
-        ON CONFLICT (app_id) DO NOTHING
+        ON CONFLICT (app_id) DO UPDATE SET
+            game_name = EXCLUDED.game_name,
+            estimated_owners = EXCLUDED.estimated_owners,
+            peak_ccu = EXCLUDED.peak_ccu,
+            required_age = EXCLUDED.required_age,
+            price = EXCLUDED.price,
+            long_description = EXCLUDED.long_description,
+            short_description = EXCLUDED.short_description,
+            support_languages = EXCLUDED.support_languages,
+            full_audio_languages = EXCLUDED.full_audio_languages,
+            reviews = EXCLUDED.reviews,
+            header_image = EXCLUDED.header_image,
+            metacritic_score = EXCLUDED.metacritic_score,
+            metacritic_url = EXCLUDED.metacritic_url,
+            user_score = EXCLUDED.user_score,
+            positive_votes = EXCLUDED.positive_votes,
+            negative_votes = EXCLUDED.negative_votes,
+            score_rank = EXCLUDED.score_rank,
+            achievements = EXCLUDED.achievements,
+            recommendations = EXCLUDED.recommendations,
+            average_playtime = EXCLUDED.average_playtime,
+            median_playtime = EXCLUDED.median_playtime,
+            developers = EXCLUDED.developers,
+            publishers = EXCLUDED.publishers,
+            categories = EXCLUDED.categories,
+            genres = EXCLUDED.genres,
+            tags = EXCLUDED.tags,
+            windows_support = EXCLUDED.windows_support,
+            mac_support = EXCLUDED.mac_support,
+            linux_support = EXCLUDED.linux_support
     """
     
     with conn.cursor() as cur:
@@ -211,7 +240,36 @@ def load_games_streaming(conn, limit=None):
             categories, genres, tags, windows_support,
             mac_support, linux_support
         ) VALUES %s
-        ON CONFLICT (app_id) DO NOTHING
+        ON CONFLICT (app_id) DO UPDATE SET
+            game_name = EXCLUDED.game_name,
+            estimated_owners = EXCLUDED.estimated_owners,
+            peak_ccu = EXCLUDED.peak_ccu,
+            required_age = EXCLUDED.required_age,
+            price = EXCLUDED.price,
+            long_description = EXCLUDED.long_description,
+            short_description = EXCLUDED.short_description,
+            support_languages = EXCLUDED.support_languages,
+            full_audio_languages = EXCLUDED.full_audio_languages,
+            reviews = EXCLUDED.reviews,
+            header_image = EXCLUDED.header_image,
+            metacritic_score = EXCLUDED.metacritic_score,
+            metacritic_url = EXCLUDED.metacritic_url,
+            user_score = EXCLUDED.user_score,
+            positive_votes = EXCLUDED.positive_votes,
+            negative_votes = EXCLUDED.negative_votes,
+            score_rank = EXCLUDED.score_rank,
+            achievements = EXCLUDED.achievements,
+            recommendations = EXCLUDED.recommendations,
+            average_playtime = EXCLUDED.average_playtime,
+            median_playtime = EXCLUDED.median_playtime,
+            developers = EXCLUDED.developers,
+            publishers = EXCLUDED.publishers,
+            categories = EXCLUDED.categories,
+            genres = EXCLUDED.genres,
+            tags = EXCLUDED.tags,
+            windows_support = EXCLUDED.windows_support,
+            mac_support = EXCLUDED.mac_support,
+            linux_support = EXCLUDED.linux_support
     """
     
     with open(JSON_PATH, 'rb') as f:

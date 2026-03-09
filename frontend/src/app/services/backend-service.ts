@@ -7,7 +7,6 @@ import { Game, UserProfile, ScoredRecommendation } from '../types/steam.types';
 // State interface for strict typing
 interface AppState {
   steamId: string;
-  apiKey: string;
   userProfile: UserProfile | null;
   recommendations: ScoredRecommendation[];
   searchResults: Game[];
@@ -17,9 +16,8 @@ interface AppState {
   error: string | null;
 }
 
-const initialState: AppState = {
+const defaultState: AppState = {
   steamId: '',
-  apiKey: '',
   userProfile: null,
   recommendations: [],
   searchResults: [],
@@ -28,6 +26,9 @@ const initialState: AppState = {
   isLoadingSearch: false,
   error: null
 };
+
+const savedState = localStorage.getItem('appState');
+const initialState: AppState = savedState ? JSON.parse(savedState) : defaultState;
 
 @Injectable({
   providedIn: 'root',
@@ -40,7 +41,6 @@ export class BackendService {
 
   // ─── Queries (Observables) ──────────────────────────────────────────────────
   steamId$ = new Observable<string>(subscriber => this.state.subscribe(s => subscriber.next(s.steamId)));
-  apiKey$ = new Observable<string>(subscriber => this.state.subscribe(s => subscriber.next(s.apiKey)));
   userProfile$ = new Observable<UserProfile | null>(subscriber => this.state.subscribe(s => subscriber.next(s.userProfile)));
   recommendations$ = new Observable<ScoredRecommendation[]>(subscriber => this.state.subscribe(s => subscriber.next(s.recommendations)));
   searchResults$ = new Observable<Game[]>(subscriber => this.state.subscribe(s => subscriber.next(s.searchResults)));
@@ -52,9 +52,11 @@ export class BackendService {
 
   constructor(private http: HttpClient) {}
 
-  // Helper to update partial state immutably
+  // Helper to update partial state immutably and persist to localStorage
   private patchState(partialState: Partial<AppState>) {
-    this.state.next({ ...this.state.value, ...partialState });
+    const newState = { ...this.state.value, ...partialState };
+    this.state.next(newState);
+    localStorage.setItem('appState', JSON.stringify(newState));
   }
 
   // ─── Commands (Actions) ─────────────────────────────────────────────────────
@@ -63,16 +65,10 @@ export class BackendService {
     this.patchState({ steamId: id, error: null });
   }
 
-  setApiKey(key: string): void {
-    this.patchState({ apiKey: key, error: null });
-  }
-
   // Request backend to index user data based on the provided Steam ID
-  // This should not be called without a valid Steam ID and API key set in the service, otherwise the backend will reject the request and log an error
   indexUser(): void {
     const url = `${this.backendUrl}/login/${encodeURIComponent(this.state.value.steamId)}`;
     let params = new HttpParams();
-    params = params.set('apiKey', this.state.value.apiKey);
 
     this.http.post(url, { params }).subscribe({ // request backend to index the user given the steamId
       next: (response) => {
@@ -153,12 +149,8 @@ export class BackendService {
     return this.http.post(url, {});
   }
 
-  // Legacy getters/setters (to avoid breaking components instantly)
+  // Legacy getters (to avoid breaking components instantly)
   getSteamId(): string {
     return this.state.value.steamId;
-  }
-  
-  getApiKey(): string {
-    return this.state.value.apiKey;
   }
 }

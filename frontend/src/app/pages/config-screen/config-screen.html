@@ -3,51 +3,37 @@
 <h2>Steam ID</h2>
 
 <p class="subtitle">
-    Enter your Steam ID. If you're not sure, go to <a href="https://steamid.io/">here</a>.<br>
+  Enter your Steam ID. If you're not sure, go to <a href="https://steamid.io/">here</a>.<br />
 </p>
 
-<p class="subtitle">Current Steam ID: {{steamID}}</p>
+<p class="subtitle">Current Steam ID: {{ steamID }}</p>
 
-<app-user-search (hasSteamID)="onSteamIDReceived($event)" [credential_type]="'Steam ID'"></app-user-search>
+<app-user-search
+  (hasSteamID)="onSteamIDReceived($event)"
+  [credential_type]="'Steam ID'"
+></app-user-search>
 
 @if (steamID_updated) {
-    <p class="success-message">
-        <mat-icon>check_circle</mat-icon>
-        Steam ID updated successfully!
-    </p>
-}
-
-<h2>API Key</h2>
-
-<p class="subtitle">
-    Enter your Steam API key to allow the app to fetch your game library and provide personalized recommendations. You can get an API key from <a href="https://steamcommunity.com/dev/apikey">here</a>.<br>
-</p>
-
-<p class="subtitle">API Key set: {{ apiKey_set ? 'Yes' : 'No' }}</p>
-
-<app-user-search (hasAPIKey)="onAPIKeyEnter($event)" [credential_type]="'API Key'"></app-user-search>
-
-@if (apiKey_updated) {
-    <p class="success-message">
-        <mat-icon>check_circle</mat-icon>
-        API Key set successfully!
-    </p>
+  <p class="success-message">
+    <mat-icon>check_circle</mat-icon>
+    Steam ID updated successfully!
+  </p>
 }
 
 <h2>Storefront local index</h2>
 
 <p class="subtitle">
-    The local database for the storefront must be built before recommendation can take place. 
-    This process can take a minute, but it only needs to be done once. Click the button below to start building the index.
+  The local database for the storefront must be built before recommendation can take place. This
+  process can take a minute, but it only needs to be done once. Click the button below to start
+  building the index.
 </p>
 
 <button mat-button="filled" (click)="buildIndex()">
-    @if (isIndexing) {
-        <mat-spinner class="custom-color-spinner" diameter="20" color="primary"></mat-spinner>
-    }
-    @else {
-        <ng-container>Build index</ng-container>
-    }
+  @if (isIndexing) {
+    <mat-spinner class="custom-color-spinner" diameter="20" color="primary"></mat-spinner>
+  } @else {
+    <ng-container>Build index</ng-container>
+  }
 </button>
 
-<br><button mat-button="filled" id="back-button" routerLink="/">Back to query</button>
+<br /><button mat-button="filled" id="back-button" routerLink="/">Back to query</button>
