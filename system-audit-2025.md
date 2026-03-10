@@ -6,6 +6,119 @@
 
 ---
 
+## Technology Stack Summary
+
+**Backend**: Node.js (v22+ recommended), Express 4.x, TypeScript 5.x. Key dependencies include Axios for HTTP, `pg` for PostgreSQL, Zod for validation, Opossum for circuit breaking, and `express-rate-limit` for rate limiting. `ioredis` is in package.json but unused.
+
+**Frontend**: Angular 21.x with Angular Material and CDK. RxJS for reactive flows. Jest (not Karma) for unit tests.
+
+**Data**: PostgreSQL with `pg_trgm` (trigram) and full-text search (`tsvector`). Steam Web API and Steam Store API for live data. Pre-computed JSON files (similarity index, vectors, IDF) for the recommender, produced by offline scripts.
+
+**Tooling**: Jest for backend and frontend tests, ESLint for linting, ts-node-dev for hot reload. Data pipeline scripts: `data:process`, `data:build-recommender`, `data:pipeline`.
+
+---
+
+## Prerequisites & Quick Start
+
+**Prerequisites**: Node.js v22+, PostgreSQL running locally, a Steam Web API key from [steamcommunity.com/dev/apikey](https://steamcommunity.com/dev/apikey).
+
+**Environment variables**: Copy `backend/src/.env.example` to `backend/src/.env` (or root `.env`). Required keys: `STEAM_API_KEY`, `PORT` (default 3000), `PGHOST`, `PGDATABASE` (default `steam_collab`), `PGUSER`, `PGPASSWORD`, `PGPORT` (default 5432; adjust if PostgreSQL uses a non-standard port).
+
+**Database**: Create the `steam_collab` database and ensure the `games` table exists. The schema is created by the data pipeline.
+
+**Data pipeline** (required for recommendations): (1) Place `steam.csv` (e.g., from Kaggle) in `data/raw/`. (2) Run `npm run data:process` (from `backend/`) to populate the games table and processed CSVs. (3) Run `npm run data:build-recommender` to generate `data/processed/recommender/similarity-index.json`, `vectors.json`, and `idf.json`. Without these files, recommend endpoints return 503.
+
+**Run backend**: `cd backend && npm install && npm run dev`. Server listens on `http://localhost:3000`.
+
+**Run frontend**: `cd frontend && npm install && npm start`. Angular dev server typically runs on `http://localhost:4200`.
+
+**Full stack**: `cd backend && npm run dev:full` starts both backend and frontend.
+
+---
+
+## File Structure Map
+
+```
+cs125/
+├── backend/
+│   ├── src/
+│   │   ├── index.ts              # Entry point, middleware, routes
+│   │   ├── config.ts             # Env loading
+│   │   ├── config/
+│   │   │   └── db.ts             # pg.Pool, query helper
+│   │   ├── routes/               # Express routers
+│   │   │   ├── user.routes.ts
+│   │   │   ├── game.routes.ts
+│   │   │   ├── search.routes.ts
+│   │   │   ├── recommend.routes.ts
+│   │   │   └── __tests__/
+│   │   ├── services/
+│   │   │   ├── steam.service.ts
+│   │   │   ├── search.service.ts
+│   │   │   ├── recommender.service.ts
+│   │   │   ├── user-profile.service.ts
+│   │   │   ├── strategies/       # GenreVector, FriendOverlap, Scoring
+│   │   │   └── __tests__/
+│   │   ├── repositories/
+│   │   │   ├── interfaces.ts
+│   │   │   └── game.repository.ts
+│   │   ├── middleware/
+│   │   │   ├── validate.middleware.ts
+│   │   │   └── __tests__/
+│   │   ├── utils/
+│   │   │   └── circuit-breaker.ts
+│   │   ├── types/
+│   │   │   └── steam.types.ts
+│   │   └── scripts/              # data:process, build-recommender, etc.
+│   ├── data/
+│   │   ├── raw/                  # steam.csv
+│   │   └── processed/
+│   │       └── recommender/      # similarity-index.json, vectors.json, idf.json
+│   └── package.json
+├── frontend/
+│   └── src/app/
+│       ├── app.ts, app.config.ts, app.routes.ts
+│       ├── components/           # user-search, game-card, glass-settings
+│       ├── pages/                # query-screen, config-screen, result-screen
+│       ├── services/             # backend-service, steam-api.service
+│       └── types/
+└── system-audit-2025.md
+```
+
+---
+
+## Known Limitations
+
+**Steam API**: Requires a valid API key. Rate limits apply; the circuit breaker mitigates cascading failures but does not increase quota. Private profiles return 403; the system cannot fetch library or friend data for users with private settings.
+
+**Recommender**: Depends entirely on offline data. If `data/processed/recommender/` is empty or missing, all recommend endpoints return 503. The first recommend request triggers synchronous file load, blocking the event loop for several seconds.
+
+**Search**: Queries the local `games` table only. Games not in the Kaggle-derived dataset are not searchable. Full-text and trigram search require appropriate indexes for performance.
+
+**No authentication**: The API does not authenticate users. Any client with the base URL can call endpoints. Steam IDs are passed as path params; there is no verification that the caller owns the profile.
+
+**Single-node**: No horizontal scaling. The recommender's in-memory index is process-local. Connection pooling is per-process.
+
+---
+
+## Glossary
+
+**Circuit breaker**: A resilience pattern that stops calling an external service when failures exceed a threshold, failing fast instead of timing out. After a cooldown, it probes once before resuming.
+
+**Jaccard similarity**: A measure of set overlap: |A ∩ B| / |A ∪ B|. Used here for content similarity between games (e.g., shared genres/tags).
+
+**L1-normalization**: Scaling a vector so its elements sum to 1. The genre vector is L1-normalized so weights represent proportional preference.
+
+**pg_trgm**: PostgreSQL extension for trigram-based fuzzy matching. The `%%` operator enables indexed similarity search on text columns.
+
+**Repository pattern**: An abstraction that encapsulates data access. Callers depend on an interface (e.g., `IGameMetadataRepository`), not the database.
+
+**Strategy pattern**: Encapsulates an algorithm in a swappable object. Different strategies (e.g., genre vector, friend overlap) can be composed without changing the orchestrator.
+
+**tsvector / plainto_tsquery**: PostgreSQL full-text search. `tsvector` stores a normalized document; `plainto_tsquery` parses a search string for matching.
+
+---
+
 ## 1. Architectural Overview
 
 ### 1.1 Layered Architecture
@@ -387,63 +500,136 @@ No `process.on('SIGTERM'|'SIGINT')` handler. On kill, the process exits immediat
 
 ---
 
+## Testing Coverage Snapshot
+
+**Backend** (Jest): Route tests for `game.routes` and `search.routes` (validation, error handling, mocked SteamService/SearchService). Unit tests for `RecommenderService` (mocked `fs`; similarity index, getSimilarGames, getRecommendationsByTags, getRecommendationsForLibrary). Unit tests for `SearchService` (SQL construction, param handling). Middleware tests for `validate.middleware` (Zod schema rejection, pass-through). No integration tests against a live database or Steam API. No tests for `user.routes`, `recommend.routes`, `SteamService`, `user-profile.service`, or strategies.
+
+**Frontend** (Jest + Testing Library): Component tests for `game-card` and `glass-settings`. Service tests for `glass-settings.service`. Angular core and router are mocked. No E2E tests. No tests for `user-search`, `backend-service`, `steam-api.service`, or page components.
+
+**Gaps**: User and recommend routes are untested. SteamService (circuit breaker, API mapping) has no unit tests. The full user-recommendation flow (buildUserProfile → scoreWithUserContext) is untested. Strategies are untested in isolation. No E2E coverage. Run `npm run test` in `backend/` and `frontend/` to execute suites.
+
+---
+
+## Performance Characteristics
+
+**Latency**: User library and profile endpoints are dominated by Steam API response time (typically 200–800 ms). Game details depend on the Steam Store API (similar range). Search is database-bound; with indexes, expect 10–50 ms. Similar-games and by-tags are in-memory lookups (sub-10 ms). Full user recommendations combine Steam (multiple parallel calls), PostgreSQL (metadata), and in-memory similarity; total latency is often 1–3 seconds, with Steam as the main bottleneck.
+
+**Memory**: The RecommenderService loads the similarity index, vectors, and IDF into Maps. For a dataset of ~50k games, expect roughly 50–100 MB heap usage. The pg.Pool default max is 10 connections. No caching; each request hits Steam or the database.
+
+**Blocking**: The first recommend request triggers synchronous `loadData()` (fs.readFileSync of three JSON files). This blocks the event loop for several seconds. All other request handling is async.
+
+**Bottlenecks**: Steam API rate limits and latency; no caching. User recommendations with large libraries iterate over many games and fetch similar-games for each; the scoring strategy does O(library_size × 30) similarity lookups plus a metadata batch query. PostgreSQL connection pool saturation under high concurrency.
+
+---
+
 ## 11. Resume Driven Development Plan
 
-*Prioritize technologies and features that signal "senior engineer" to recruiters and hiring managers — regardless of whether they solve actual problems.*
+Resume driven development (RDD) is the practice of prioritizing technologies and features that signal "senior engineer" or "production-ready" to recruiters and hiring managers, often ahead of features that solve immediate user problems. The goal is to maximize the number of credible, discussable line items on a resume and in interviews. This section catalogs initiatives that could be added to the Steam Recommendation Engine, evaluates each for resume impact, and provides enough context to decide whether the investment is worthwhile.
 
-### Phase 1: Infrastructure Buzzwords
+The tables below use several attributes to assess each initiative. **Resume Value** describes the phrase or skill you can claim (e.g., "Containerized microservices"). **Effort** is the relative implementation cost (Low: hours to a day; Medium: days to a week; High: weeks; Very High: months). **Actual Need** explains whether the project genuinely benefits or whether the initiative is primarily for optics. **Worth Implementing?** is the overall recommendation for resume placement. **Time to Implement** gives a rough hour estimate for a competent developer. **Interview Discussability** rates how often the topic arises in technical interviews (High: common; Medium: role-dependent; Low: rare). **Project Fit** indicates how naturally the initiative fits this codebase (Strong: solves a real gap; Moderate: plausible use case; Weak: artificial). **Risk of Over-engineering** warns when the initiative may make the project harder to maintain or explain (Low: clean addition; High: unnecessary complexity). **Dependencies** notes prerequisites (e.g., Docker before Kubernetes).
 
-| Initiative | Resume Value | Effort | Actual Need |
-|------------|--------------|--------|-------------|
-| **Docker + docker-compose** | "Containerized microservices" | Low | Dev parity; easier onboarding |
-| **Kubernetes manifests** | "Orchestrated at scale" | Medium | Overkill for single-node; good for interviews |
-| **Redis caching layer** | "Distributed caching" | Medium | `ioredis` already in package.json (unused); Steam API responses could be cached |
-| **Prometheus + Grafana** | "Observability stack" | Medium | No metrics today; useful for production |
-| **OpenTelemetry tracing** | "Distributed tracing" | Medium | Request flow visibility; hot topic in 2025 |
+The initiatives are grouped by theme and ordered within each group by recommended priority (highest value, lowest effort first). A consolidated recommended order appears at the end.
 
-### Phase 2: Architecture Upgrades
+---
 
-| Initiative | Resume Value | Effort | Actual Need |
-|------------|--------------|--------|-------------|
-| **GraphQL API** | "GraphQL / Apollo" | High | REST is fine; GraphQL shines for flexible client queries |
-| **Event-driven: Kafka / RabbitMQ** | "Message queues" | High | No async workflows; would need "recommendation job queue" use case |
-| **Split into microservices** | "Microservices architecture" | Very High | Monolith is appropriate for current scale |
-| **gRPC for internal calls** | "gRPC / protobuf" | Medium | Overkill; HTTP + JSON is sufficient |
-| **CQRS for recommendations** | "CQRS / Event Sourcing" | High | Read-heavy; write model is trivial |
+### Phase 1: Infrastructure & DevOps
 
-### Phase 3: Data & ML Credibility
+| Initiative | Resume Value | Effort | Time | Actual Need | Worth? | Interview Discussability | Project Fit | Over-engineering Risk | Dependencies |
+|------------|--------------|--------|------|-------------|--------|--------------------------|-------------|------------------------|--------------|
+| **CI/CD (GitHub Actions)** | "CI/CD pipelines" | Low | 2–4h | Lint, test, deploy; baseline expectation | **High** | High | Strong | Low | None |
+| **Docker + docker-compose** | "Containerized services" | Low | 4–8h | Dev parity; easier onboarding | **High** | High | Strong | Low | None |
+| **Redis caching layer** | "Distributed caching" | Medium | 8–16h | `ioredis` in package.json (unused); Steam API cache | **High** | High | Strong | Low | Docker (optional) |
+| **Prometheus + Grafana** | "Observability stack" | Medium | 12–24h | No metrics today; production visibility | **High** | High | Strong | Low | Docker (optional) |
+| **Health check enhancement** | "Production readiness" | Low | 1–2h | Extend /api/health to verify recommender readiness | **Medium** | Medium | Strong | Low | None |
+| **Graceful shutdown** | "Production operations" | Low | 2–4h | SIGTERM handler; pool.end(); stop accepting | **Medium** | Medium | Strong | Low | None |
+| **OpenTelemetry tracing** | "Distributed tracing" | Medium | 16–24h | Request flow visibility; hot in 2025 | **Medium** | Medium | Moderate | Medium | Prometheus (optional) |
+| **Kubernetes manifests** | "Orchestrated at scale" | Medium | 16–32h | Overkill for single-node; interview fodder | **High** | High | Weak | High | Docker, deploy target |
+| **Terraform / Pulumi** | "Infrastructure as Code" | Medium | 16–40h | If deploying to cloud; IaC standard | **High** | High | Moderate | Low | Cloud account |
 
-| Initiative | Resume Value | Effort | Actual Need |
-|------------|--------------|--------|-------------|
-| **Vector DB (Pinecone / pgvector)** | "Vector embeddings" | Medium | Similarity index is in-memory; pgvector could persist + scale |
-| **ML pipeline (MLflow / Kubeflow)** | "MLOps" | High | Offline recommender scripts; formalizing would help reproducibility |
-| **A/B testing framework** | "Experimentation" | Medium | Would enable weight tuning; good product story |
-| **Feature store** | "Feature engineering" | High | Overkill; features are computed on-the-fly |
+---
 
-### Phase 4: Frontend & DX
+### Phase 2: Architecture & API
 
-| Initiative | Resume Value | Effort | Actual Need |
-|------------|--------------|--------|-------------|
-| **Storybook** | "Component library" | Low | Reusable UI docs; good for design system |
-| **E2E with Playwright** | "End-to-end testing" | Medium | No E2E today; catches integration bugs |
-| **PWA / offline support** | "Progressive Web App" | Medium | Niche for game discovery; impressive nonetheless |
-| **WebSocket real-time updates** | "Real-time systems" | Medium | No live data; could fake with "recommendations refresh" |
+| Initiative | Resume Value | Effort | Time | Actual Need | Worth? | Interview Discussability | Project Fit | Over-engineering Risk | Dependencies |
+|------------|--------------|--------|------|-------------|--------|--------------------------|-------------|------------------------|--------------|
+| **GraphQL API** | "GraphQL / Apollo" | High | 24–48h | REST fine; GraphQL for flexible queries | **High** | High | Moderate | Medium | Schema design |
+| **Event-driven: Kafka / RabbitMQ** | "Message queues" | High | 32–64h | No async workflows; artificial job queue | **High** | High | Weak | High | Docker, broker setup |
+| **Dependency injection** | "Composition root / DI" | Medium | 8–16h | Services instantiate deps directly; testability | **High** | High | Strong | Low | None |
+| **API versioning (/v1/)** | "Versioned APIs" | Low | 2–4h | Future-proofing; minor refactor | **Medium** | Medium | Strong | Low | None |
+| **gRPC for internal calls** | "gRPC / protobuf" | Medium | 24–40h | Overkill; HTTP sufficient | **Medium** | Medium | Weak | High | Proto definitions |
+| **CQRS for recommendations** | "CQRS / Event Sourcing" | High | 40–80h | Read-heavy; trivial write model | **Medium** | Medium | Weak | High | Event store |
+| **Split into microservices** | "Microservices architecture" | Very High | 80–160h | Monolith appropriate for scale | **Low** | High | Weak | Very High | Docker, orchestration |
 
-### Phase 5: The "I've Shipped It" Line Items
+---
 
-| Initiative | Resume Value | Effort | Actual Need |
-|------------|--------------|--------|-------------|
-| **CI/CD (GitHub Actions)** | "CI/CD pipelines" | Low | Linting, tests, deploy; baseline expectation |
-| **Terraform / Pulumi** | "Infrastructure as Code" | Medium | If deploying to cloud; IaC is standard |
-| **ADR (Architecture Decision Records)** | "Documented decisions" | Low | Explains *why*; useful for onboarding |
-| **API versioning (/v1/)** | "Versioned APIs" | Low | Future-proofing; minor refactor |
+### Phase 3: Data, ML & Observability
 
-### Suggested Order (Max Resume ROI / Min Effort)
+| Initiative | Resume Value | Effort | Time | Actual Need | Worth? | Interview Discussability | Project Fit | Over-engineering Risk | Dependencies |
+|------------|--------------|--------|------|-------------|--------|--------------------------|-------------|------------------------|--------------|
+| **Vector DB (pgvector)** | "Vector embeddings" | Medium | 16–32h | Similarity index in-memory; persist + scale | **High** | High | Strong | Low | PostgreSQL extension |
+| **ML pipeline (MLflow)** | "MLOps" | High | 40–80h | Formalize offline recommender scripts | **High** | High | Strong | Medium | Python env, data pipeline |
+| **A/B testing framework** | "Experimentation" | Medium | 24–48h | Weight tuning; product story | **Medium** | Medium | Moderate | Medium | Feature flags |
+| **Feature store** | "Feature engineering" | High | 48–80h | Features computed on-the-fly | **Low** | Low | Weak | High | ML infra |
 
-1. **Docker + docker-compose** — One Dockerfile, one compose file. "Containerized" in one PR.
-2. **Redis caching** — Wire up existing `ioredis`; cache Steam API responses by steamId. "Distributed caching" ✓
-3. **CI/CD (GitHub Actions)** — Lint, test, optional deploy. Table stakes.
-4. **Prometheus metrics** — `express-prometheus-middleware` or similar. "Observability" ✓
-5. **ADR for key decisions** — Markdown files in `/docs/adr/`. "Documented architecture" ✓
+---
+
+### Phase 4: Frontend & Testing
+
+| Initiative | Resume Value | Effort | Time | Actual Need | Worth? | Interview Discussability | Project Fit | Over-engineering Risk | Dependencies |
+|------------|--------------|--------|------|-------------|--------|--------------------------|-------------|------------------------|--------------|
+| **E2E with Playwright** | "End-to-end testing" | Medium | 16–32h | No E2E today; integration coverage | **High** | High | Strong | Low | Angular app |
+| **Storybook** | "Component library" | Low | 8–16h | Reusable UI docs; design system | **Medium** | Medium | Moderate | Low | Angular components |
+| **WebSocket real-time** | "Real-time systems" | Medium | 16–24h | No live data; artificial "refresh" | **Medium** | Medium | Weak | Medium | None |
+| **PWA / offline** | "Progressive Web App" | Medium | 24–40h | Niche for game discovery | **Low** | Low | Weak | Medium | Service worker |
+| **ADR (Architecture Decision Records)** | "Documented decisions" | Low | 4–8h | Explains *why*; onboarding | **Low** | Low | Strong | Low | None |
+
+---
+
+### Pitfalls
+
+Resume driven development carries several risks. **Over-engineering** is the most common: adding Kafka when a cron job would suffice, or splitting a monolith before there is a scaling problem, makes the codebase harder to understand and defend in interviews. Interviewers often ask "why did you choose X?"—if the answer is "to put it on my resume," the signal backfires. **Artificial use cases** also hurt: a message queue with no real async workload, or a feature store when features are computed in real time, invites skepticism. **Maintenance burden** increases with every new system: Redis, Prometheus, and OpenTelemetry each require monitoring, upgrades, and debugging. A resume full of half-integrated tools suggests shallow experience. **Scope creep** is another pitfall: starting with Docker is fine; adding Kubernetes, Terraform, and a custom operator for a single-service project dilutes focus. Finally, **neglecting fundamentals**—tests, error handling, graceful shutdown—in favor of buzzwords leaves a project that looks impressive on paper but is brittle in practice. The best resume items are those that solve real problems and are easy to explain under pressure.
+
+---
+
+### Highest Value Implementations for Resume Development
+
+The highest-value, lowest-risk additions for resume development are **CI/CD**, **Docker**, **Redis caching**, **Prometheus metrics**, and **E2E testing with Playwright**. Each is widely recognized, requires modest effort, fits the project naturally, and is easy to discuss in interviews. CI/CD is table stakes—recruiters and hiring managers expect it, and a two-hour GitHub Actions workflow pays off immediately. Docker provides "containerized" as a resume line and improves onboarding; docker-compose for the API plus PostgreSQL is a standard setup. Redis caching is already partially prepared (ioredis in package.json) and Steam API responses are ideal cache candidates; the implementation is straightforward and the "distributed caching" phrase is strong. Prometheus metrics address a real gap—there are no metrics today—and observability is a recurring interview topic. Playwright E2E testing fills another gap, demonstrates testing rigor, and is increasingly expected for full-stack roles. Together, these five initiatives can be completed in roughly a week of focused work and yield multiple credible, defensible resume lines. Dependency injection and pgvector are strong second-tier options: DI improves testability and architecture discussions, while pgvector aligns the recommender with the current AI/ML hiring wave and fits the existing similarity-index use case. Avoid microservices, CQRS, feature stores, and Kubernetes for this project—the effort-to-signal ratio is poor and the over-engineering risk is high.
+
+---
+
+### Recommended Order (Max Resume ROI / Min Effort)
+
+1. **CI/CD (GitHub Actions)** — Lint, test, optional deploy. Table stakes; 2–4 hours.
+2. **Docker + docker-compose** — One Dockerfile, one compose file. "Containerized" in one PR; 4–8 hours.
+3. **Redis caching** — Wire up ioredis; cache Steam API responses by steamId. "Distributed caching" ✓; 8–16 hours.
+4. **Prometheus metrics** — `express-prometheus-middleware` or similar. "Observability" ✓; 12–24 hours.
+5. **E2E with Playwright** — Cover critical user flows. "End-to-end testing" ✓; 16–32 hours.
+6. **Dependency injection** — Composition root; inject repositories and strategies. "Clean architecture" ✓; 8–16 hours.
+7. **pgvector** — Persist similarity index; optional scale path. "Vector embeddings" ✓; 16–32 hours.
+8. **Health check + graceful shutdown** — Production readiness; 3–6 hours combined.
 
 *Use responsibly. The best resume line is still "shipped a feature users love."*
+
+---
+
+## 12. How the System Functions: Start to Finish
+
+When Node starts, it loads `index.ts`, which in turn loads `config.ts`. Config reads environment variables from both the monorepo root and `src/.env`, merging them so local values override. The resulting config holds the port, Steam API key, and PostgreSQL credentials. If the port is missing, the process exits immediately. The Express app is then created and middleware is registered: CORS, JSON body parsing, and a rate limiter that caps each IP at 100 requests per 15 minutes on all `/api/*` paths. Routes are mounted for user, recommend, game, and search, along with a health check, a 404 handler, and a global error handler. Separately, `config/db.ts` loads as a side effect and creates a shared `pg.Pool` connected to PostgreSQL, exporting a `query` helper. Finally, the server calls `listen` on the configured port. At this point, no SteamService or RecommenderService exists yet; both are created lazily on first use.
+
+Every HTTP request passes through the same pipeline. CORS runs first, then body parsing. The rate limiter either allows the request or rejects it with a 429. If allowed, the request is matched to a route. Route-specific Zod validation runs; invalid params or body produce a 400. The handler then obtains the appropriate service (via `getSteamService`, `getRecommenderService`, or a fresh `SearchService` instance), invokes the service method, and returns JSON. If no route matches, the 404 handler runs. If the handler throws, the error handler returns a 500.
+
+The user endpoints all hit the Steam Web API. A request to fetch a user's library triggers `getSteamService()`, which on first call instantiates SteamService with Axios clients and circuit breakers. The service calls the GetOwnedGames endpoint through the circuit breaker, maps the response to `OwnedGame[]`, and returns it. Similarly, recently played games and the Steam profile (name, avatar) come from other Steam API endpoints. The Steam profile is distinct from the recommendation profile: the latter, which includes genre vectors and friend overlap, is served at `/api/recommend/user/:steamId/profile`.
+
+Game details come from the Steam Store API, a different base URL. The SteamService uses a separate circuit breaker for store requests. A request for game details by app ID fires the store breaker, fetches app metadata from the store API, maps it to the `Game` type, and returns it.
+
+Search uses PostgreSQL. The SearchService builds a dynamic SQL query using pg_trgm for genre and tag matching, full-text search for keywords, and category filters for player count. It passes the query and params to `PostgresGameMetadataRepository.searchGames`, which executes via the shared pool. The rows are mapped to `GameSearchResult` and returned.
+
+The recommender endpoints depend on in-memory data loaded from disk. The first request to any recommend route triggers `getRecommenderService()`, which constructs a RecommenderService. The constructor synchronously reads three JSON files from `data/processed/recommender/`: the similarity index, vectors, and IDF. These populate Maps in memory. If the index has data, `isLoaded` is set to true. The status endpoint simply reports whether the recommender is ready. The similar-games endpoint looks up an app ID in the similarity index, slices the result to the requested limit, and returns it. No Steam or database calls are involved. The by-tags endpoint iterates over the in-memory game vectors, scores games by tag overlap, sorts, and returns the top matches. Again, all data is in memory.
+
+The full user-recommendation flow is the most involved. It runs in two phases. First, `buildUserProfile` aggregates Steam data. It issues three parallel calls to the Steam API: owned games, recently played games, and the friend list. It then fetches owned games for up to ten friends, also in parallel. With that data, it uses the genre-vector strategy to build an L1-normalized preference vector from playtime-weighted genres, which requires a PostgreSQL lookup for genre metadata via the repository. The friend-overlap strategy computes the set of games owned by at least two friends, using only in-memory data. A final Steam API call fetches the player summary for display. The result is a UserProfile containing the library, genre vector, friend overlap set, and owned app IDs.
+
+The second phase scores candidates. The scoring strategy iterates over each game in the user's library, fetches the top 30 similar games from the in-memory similarity index for each, and merges them into a candidate set, keeping the best Jaccard score per candidate. It then fetches full metadata for those candidates from PostgreSQL. For each candidate, it computes a genre alignment score (dot product with the user's genre vector), a binary social score (one if the game is in the friend overlap set, zero otherwise), and a final score as a weighted sum: 50% Jaccard, 30% genre, 20% social. The results are sorted, sliced to the limit, and returned as `ScoredRecommendation[]`. The user profile endpoint runs only the first phase and returns a serialized summary (top genres, friend stats, etc.) without the internal Sets and Maps.
+
+Data sources vary by endpoint. User library, recent games, and Steam profile use only the Steam API. Game details use only the Steam Store API. Search uses only PostgreSQL. Recommend status, similar games, and by-tags use only in-memory data. The full user recommendation flow uses all three: Steam API for profile building, PostgreSQL for genre metadata, and the in-memory similarity index for candidate generation and Jaccard scores.
+
+The recommender's in-memory data is not produced by the server. It comes from an offline pipeline. The raw Steam dataset (e.g., steam.csv from Kaggle) is placed in `data/raw/`. Running `npm run data:process` populates the games table and processed CSVs. Running `npm run data:build-recommender` generates the similarity index, vectors, and IDF files in `data/processed/recommender/`. When the server starts, the first recommend request triggers `loadData()`, which reads those files. If they are missing or empty, `isLoaded` remains false and recommend endpoints return 503.
