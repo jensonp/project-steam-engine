@@ -633,3 +633,78 @@ The second phase scores candidates. The scoring strategy iterates over each game
 Data sources vary by endpoint. User library, recent games, and Steam profile use only the Steam API. Game details use only the Steam Store API. Search uses only PostgreSQL. Recommend status, similar games, and by-tags use only in-memory data. The full user recommendation flow uses all three: Steam API for profile building, PostgreSQL for genre metadata, and the in-memory similarity index for candidate generation and Jaccard scores.
 
 The recommender's in-memory data is not produced by the server. It comes from an offline pipeline. The raw Steam dataset (e.g., steam.csv from Kaggle) is placed in `data/raw/`. Running `npm run data:process` populates the games table and processed CSVs. Running `npm run data:build-recommender` generates the similarity index, vectors, and IDF files in `data/processed/recommender/`. When the server starts, the first recommend request triggers `loadData()`, which reads those files. If they are missing or empty, `isLoaded` remains false and recommend endpoints return 503.
+
+---
+
+## 13. Strip vs. Implement: Reducing Bloat, Maximizing Value
+
+This section identifies features and dependencies to remove (low resume value, poor project fit, or pure bloat) and provides a prioritized implementation plan that favors high resume value and strong project fit.
+
+---
+
+### 13.1 Features to Strip
+
+**Criteria for stripping**: Resume value is low or zero; the item does not serve core usage; removal reduces maintenance or cognitive load without harming the product. We do not strip anything that is actively used by the recommendation engine, API, or data pipeline.
+
+| Item | Location | Resume Value | Reasoning |
+|------|----------|--------------|-----------|
+| **ioredis** | `backend/package.json` | None | Unused dependency. No code imports or uses it. Adds ~5 transitive packages to node_modules. Zero resume value because it is not implemented—removing it does not lose a resume line. If Redis is added later, it can be reintroduced with actual usage. |
+| **data:inspect-csv** | `backend/package.json`, `inspect-csv-columns.ts` | None | One-off debug utility for inspecting CSV columns. Useful during initial data exploration; not part of the core pipeline. The main flow uses `data:process` and `data:build-recommender`. Low resume value; keeping it adds script clutter. Optional: move to a `scripts/dev/` folder or remove if no longer needed. |
+| **inspect-csv-and-interface.ts** | `backend/src/scripts/` | None | No npm script references it. Appears to be a one-off interface-inspection utility. Dead code from a resume perspective. Safe to remove or relocate to a scratch/dev folder. |
+| **data:download** | `backend/package.json`, `download-dataset.ts` | Low | If the primary workflow is "download steam.csv from Kaggle manually," this script may be redundant. Kaggle often requires browser-based download. Evaluate: if unused, remove the script and npm target to simplify the data pipeline story. |
+
+**Do not strip**: Rate limiting, circuit breaker, strategy pattern, repository pattern, friend overlap, genre vector, Zod validation, or any route or service that powers the API. These are either core functionality or provide meaningful resume value (resilience, clean architecture, validation).
+
+---
+
+### 13.2 Implementation Plan: High Resume Value + High Project Fit
+
+Prioritize implementations where **Worth = High** and **Project Fit = Strong**. Avoid initiatives with **Worth = Low** or **Project Fit = Weak**, as they add effort without proportional resume or product benefit.
+
+**Tier 1 — Implement first** (High worth, Strong fit, low effort):
+
+| Order | Initiative | Time | Rationale |
+|-------|------------|------|-----------|
+| 1 | CI/CD (GitHub Actions) | 2–4h | Table stakes. Lint, test, optional deploy. No project-fit risk. |
+| 2 | Docker + docker-compose | 4–8h | Standard containerization. Improves onboarding. Strong fit. |
+| 3 | Health check enhancement | 1–2h | Extend `/api/health` to verify recommender readiness. Addresses real gap. |
+| 4 | Graceful shutdown | 2–4h | SIGTERM handler, pool cleanup. Production hygiene. |
+| 5 | Dependency injection | 8–16h | Composition root; inject repositories/strategies. Improves testability and architecture discussions. |
+
+**Tier 2 — Implement next** (High worth, Strong fit, moderate effort):
+
+| Order | Initiative | Time | Rationale |
+|-------|------------|------|-----------|
+| 6 | Redis caching | 8–16h | Wire up caching for Steam API responses. Natural fit; Steam is the latency bottleneck. *Note: Requires adding ioredis back with actual usage—do not add if stripping it.* |
+| 7 | Prometheus metrics | 12–24h | No metrics today. Observability is a real gap. |
+| 8 | E2E with Playwright | 16–32h | No E2E coverage. Testing rigor; strong signal for full-stack roles. |
+| 9 | pgvector | 16–32h | Persist similarity index; aligns with AI/ML hiring. Natural fit for recommender. |
+
+**Tier 3 — Consider if time permits** (High worth, Moderate fit):
+
+| Initiative | Time | Rationale |
+|------------|------|-----------|
+| API versioning (/v1/) | 2–4h | Future-proofing. Strong fit, medium worth. |
+| Terraform / Pulumi | 16–40h | IaC for cloud deploy. Moderate fit; only if deploying. |
+| ML pipeline (MLflow) | 40–80h | Formalize offline scripts. High effort; do if targeting MLOps roles. |
+
+**Avoid** (Low worth or Weak fit; high over-engineering risk):
+
+| Initiative | Why avoid |
+|------------|-----------|
+| Split into microservices | Very high effort; monolith fits current scale. Weak project fit. |
+| Kafka / RabbitMQ | No real async workload. Artificial use case. |
+| CQRS / Event Sourcing | Read-heavy; trivial write model. Hard to justify. |
+| Feature store | Features computed on-the-fly. Overkill. |
+| Kubernetes | Overkill for single-node. Weak fit. |
+| gRPC | HTTP + JSON sufficient. Niche. |
+| GraphQL | REST is adequate. Moderate fit but high effort. |
+| WebSocket, PWA, ADR | Low worth or weak fit. |
+
+---
+
+### 13.3 Summary
+
+**Strip**: Remove `ioredis` (unused), consider removing or relocating `data:inspect-csv`, `inspect-csv-and-interface.ts`, and `data:download` if they are not part of the active workflow. These have low or zero resume value and add bloat without serving core usage.
+
+**Implement**: Focus on Tier 1 and Tier 2. CI/CD, Docker, health check, graceful shutdown, and dependency injection deliver high resume value with strong project fit and modest effort. Redis, Prometheus, E2E, and pgvector round out a credible, defensible stack. Avoid low-value or weak-fit initiatives to keep the project lean and interview-ready.
