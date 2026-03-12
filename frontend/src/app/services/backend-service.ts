@@ -28,7 +28,9 @@ const defaultState: AppState = {
 };
 
 const savedState = localStorage.getItem('appState');
-const initialState: AppState = savedState ? JSON.parse(savedState) : defaultState;
+const initialState: AppState = savedState
+  ? { ...JSON.parse(savedState), isLoadingProfile: false, isLoadingRecommendations: false, isLoadingSearch: false, error: null }
+  : defaultState;
 
 @Injectable({
   providedIn: 'root',

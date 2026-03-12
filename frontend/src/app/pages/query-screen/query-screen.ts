@@ -57,12 +57,13 @@ export class QueryScreen {
   
   steamID_configured: boolean = false;
   
-  // Strict RxJS State Subscriptions
   isLoading = false;
   isLoadingProfile = false;
   error: string | null = null;
   userProfile: UserProfile | null = null;
   
+  private isLoadingSearch = false;
+  private isLoadingRecs = false;
   private subs = new Subscription();
 
   constructor(private backendService: BackendService, private router: Router) {
@@ -70,15 +71,19 @@ export class QueryScreen {
   }
 
   ngOnInit() {
-    this.subs.add(this.backendService.isLoadingSearch$.subscribe(l => this.isLoading = l));
-    this.subs.add(this.backendService.isLoadingRecommendations$.subscribe(l => this.isLoading = l));
+    this.subs.add(this.backendService.isLoadingSearch$.subscribe(l => {
+      this.isLoadingSearch = l;
+      this.isLoading = this.isLoadingSearch || this.isLoadingRecs;
+    }));
+    this.subs.add(this.backendService.isLoadingRecommendations$.subscribe(l => {
+      this.isLoadingRecs = l;
+      this.isLoading = this.isLoadingSearch || this.isLoadingRecs;
+    }));
     this.subs.add(this.backendService.isLoadingProfile$.subscribe(l => this.isLoadingProfile = l));
     this.subs.add(this.backendService.error$.subscribe(e => this.error = e));
     this.subs.add(this.backendService.userProfile$.subscribe(p => this.userProfile = p));
 
-    // Listen to changes in search and recommendation lists and navigate immediately upon receiving data
     this.subs.add(this.backendService.searchResults$.subscribe(results => {
-      // Only navigate if we actually have a result payload emitted explicitly
       if (results && results.length > 0 && !this.isLoading) {
         this.router.navigate(['/results'], { state: { results } });
       }
