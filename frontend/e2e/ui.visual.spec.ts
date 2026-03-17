@@ -60,6 +60,7 @@ for (const viewport of VIEWPORTS) {
       missing: string[];
       overlaps: string[];
       outsidePanel: string[];
+      labelOverflow: string[];
       clipped: string[];
       viewportOverflow: string[];
     };
@@ -128,6 +129,21 @@ for (const viewport of VIEWPORTS) {
           }
         }
 
+        const labelOverflow: string[] = [];
+        for (const name of ['steam-field', 'genre-field', 'player-count-field', 'os-field', 'keyword-field']) {
+          const field = byName(name);
+          if (!field) continue;
+
+          const label = field.querySelector('.mdc-floating-label') as HTMLElement | null;
+          const content = field.querySelector('.mat-mdc-form-field-infix') as HTMLElement | null;
+          if (!label || !content) continue;
+
+          const availableWidth = content.clientWidth - 12;
+          if (label.scrollWidth > availableWidth) {
+            labelOverflow.push(name);
+          }
+        }
+
         const clipped: string[] = [];
         for (const name of ['load-profile-button', 'detect-os-button', 'search-button']) {
           const el = byName(name);
@@ -149,6 +165,7 @@ for (const viewport of VIEWPORTS) {
           missing,
           overlaps: overlapFailures,
           outsidePanel,
+          labelOverflow,
           clipped,
           viewportOverflow,
         };
@@ -169,6 +186,10 @@ for (const viewport of VIEWPORTS) {
     expect(
       result.outsidePanel,
       `Controls escaped panel bounds at ${viewport.name}: ${result.outsidePanel.join(', ')}`
+    ).toEqual([]);
+    expect(
+      result.labelOverflow,
+      `Field labels overflowed their controls at ${viewport.name}: ${result.labelOverflow.join(', ')}`
     ).toEqual([]);
     expect(
       result.clipped,

@@ -3,7 +3,7 @@
   z-index: 1;
   padding: 1rem 0.25rem 2.3rem;
   min-height: calc(100vh - 130px);
-  animation: results-fade 500ms ease-out;
+  animation: results-fade 360ms ease-out;
 }
 
 .result-header {
@@ -19,49 +19,53 @@
 
 .result-header h1 {
   margin: 0;
-  color: var(--neo-primary);
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  font-family: 'Press Start 2P', monospace;
-  font-size: clamp(1rem, 2.6vw, 1.6rem);
-  text-shadow: 0 0 14px rgba(35, 244, 209, 0.28);
+  color: var(--neo-primary-strong);
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: clamp(1.5rem, 2.8vw, 2.1rem);
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 
 .glass-toggle-button {
   margin: 0;
-  min-height: 42px;
-  border-radius: 7px !important;
-  border: 1px solid rgba(35, 244, 209, 0.5) !important;
-  background: linear-gradient(180deg, rgba(9, 36, 46, 0.84), rgba(5, 17, 24, 0.9)) !important;
-  color: var(--neo-primary) !important;
-  font-family: 'Press Start 2P', monospace;
-  font-size: 0.56rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  box-shadow: 0 0 14px rgba(35, 244, 209, 0.2);
+  min-height: 48px;
+  border-radius: 12px !important;
+  border: 1px solid var(--neo-border) !important;
+  background: rgba(124, 234, 216, 0.08) !important;
+  color: var(--neo-primary-strong) !important;
+  font-family: 'IBM Plex Sans', sans-serif !important;
+  font-size: 0.95rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  box-shadow: none;
 }
 
 .back-button {
   position: relative;
   z-index: 100;
-  border-radius: 7px;
-  padding: 0.72rem 1.12rem;
+  border-radius: 12px;
+  padding: 0.8rem 1.12rem;
   margin: 1.1rem 0 0;
-  border: 1px solid rgba(35, 244, 209, 0.5);
-  background: linear-gradient(180deg, rgba(9, 36, 46, 0.84), rgba(5, 17, 24, 0.9));
-  color: var(--neo-primary);
+  border: 1px solid var(--neo-border);
+  background: rgba(124, 234, 216, 0.08);
+  color: var(--neo-primary-strong);
   cursor: pointer;
-  min-height: 44px;
-  font-family: 'Press Start 2P', monospace;
-  font-size: 0.58rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  box-shadow: 0 0 14px rgba(35, 244, 209, 0.2);
-  transition: transform 0.2s ease;
+  min-height: 48px;
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  box-shadow: none;
+  transition:
+    transform 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .back-button:hover {
   transform: translateY(-1px);
+  background: rgba(124, 234, 216, 0.14);
+  border-color: var(--neo-border-strong);
 }
 
 /*
@@ -82,14 +86,14 @@
 
 .results-container {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1.1rem;
   position: relative;
   z-index: 1;
 }
 
 .results-container.glass-mode {
-  gap: 1.1rem;
+  gap: 1.2rem;
   padding: 0.2rem 0;
 }
 
@@ -125,16 +129,16 @@
 
 .result-screen p {
   color: var(--neo-muted);
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
+  letter-spacing: 0.01em;
 }
 
 .empty-state {
   margin-top: 1.7rem;
-  padding: 1rem;
-  border-radius: 10px;
-  border: 1px solid rgba(35, 244, 209, 0.24);
-  background: rgba(6, 18, 25, 0.54);
+  max-width: 32rem;
+  padding: 1rem 1.1rem;
+  border-radius: 16px;
+  border: 1px solid var(--neo-border);
+  background: rgba(255, 255, 255, 0.02);
 }
 
 @keyframes card-rise {

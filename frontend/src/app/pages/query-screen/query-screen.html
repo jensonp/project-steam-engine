@@ -3,22 +3,27 @@
         <img id="gaben" src="steam.png" alt="Steam Engine">
     </div>
 
-    <p class="jp-title">スチーム 推薦機関</p>
+    <p class="eyebrow">Search and recommendations</p>
     <h1>Steam Engine</h1>
 
-    <p class="subtitle">Cyberpunk recommendation terminal. Calibrate your filters and scan the storefront grid.</p>
+    <p class="subtitle">Filter by genre, player count, operating system, or keywords. Add a Steam ID if you want results shaped by your library.</p>
 
     <div class="terminal-panel" data-ui-check="terminal-panel">
+        <div class="panel-intro">
+            <h2>Search filters</h2>
+            <p>Start with a regular search, or load a profile to switch to library-aware suggestions.</p>
+        </div>
+
         <!-- Steam Profile Section -->
         <div class="steam-section" data-ui-check="steam-section">
             <mat-form-field appearance="outline" class="steam-field" data-ui-check="steam-field">
-                <mat-label>Steam ID (optional — for personalized recommendations)</mat-label>
+                <mat-label>Steam ID</mat-label>
                 <input matInput
                        [(ngModel)]="steamId_input"
-                       placeholder="e.g. 76561198393551255"
+                       placeholder="76561198393551255"
                        [disabled]="isLoading || isLoadingProfile"
                        (keyup.enter)="loadSteamProfile()">
-                <mat-icon matSuffix>games</mat-icon>
+                <mat-hint>Optional. Use your profile to personalize results.</mat-hint>
             </mat-form-field>
             <button class="load-profile-button"
                     data-ui-check="load-profile-button"
@@ -27,7 +32,7 @@
                 @if (isLoadingProfile) {
                     <mat-spinner diameter="16"></mat-spinner>
                 } @else {
-                    Load Profile
+                    Load profile
                 }
             </button>
         </div>
@@ -90,11 +95,11 @@
                 data-ui-check="detect-os-button"
                 (click)="detectAndApplyOs()"
                 [disabled]="isLoading || isLoadingProfile">
-                Use My OS
+                Use my OS
             </button>
             @if (selected_os) {
                 <button type="button" class="clear-os-button" data-ui-check="clear-os-button" (click)="clearOsFilter()">
-                    Clear OS
+                    Clear
                 </button>
             }
         </div>
@@ -108,7 +113,7 @@
 
         <div>
             <mat-form-field appearance="outline" class="search-form" data-ui-check="keyword-field">
-                <mat-label>Keyword(s)</mat-label>
+                <mat-label>Keywords</mat-label>
                 <input matInput [(ngModel)]="keyword_input" placeholder="" [disabled]="isLoading">
             </mat-form-field>
         </div>
@@ -118,7 +123,7 @@
             <mat-spinner class="custom-color-spinner" diameter="20"></mat-spinner>
             }
             @else {
-            <ng-container>{{ userProfile ? 'Suggest for Me' : 'Suggest' }}</ng-container>
+            <ng-container>{{ userProfile ? 'Suggest for me' : 'Suggest games' }}</ng-container>
             }
         </button>
     </div>

@@ -11,41 +11,46 @@
 .app-toolbar {
   gap: 0.75rem;
   display: flex;
-  min-height: 74px;
+  min-height: 72px;
   padding: 0 1rem;
-  background: rgba(2, 8, 13, 0.7);
-  border-bottom: 1px solid rgba(35, 244, 209, 0.28);
+  background: rgba(7, 15, 21, 0.82);
+  border-bottom: 1px solid var(--neo-border);
   box-shadow:
-    0 0 0 1px rgba(35, 244, 209, 0.08) inset,
-    0 12px 30px rgba(1, 7, 11, 0.55);
-  backdrop-filter: blur(4px);
+    0 1px 0 rgba(255, 255, 255, 0.03) inset,
+    var(--shadow-1);
+  backdrop-filter: blur(10px);
 }
 
 .app-toolbar mat-icon {
-  width: 28px;
-  height: 28px;
-  font-size: 28px;
-  color: var(--neo-primary);
+  width: 20px;
+  height: 20px;
+  font-size: 20px;
+  color: var(--neo-primary-strong);
   justify-content: flex-end;
-  transition: transform 0.2s ease;
+  transition: color 0.2s ease;
 }
 
 .app-toolbar mat-icon:hover {
-  transform: rotate(25deg) scale(1.05);
+  color: var(--neo-primary);
 }
 
 #config-button {
   margin-left: auto;
   width: 40px;
   height: 40px;
-  border-radius: 8px;
+  border-radius: 12px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: rgba(9, 30, 40, 0.72);
-  border: 1px solid rgba(35, 244, 209, 0.36);
-  box-shadow: 0 0 14px rgba(35, 244, 209, 0.18);
+  background: rgba(124, 234, 216, 0.07);
+  border: 1px solid var(--neo-border);
+  box-shadow: none;
   cursor: pointer;
+}
+
+#config-button:hover {
+  background: rgba(124, 234, 216, 0.12);
+  border-color: var(--neo-border-strong);
 }
 
 .main-content {
@@ -59,29 +64,28 @@
 .app-footer {
   text-align: center;
   padding: 1rem 0.75rem 1.5rem;
-  color: rgba(120, 189, 176, 0.86);
-  font-size: 0.76rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  color: var(--neo-muted);
+  font-size: 0.82rem;
+  letter-spacing: 0.01em;
 }
 
 #header-icon {
-  height: 38px;
-  width: 38px;
-  border-radius: 10px;
-  padding: 4px;
-  border: 1px solid rgba(35, 244, 209, 0.42);
-  box-shadow: 0 0 14px rgba(35, 244, 209, 0.24);
+  height: 40px;
+  width: 40px;
+  border-radius: 12px;
+  padding: 6px;
+  border: 1px solid var(--neo-border);
+  background: rgba(124, 234, 216, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
   cursor: pointer;
 }
 
 #header-title {
-  font-family: 'Press Start 2P', monospace;
-  font-size: 0.8rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--neo-primary);
-  text-shadow: 0 0 14px rgba(35, 244, 209, 0.36);
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--neo-primary-strong);
   cursor: pointer;
 }
 
@@ -100,7 +104,6 @@
   }
 
   #header-title {
-    font-size: 0.62rem;
-    letter-spacing: 0.1em;
+    font-size: 0.9rem;
   }
 }
