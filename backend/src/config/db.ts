@@ -6,6 +6,7 @@ export const pool = new Pool({
   host: config.pgHost,
   database: config.pgDatabase,
   user: config.pgUser,
+  password: config.pgPassword || undefined,
   port: config.pgPort,
 });
 

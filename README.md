@@ -17,7 +17,39 @@ Retrieval of user's data are done with the [Steam Web API](https://steamcommunit
 
 ## Running the software
 
-### Prerequisite
+### Quick start with Docker (recommended)
+
+Prerequisites:
+- Docker Desktop (or Docker Engine + Docker Compose)
+
+Run everything (frontend + backend + Postgres):
+
+```bash
+docker compose up --build
+```
+
+Open:
+- Frontend: `http://localhost:4200`
+- Backend health check: `http://localhost:3000/api/health`
+
+Stop everything:
+
+```bash
+docker compose down
+```
+
+If you also want to remove Postgres volume data:
+
+```bash
+docker compose down -v
+```
+
+Notes:
+- The backend container uses `PGHOST=db` and connects to the Postgres service in `docker-compose.yml`.
+- Search/recommendation quality depends on your dataset/table state in Postgres.
+- To use Steam API endpoints, set `STEAM_API_KEY` in your shell or `.env` before `docker compose up`.
+
+### Local development prerequisites
 
 In order to run our web application, you need to have the following software installed on your system. All are cross-platform
 - npm
@@ -26,7 +58,7 @@ In order to run our web application, you need to have the following software ins
 - PostgreSQL Server
 - Python
 
-### Running the front-end
+### Running the front-end (local)
 
 Beforehand, run `npm install` on the front-end directory to install all dependencies automatically. To then start the front-end interface, run the following command within the front-end root directory:
 
@@ -36,7 +68,7 @@ ng serve –open
 
 This will automatically open up a browser tab showing the UI. It will be running on port 4200 on your localhost. You can also interact with the UI without the back-end, but the recommendation system won’t work.
 
-### Running the back-end & database
+### Running the back-end & database (local)
 
 Similar to the front-end, run `npm install` on the back-end directory for the dependencies. To run the core back-end code, run the following command within the back-end root directory:
 

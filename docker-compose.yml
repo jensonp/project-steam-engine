@@ -1,0 +1,52 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: cs125-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: steam_collab
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - cs125_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d steam_collab"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: cs125-backend
+    restart: unless-stopped
+    environment:
+      PORT: 3000
+      PGHOST: db
+      PGDATABASE: steam_collab
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGPORT: 5432
+      STEAM_API_KEY: ${STEAM_API_KEY:-}
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: cs125-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "4200:80"
+
+volumes:
+  cs125_pgdata:
