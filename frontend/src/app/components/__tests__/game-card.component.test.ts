@@ -3,7 +3,6 @@
  *
  * Tests the game card component behavior, including:
  * - Game data display
- * - Glass effect integration
  * - Image loading/error handling
  * - Description truncation
  */
@@ -38,18 +37,9 @@ describe('GameCardComponent', () => {
       expect(component.game).toBeUndefined();
     });
 
-    it('should default glassEnabled to false', () => {
-      expect(component.glassEnabled).toBe(false);
-    });
-
     it('should accept game input', () => {
       component.game = mockGame;
       expect(component.game).toEqual(mockGame);
-    });
-
-    it('should accept glassEnabled input', () => {
-      component.glassEnabled = true;
-      expect(component.glassEnabled).toBe(true);
     });
   });
 
@@ -165,26 +155,6 @@ describe('GameCardComponent', () => {
       component.game = manyGenresGame;
       // Component template slices to first 3
       expect(component.game.genres.slice(0, 3)).toEqual(['Action', 'Adventure', 'RPG']);
-    });
-  });
-
-  // ── Glass Effect Integration ────────────────────────────────────────────────
-  describe('glass effect', () => {
-    it('should have glassEnabled false by default', () => {
-      expect(component.glassEnabled).toBe(false);
-    });
-
-    it('should accept glassEnabled true', () => {
-      component.glassEnabled = true;
-      expect(component.glassEnabled).toBe(true);
-    });
-
-    it('should work with game data when glass is enabled', () => {
-      component.game = mockGame;
-      component.glassEnabled = true;
-      
-      expect(component.game).toBeDefined();
-      expect(component.glassEnabled).toBe(true);
     });
   });
 });

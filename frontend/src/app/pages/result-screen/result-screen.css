@@ -26,20 +26,6 @@
   letter-spacing: -0.01em;
 }
 
-.glass-toggle-button {
-  margin: 0;
-  min-height: 48px;
-  border-radius: 12px !important;
-  border: 1px solid var(--neo-border) !important;
-  background: rgba(124, 234, 216, 0.08) !important;
-  color: var(--neo-primary-strong) !important;
-  font-family: 'IBM Plex Sans', sans-serif !important;
-  font-size: 0.95rem;
-  font-weight: 500;
-  letter-spacing: 0.01em;
-  box-shadow: none;
-}
-
 .back-button {
   position: relative;
   z-index: 100;
@@ -68,33 +54,12 @@
   border-color: var(--neo-border-strong);
 }
 
-/*
- * The animated background MUST be position:absolute (NOT fixed).
- * liquidGL's html2canvas ignores ALL position:fixed elements.
- * Using absolute inside .result-screen ensures it gets captured
- * in the body snapshot so the glass panes can refract it.
- */
-.animated-background {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 0;
-  pointer-events: none;
-}
-
 .results-container {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: 1.1rem;
   position: relative;
   z-index: 1;
-}
-
-.results-container.glass-mode {
-  gap: 1.2rem;
-  padding: 0.2rem 0;
 }
 
 .results-container app-game-card {
@@ -167,7 +132,6 @@
     align-items: flex-start;
   }
 
-  .glass-toggle-button,
   .back-button {
     width: 100%;
   }

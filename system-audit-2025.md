@@ -78,7 +78,7 @@ cs125/
 ├── frontend/
 │   └── src/app/
 │       ├── app.ts, app.config.ts, app.routes.ts
-│       ├── components/           # user-search, game-card, glass-settings
+│       ├── components/           # user-search, game-card
 │       ├── pages/                # query-screen, config-screen, result-screen
 │       ├── services/             # backend-service, steam-api.service
 │       └── types/
@@ -761,7 +761,7 @@ This is the point where Kafka, microservices, and Kubernetes become justified �
 
 **Backend** (Jest): Route tests for `game.routes` and `search.routes` (validation, error handling, mocked SteamService/SearchService). Unit tests for `RecommenderService` (mocked `fs`; similarity index, getSimilarGames, getRecommendationsByTags, getRecommendationsForLibrary). Unit tests for `SearchService` (SQL construction, param handling). Middleware tests for `validate.middleware` (Zod schema rejection, pass-through). No integration tests against a live database or Steam API. No tests for `user.routes`, `recommend.routes`, `SteamService`, `user-profile.service`, or strategies.
 
-**Frontend** (Jest + Testing Library): Component tests for `game-card` and `glass-settings`. Service tests for `glass-settings.service`. Angular core and router are mocked. No E2E tests. No tests for `user-search`, `backend-service`, `steam-api.service`, or page components.
+**Frontend** (Jest + Playwright): Unit tests cover `game-card`. Playwright visual checks cover the query page across key breakpoints plus an Axe accessibility guardrail. No unit tests for `user-search`, `backend-service`, `steam-api.service`, or page components.
 
 **Gaps**: User and recommend routes are untested. SteamService (circuit breaker, API mapping) has no unit tests. The full user-recommendation flow (buildUserProfile → scoreWithUserContext) is untested. Strategies are untested in isolation. No E2E coverage. Run `npm run test` in `backend/` and `frontend/` to execute suites.
 

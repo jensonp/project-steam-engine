@@ -99,14 +99,3 @@ a:hover {
 .custom-color-spinner circle {
   stroke: var(--neo-primary) !important;
 }
-
-body.glass-active {
-  background-color: var(--neo-bg);
-  color: var(--neo-text);
-}
-
-.liquidGL > * {
-  position: relative;
-  z-index: 3;
-  pointer-events: auto;
-}

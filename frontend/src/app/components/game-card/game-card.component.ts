@@ -2,7 +2,6 @@ import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
-import { MatIconModule } from '@angular/material/icon';
 import { Game } from '../../types/steam.types';
 
 @Component({
@@ -12,7 +11,6 @@ import { Game } from '../../types/steam.types';
     CommonModule,
     MatCardModule,
     MatChipsModule,
-    MatIconModule,
   ],
   templateUrl:"./game-card.component.html",
   styleUrl: "./game-card.component.css",
@@ -20,7 +18,6 @@ import { Game } from '../../types/steam.types';
 })
 export class GameCardComponent {
   @Input() game?: Game;
-  @Input() glassEnabled = false;
 
   truncateDescription(description: string): string {
     if (description.length > 100) {
