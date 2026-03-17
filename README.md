@@ -49,6 +49,30 @@ Notes:
 - Search/recommendation quality depends on your dataset/table state in Postgres.
 - To use Steam API endpoints, set `STEAM_API_KEY` in your shell or `.env` before `docker compose up`.
 
+### UI quality checks (terminal)
+
+The project includes visual guardrails to catch UI regressions like overlapping controls:
+
+- Existing checks (off-the-shelf):
+  - Playwright visual snapshot diffs.
+  - Axe serious/critical accessibility checks.
+- Custom checks:
+  - Layout overlap detection on key controls.
+  - Panel-bound checks (controls escaping container).
+  - Button label clipping and viewport overflow checks.
+
+Run checks:
+
+```bash
+bash scripts/ui-check.sh
+```
+
+Update visual baselines intentionally:
+
+```bash
+bash scripts/ui-check.sh --update
+```
+
 ### Local development prerequisites
 
 In order to run our web application, you need to have the following software installed on your system. All are cross-platform

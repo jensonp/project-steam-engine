@@ -1,4 +1,4 @@
-<div class="search-container">
+<div class="search-container" data-ui-check="search-container">
     <div class="hero-icon-frame">
         <img id="gaben" src="steam.png" alt="Steam Engine">
     </div>
@@ -8,10 +8,10 @@
 
     <p class="subtitle">Cyberpunk recommendation terminal. Calibrate your filters and scan the storefront grid.</p>
 
-    <div class="terminal-panel">
+    <div class="terminal-panel" data-ui-check="terminal-panel">
         <!-- Steam Profile Section -->
-        <div class="steam-section">
-            <mat-form-field appearance="outline" class="steam-field">
+        <div class="steam-section" data-ui-check="steam-section">
+            <mat-form-field appearance="outline" class="steam-field" data-ui-check="steam-field">
                 <mat-label>Steam ID (optional — for personalized recommendations)</mat-label>
                 <input matInput
                        [(ngModel)]="steamId_input"
@@ -21,6 +21,7 @@
                 <mat-icon matSuffix>games</mat-icon>
             </mat-form-field>
             <button class="load-profile-button"
+                    data-ui-check="load-profile-button"
                     (click)="loadSteamProfile()"
                     [disabled]="!steamId_input || steamId_input.length !== 17 || isLoadingProfile">
                 @if (isLoadingProfile) {
@@ -54,8 +55,8 @@
         }
 
         <!-- Genre / Keyword Filters -->
-        <div class="filter-row">
-            <mat-form-field appearance="outline" class="search-field">
+        <div class="filter-row" data-ui-check="genre-player-row">
+            <mat-form-field appearance="outline" class="search-field" data-ui-check="genre-field">
                 <mat-label>Genre</mat-label>
                 <mat-select multiple [(ngModel)]="selected_genre" panelClass="topunit">
                     @for (genre of genres; track genre) {
@@ -63,7 +64,7 @@
                     }
                 </mat-select>
             </mat-form-field>
-            <mat-form-field appearance="outline" class="search-field">
+            <mat-form-field appearance="outline" class="search-field" data-ui-check="player-count-field">
                 <mat-label>Player count</mat-label>
                 <mat-select [(ngModel)]="selected_player_count" panelClass="topunit">
                     @for (player_count of player_counts; track player_count) {
@@ -73,8 +74,8 @@
             </mat-form-field>
         </div>
 
-        <div class="filter-row os-row">
-            <mat-form-field appearance="outline" class="search-field">
+        <div class="filter-row os-row" data-ui-check="os-row">
+            <mat-form-field appearance="outline" class="search-field" data-ui-check="os-field">
                 <mat-label>Operating system</mat-label>
                 <mat-select [(ngModel)]="selected_os" panelClass="topunit">
                     <mat-option value="">Any</mat-option>
@@ -86,12 +87,13 @@
             <button
                 type="button"
                 class="detect-os-button"
+                data-ui-check="detect-os-button"
                 (click)="detectAndApplyOs()"
                 [disabled]="isLoading || isLoadingProfile">
                 Use My OS
             </button>
             @if (selected_os) {
-                <button type="button" class="clear-os-button" (click)="clearOsFilter()">
+                <button type="button" class="clear-os-button" data-ui-check="clear-os-button" (click)="clearOsFilter()">
                     Clear OS
                 </button>
             }
@@ -105,13 +107,13 @@
         }
 
         <div>
-            <mat-form-field appearance="outline" class="search-form">
+            <mat-form-field appearance="outline" class="search-form" data-ui-check="keyword-field">
                 <mat-label>Keyword(s)</mat-label>
                 <input matInput [(ngModel)]="keyword_input" placeholder="" [disabled]="isLoading">
             </mat-form-field>
         </div>
 
-        <button (click)="onQuery()" [disabled]="isLoading" class="search-button">
+        <button (click)="onQuery()" [disabled]="isLoading" class="search-button" data-ui-check="search-button">
             @if (isLoading) {
             <mat-spinner class="custom-color-spinner" diameter="20"></mat-spinner>
             }

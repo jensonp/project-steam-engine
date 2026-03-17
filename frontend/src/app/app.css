@@ -34,6 +34,20 @@
   transform: rotate(25deg) scale(1.05);
 }
 
+#config-button {
+  margin-left: auto;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(9, 30, 40, 0.72);
+  border: 1px solid rgba(35, 244, 209, 0.36);
+  box-shadow: 0 0 14px rgba(35, 244, 209, 0.18);
+  cursor: pointer;
+}
+
 .main-content {
   flex: 1;
   padding: 2rem 1rem 4rem;
@@ -72,7 +86,6 @@
 }
 
 #config-icon {
-  margin-left: auto;
   cursor: pointer;
 }
 

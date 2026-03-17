@@ -1,10 +1,12 @@
 <mat-toolbar color="primary" class="app-toolbar">
-    <img routerLink="/" id="header-icon" src="steam.png">
+    <img routerLink="/" id="header-icon" src="steam.png" alt="Steam Engine home">
     <span routerLink="/" id="header-title">Steam Engine // Neo Grid</span>
     <!-- <ul>
       <li routerLink="/todos">Todos</li>
     </ul> -->
-    <mat-icon id="config-icon" routerLink="/config">settings</mat-icon>
+    <button id="config-button" routerLink="/config" aria-label="Open settings">
+        <mat-icon id="config-icon" aria-hidden="true">settings</mat-icon>
+    </button>
 </mat-toolbar>
 
 
