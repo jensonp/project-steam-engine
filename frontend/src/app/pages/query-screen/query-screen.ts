@@ -1,4 +1,4 @@
-import { Component, EventEmitter } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -10,7 +10,9 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { BackendService } from '../../services/backend-service';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
-import { UserProfile, Game, ScoredRecommendation } from '../../types/steam.types';
+import { UserProfile } from '../../types/steam.types';
+
+type SearchOs = '' | 'windows' | 'mac' | 'linux';
 
 @Component({
   selector: 'app-query-screen',
@@ -28,7 +30,7 @@ import { UserProfile, Game, ScoredRecommendation } from '../../types/steam.types
   templateUrl: './query-screen.html',
   styleUrl: './query-screen.css',
 })
-export class QueryScreen {
+export class QueryScreen implements OnInit, OnDestroy {
   genres: string[] = [
     'Action',
     'Adventure',
@@ -51,41 +53,60 @@ export class QueryScreen {
   ]
 
   selected_genre: string[] = [];
-  selected_player_count: string = '';
-  keyword_input: string = '';
-  steamId_input: string = '';
-  
-  steamID_configured: boolean = false;
-  
-  // Strict RxJS State Subscriptions
-  isLoading = false;
+  selected_player_count = 'Any';
+  selected_os: SearchOs = '';
+  keyword_input = '';
+  steamId_input = '';
+
+  private isSearchLoading = false;
+  private isRecommendationLoading = false;
+  private awaitingSearchResults = false;
+  private awaitingRecommendationResults = false;
+
   isLoadingProfile = false;
   error: string | null = null;
   userProfile: UserProfile | null = null;
-  
-  private subs = new Subscription();
+  osDetectionError: string | null = null;
 
-  constructor(private backendService: BackendService, private router: Router) {
-    this.steamID_configured = Boolean(this.backendService.getSteamId());
+  private readonly subs = new Subscription();
+
+  constructor(private backendService: BackendService, private router: Router) {}
+
+  get isLoading(): boolean {
+    return this.isSearchLoading || this.isRecommendationLoading;
+  }
+
+  get selectedOsLabel(): string {
+    switch (this.selected_os) {
+      case 'windows':
+        return 'Windows';
+      case 'mac':
+        return 'macOS';
+      case 'linux':
+        return 'Linux';
+      default:
+        return 'Any';
+    }
   }
 
   ngOnInit() {
-    this.subs.add(this.backendService.isLoadingSearch$.subscribe(l => this.isLoading = l));
-    this.subs.add(this.backendService.isLoadingRecommendations$.subscribe(l => this.isLoading = l));
+    this.subs.add(this.backendService.isLoadingSearch$.subscribe(l => this.isSearchLoading = l));
+    this.subs.add(this.backendService.isLoadingRecommendations$.subscribe(l => this.isRecommendationLoading = l));
     this.subs.add(this.backendService.isLoadingProfile$.subscribe(l => this.isLoadingProfile = l));
     this.subs.add(this.backendService.error$.subscribe(e => this.error = e));
     this.subs.add(this.backendService.userProfile$.subscribe(p => this.userProfile = p));
 
-    // Listen to changes in search and recommendation lists and navigate immediately upon receiving data
+    // Navigate after the requested query resolves, including empty-result searches.
     this.subs.add(this.backendService.searchResults$.subscribe(results => {
-      // Only navigate if we actually have a result payload emitted explicitly
-      if (results && results.length > 0 && !this.isLoading) {
+      if (this.awaitingSearchResults && !this.isLoading) {
+        this.awaitingSearchResults = false;
         this.router.navigate(['/results'], { state: { results } });
       }
     }));
 
     this.subs.add(this.backendService.recommendations$.subscribe(results => {
-      if (results && results.length > 0 && !this.isLoading) {
+      if (this.awaitingRecommendationResults && !this.isLoading) {
+        this.awaitingRecommendationResults = false;
         this.router.navigate(['/results'], { state: { results } });
       }
     }));
@@ -95,13 +116,6 @@ export class QueryScreen {
     this.subs.unsubscribe();
   }
 
-  /**
-   * Fetches the user's Steam profile (genre vector, friend stats, top genres)
-   * and populates the profile card in the UI.
-   */
-  /**
-   * Fetches the user's Steam profile via Command/Query
-   */
   loadSteamProfile(): void {
     if (!this.steamId_input || this.steamId_input.length !== 17) return;
 
@@ -109,21 +123,62 @@ export class QueryScreen {
     this.backendService.loadUserProfile();
   }
 
-  /**
-   * If a Steam profile is loaded, fires the personalized 3-signal recommendation engine.
-   * Falls back to the generic genre/keyword search when no Steam ID is provided.
-   */
-  /**
-   * Dispatches a command to load recommendations or generic search
-   */
+  detectAndApplyOs(): void {
+    this.osDetectionError = null;
+    const detectedOs = this.detectCurrentOs();
+    if (!detectedOs) {
+      this.osDetectionError = 'Unable to detect your operating system in this browser.';
+      return;
+    }
+
+    this.selected_os = detectedOs;
+  }
+
+  clearOsFilter(): void {
+    this.selected_os = '';
+    this.osDetectionError = null;
+  }
+
   onQuery(): void {
-    if (this.userProfile && this.steamId_input) {
-      this.backendService.setSteamId(this.steamId_input);
+    const steamId = this.steamId_input || this.backendService.getSteamId();
+
+    if (this.userProfile && steamId) {
+      this.awaitingRecommendationResults = true;
+      this.awaitingSearchResults = false;
+      this.backendService.setSteamId(steamId);
       this.backendService.loadPersonalizedRecommendations(20);
     } else {
+      this.awaitingSearchResults = true;
+      this.awaitingRecommendationResults = false;
       const genresParam = this.selected_genre.join(',');
-      this.backendService.executeSearch(genresParam, this.keyword_input, this.selected_player_count);
+      this.backendService.executeSearch(
+        genresParam,
+        this.keyword_input,
+        this.selected_player_count,
+        this.selected_os || undefined
+      );
     }
   }
 
+  private detectCurrentOs(): SearchOs | null {
+    if (typeof navigator === 'undefined') return null;
+
+    const uaDataPlatform = (
+      navigator as Navigator & { userAgentData?: { platform?: string } }
+    ).userAgentData?.platform || '';
+    const fingerprint = `${navigator.userAgent} ${navigator.platform} ${uaDataPlatform}`.toLowerCase();
+
+    if (fingerprint.includes('win')) return 'windows';
+    if (
+      fingerprint.includes('mac') ||
+      fingerprint.includes('darwin') ||
+      fingerprint.includes('iphone') ||
+      fingerprint.includes('ipad')
+    ) {
+      return 'mac';
+    }
+    if (fingerprint.includes('linux') || fingerprint.includes('x11')) return 'linux';
+
+    return null;
+  }
 }

@@ -12,6 +12,7 @@ const searchSchema = z.object({
     genres: z.string().optional(),
     keyword: z.string().optional(),
     playerCount: z.string().optional(),
+    os: z.enum(['windows', 'mac', 'linux']).optional(),
   }),
 });
 
@@ -21,6 +22,7 @@ const searchSchema = z.object({
  * - genres (string): Comma-separated list of genres (e.g. "RPG,Action")
  * - keyword (string): Text search across title and description
  * - playerCount (string): Filter for Multiplayer, Singleplayer, etc.
+ * - os (string): Filter for native OS support (windows | mac | linux)
  */
 router.get(
   '/',
@@ -33,13 +35,14 @@ router.get(
       const genresRaw = queryData.genres || '';
       const keyword = queryData.keyword || '';
       const playerCount = queryData.playerCount || '';
+      const os = queryData.os;
       
       const genreList = genresRaw
         .split(',')
         .map(g => g.trim())
         .filter(g => g.length > 0);
         
-      const games = await searchService.searchByGenres(genreList, keyword, playerCount);
+      const games = await searchService.searchByGenres(genreList, keyword, playerCount, os);
       res.json(games);
       
     } catch (error: any) {

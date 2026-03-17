@@ -50,7 +50,7 @@
     }
 
     <!-- Genre / Keyword Filters -->
-    <div>
+    <div class="filter-row">
         <mat-form-field appearance="outline" class="search-field">
             <mat-label>Genre</mat-label>
             <mat-select multiple [(ngModel)]="selected_genre" panelClass="topunit">
@@ -67,7 +67,40 @@
                 }
             </mat-select>
         </mat-form-field>
+    </div>
 
+    <div class="filter-row os-row">
+        <mat-form-field appearance="outline" class="search-field">
+            <mat-label>Operating system</mat-label>
+            <mat-select [(ngModel)]="selected_os" panelClass="topunit">
+                <mat-option value="">Any</mat-option>
+                <mat-option value="windows">Windows</mat-option>
+                <mat-option value="mac">macOS</mat-option>
+                <mat-option value="linux">Linux</mat-option>
+            </mat-select>
+        </mat-form-field>
+        <button
+            type="button"
+            class="detect-os-button"
+            (click)="detectAndApplyOs()"
+            [disabled]="isLoading || isLoadingProfile">
+            Use My OS
+        </button>
+        @if (selected_os) {
+            <button type="button" class="clear-os-button" (click)="clearOsFilter()">
+                Clear OS
+            </button>
+        }
+    </div>
+
+    @if (selected_os) {
+        <p class="os-status">OS filter active: {{ selectedOsLabel }}</p>
+    }
+    @if (osDetectionError) {
+        <div class="error-message">{{ osDetectionError }}</div>
+    }
+
+    <div>
         <mat-form-field appearance="outline" class="search-form">
             <mat-label>Keyword(s)</mat-label>
             <input matInput [(ngModel)]="keyword_input" placeholder="" [disabled]="isLoading">

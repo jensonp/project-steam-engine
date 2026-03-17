@@ -28,15 +28,38 @@ input {
 }
 
 .search-form {
-    display: flex;
-    gap: 1rem;
-    align-items: flex-start;
-    justify-content: center;
+    width: 100%;
+    max-width: 400px;
 }
 
 .search-field {
     flex: 1;
     max-width: 400px;
+}
+
+.filter-row {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.os-row {
+    align-items: center;
+}
+
+.detect-os-button,
+.clear-os-button {
+    margin: 0;
+    height: 42px;
+    min-width: 110px;
+}
+
+.os-status {
+    margin: 0.75rem 0 0;
+    color: #1b4f72;
+    font-weight: 600;
 }
 
 button {
@@ -69,7 +92,7 @@ mat-form-field {
 }
 
 @media (max-width: 600px) {
-    .search-form {
+    .filter-row {
     flex-direction: column;
     align-items: stretch;
     }
@@ -78,7 +101,16 @@ mat-form-field {
     max-width: none;
     }
 
+    .search-form {
+    max-width: none;
+    }
+
     .search-button {
+    width: 100%;
+    }
+
+    .detect-os-button,
+    .clear-os-button {
     width: 100%;
     }
 }

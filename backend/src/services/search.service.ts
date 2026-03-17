@@ -13,7 +13,12 @@ export class SearchService {
   /**
    * Search for top games matching the given filters, ordered by positive votes.
    */
-  async searchByGenres(genres: string[], keyword?: string, playerCount?: string): Promise<GameSearchResult[]> {
+  async searchByGenres(
+    genres: string[],
+    keyword?: string,
+    playerCount?: string,
+    os?: string
+  ): Promise<GameSearchResult[]> {
     const whereClauses: string[] = [];
     const params: any[] = [];
     let paramIndex = 1;
@@ -47,6 +52,18 @@ export class SearchService {
       params.push(mappedTerm);
       whereClauses.push(`categories %% $${paramIndex}`);
       paramIndex++;
+    }
+
+    // 4. Native OS Support Filter
+    if (os) {
+      const normalizedOs = os.toLowerCase();
+      if (normalizedOs === 'windows') {
+        whereClauses.push('windows_support = TRUE');
+      } else if (normalizedOs === 'mac') {
+        whereClauses.push('mac_support = TRUE');
+      } else if (normalizedOs === 'linux') {
+        whereClauses.push('linux_support = TRUE');
+      }
     }
 
     // Construct the final WHERE clause dynamically

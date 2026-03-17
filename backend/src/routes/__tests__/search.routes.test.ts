@@ -61,6 +61,16 @@ describe('Search Routes — GET /', () => {
       const response = await request(app).get('/?genres=Action&keyword=zombie&playerCount=Multiplayer');
       expect(response.status).toBe(200);
     });
+
+    it('should return 200 with a valid os filter', async () => {
+      const response = await request(app).get('/?genres=Action&os=windows');
+      expect(response.status).toBe(200);
+    });
+
+    it('should return 400 for an invalid os filter', async () => {
+      const response = await request(app).get('/?os=android');
+      expect(response.status).toBe(400);
+    });
   });
 
   // ── Layer B: Service Delegation ─────────────────────────────────────────────
@@ -69,17 +79,22 @@ describe('Search Routes — GET /', () => {
   describe('Parameter Delegation to SearchService', () => {
     it('should pass a comma-separated genres string as a parsed array to the service', async () => {
       await request(app).get('/?genres=RPG,Action');
-      expect(mockSearchByGenres).toHaveBeenCalledWith(['RPG', 'Action'], '', '');
+      expect(mockSearchByGenres).toHaveBeenCalledWith(['RPG', 'Action'], '', '', undefined);
     });
 
     it('should pass keyword and playerCount to the service when provided', async () => {
       await request(app).get('/?genres=Horror&keyword=vampire&playerCount=Singleplayer');
-      expect(mockSearchByGenres).toHaveBeenCalledWith(['Horror'], 'vampire', 'Singleplayer');
+      expect(mockSearchByGenres).toHaveBeenCalledWith(['Horror'], 'vampire', 'Singleplayer', undefined);
     });
 
     it('should pass an empty genres array when genres param is omitted', async () => {
       await request(app).get('/?keyword=crafting');
-      expect(mockSearchByGenres).toHaveBeenCalledWith([], 'crafting', '');
+      expect(mockSearchByGenres).toHaveBeenCalledWith([], 'crafting', '', undefined);
+    });
+
+    it('should pass os to the service when provided', async () => {
+      await request(app).get('/?genres=Action&os=linux');
+      expect(mockSearchByGenres).toHaveBeenCalledWith(['Action'], '', '', 'linux');
     });
   });
 

@@ -70,4 +70,15 @@ describe('SearchService', () => {
       isFree: false
     });
   });
+
+  it('should include OS support clause when os filter is provided', async () => {
+    (query as jest.Mock).mockResolvedValue({ rows: [] });
+
+    await searchService.searchByGenres([], '', '', 'windows');
+
+    expect(query).toHaveBeenCalledTimes(1);
+    const [sqlText, params] = (query as jest.Mock).mock.calls[0];
+    expect(sqlText).toContain('WHERE windows_support = TRUE');
+    expect(params).toEqual([]);
+  });
 });

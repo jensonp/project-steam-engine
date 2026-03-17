@@ -27,8 +27,22 @@ const defaultState: AppState = {
   error: null
 };
 
-const savedState = localStorage.getItem('appState');
-const initialState: AppState = savedState ? JSON.parse(savedState) : defaultState;
+const loadInitialState = (): AppState => {
+  try {
+    const savedState = localStorage.getItem('appState');
+    if (!savedState) {
+      return { ...defaultState };
+    }
+
+    const parsedState = JSON.parse(savedState) as Partial<AppState>;
+    return { ...defaultState, ...parsedState };
+  } catch (error) {
+    console.warn('Failed to load app state from localStorage, using defaults.');
+    return { ...defaultState };
+  }
+};
+
+const initialState: AppState = loadInitialState();
 
 @Injectable({
   providedIn: 'root',
@@ -56,7 +70,11 @@ export class BackendService {
   private patchState(partialState: Partial<AppState>) {
     const newState = { ...this.state.value, ...partialState };
     this.state.next(newState);
-    localStorage.setItem('appState', JSON.stringify(newState));
+    try {
+      localStorage.setItem('appState', JSON.stringify(newState));
+    } catch (error) {
+      console.warn('Failed to persist app state to localStorage.');
+    }
   }
 
   // ─── Commands (Actions) ─────────────────────────────────────────────────────
@@ -123,7 +141,7 @@ export class BackendService {
   }
 
   // Command: Execute Search
-  executeSearch(genres: string, keyword: string, playerCount: string): void {
+  executeSearch(genres: string, keyword: string, playerCount: string, os?: string): void {
     this.patchState({ isLoadingSearch: true, error: null });
 
     const url = `${this.backendUrl}/api/search`;
@@ -132,6 +150,7 @@ export class BackendService {
     if (genres?.length > 0) params = params.set('genres', genres);
     if (keyword?.trim().length > 0) params = params.set('keyword', keyword.trim());
     if (playerCount && playerCount !== 'Any') params = params.set('playerCount', playerCount);
+    if (os) params = params.set('os', os);
 
     this.http.get<Game[]>(url, { params }).pipe(
       tap(searchResults => this.patchState({ searchResults })),

@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatIconModule } from '@angular/material/icon';
-import { MatTooltipModule } from '@angular/material/tooltip';
 import { Game } from '../../types/steam.types';
 
 @Component({
@@ -14,7 +13,6 @@ import { Game } from '../../types/steam.types';
     MatCardModule,
     MatChipsModule,
     MatIconModule,
-    MatTooltipModule,
   ],
   templateUrl:"./game-card.component.html",
   styleUrl: "./game-card.component.css",
