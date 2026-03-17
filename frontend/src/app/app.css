@@ -13,7 +13,7 @@
   display: flex;
   min-height: 72px;
   padding: 0 1rem;
-  background: rgba(7, 15, 21, 0.82);
+  background: rgba(10, 10, 10, 0.88);
   border-bottom: 1px solid var(--neo-border);
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.03) inset,
@@ -42,14 +42,14 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: rgba(124, 234, 216, 0.07);
+  background: rgba(255, 87, 56, 0.08);
   border: 1px solid var(--neo-border);
   box-shadow: none;
   cursor: pointer;
 }
 
 #config-button:hover {
-  background: rgba(124, 234, 216, 0.12);
+  background: rgba(255, 87, 56, 0.14);
   border-color: var(--neo-border-strong);
 }
 
@@ -75,18 +75,33 @@
   border-radius: 12px;
   padding: 6px;
   border: 1px solid var(--neo-border);
-  background: rgba(124, 234, 216, 0.08);
+  background: rgba(255, 87, 56, 0.08);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
   cursor: pointer;
 }
 
-#header-title {
-  font-family: 'IBM Plex Sans', sans-serif;
-  font-size: 1rem;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  color: var(--neo-primary-strong);
+.brand-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
   cursor: pointer;
+}
+
+#header-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--neo-primary-strong);
+}
+
+#header-tag {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--neo-primary-soft);
 }
 
 #config-icon {
@@ -105,5 +120,10 @@
 
   #header-title {
     font-size: 0.9rem;
+  }
+
+  #header-tag {
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
   }
 }

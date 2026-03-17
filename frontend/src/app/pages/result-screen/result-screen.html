@@ -1,6 +1,15 @@
 <div class="result-screen">
     <div class="result-header">
-        <h1>Results</h1>
+        <div class="result-copy">
+            <p class="result-kicker">Recommendation archive</p>
+            <h1>Results</h1>
+            <p class="result-summary">{{ results.length }} titles surfaced from the current storefront query.</p>
+        </div>
+
+        <div class="result-meta">
+            <span>Filtered storefront</span>
+            <span>Live query state</span>
+        </div>
     </div>
 
     @if (results && results.length > 0) {

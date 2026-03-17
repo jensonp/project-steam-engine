@@ -1,21 +1,21 @@
 
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;700&display=swap');
 
 :root {
-  --neo-bg: #071015;
-  --neo-bg-soft: #0c1720;
-  --neo-surface: rgba(11, 22, 30, 0.86);
-  --neo-surface-strong: rgba(13, 26, 35, 0.95);
-  --neo-border: rgba(124, 234, 216, 0.22);
-  --neo-border-strong: rgba(124, 234, 216, 0.38);
-  --neo-primary: #7cead8;
-  --neo-primary-soft: rgba(124, 234, 216, 0.78);
-  --neo-primary-strong: #d9fff8;
-  --neo-text: #eef7f5;
-  --neo-muted: #a4b8b4;
-  --neo-danger: #ff8f8f;
-  --shadow-1: 0 14px 34px rgba(3, 8, 11, 0.35);
-  --shadow-2: 0 18px 48px rgba(3, 8, 11, 0.45);
+  --neo-bg: #080808;
+  --neo-bg-soft: #101010;
+  --neo-surface: rgba(15, 15, 15, 0.9);
+  --neo-surface-strong: rgba(21, 21, 21, 0.96);
+  --neo-border: rgba(244, 236, 224, 0.14);
+  --neo-border-strong: rgba(255, 87, 56, 0.42);
+  --neo-primary: #ff5738;
+  --neo-primary-soft: rgba(255, 87, 56, 0.78);
+  --neo-primary-strong: #f4ece0;
+  --neo-text: #f4ece0;
+  --neo-muted: #b5aa9f;
+  --neo-danger: #ff9086;
+  --shadow-1: 0 18px 40px rgba(0, 0, 0, 0.36);
+  --shadow-2: 0 24px 60px rgba(0, 0, 0, 0.48);
   --space-1: 0.25rem;
   --space-2: 0.5rem;
   --space-3: 0.75rem;
@@ -36,11 +36,10 @@ body {
   margin: 0;
   color-scheme: dark;
   color: var(--neo-text);
-  font-family: 'IBM Plex Sans', sans-serif;
+  font-family: 'Space Grotesk', sans-serif;
   background:
-    radial-gradient(circle at 50% -18%, rgba(124, 234, 216, 0.18), transparent 34%),
-    radial-gradient(circle at 10% 8%, rgba(124, 234, 216, 0.1), transparent 24%),
-    linear-gradient(180deg, #0a151d 0%, #071015 48%, #050b10 100%);
+    radial-gradient(circle at 85% 0%, rgba(255, 87, 56, 0.2), transparent 24%),
+    linear-gradient(180deg, #0d0d0d 0%, #080808 42%, #050505 100%);
   overflow-x: hidden;
 }
 
@@ -51,20 +50,29 @@ body::before {
   pointer-events: none;
   z-index: 0;
   background:
-    linear-gradient(180deg, rgba(124, 234, 216, 0.06), transparent 20%),
-    radial-gradient(circle at 20% 18%, rgba(124, 234, 216, 0.08), transparent 22%),
-    radial-gradient(circle at 80% 0%, rgba(124, 234, 216, 0.07), transparent 24%);
-  opacity: 0.92;
+    linear-gradient(to right, transparent 0, transparent calc(100% - 1px), rgba(244, 236, 224, 0.05) calc(100% - 1px)),
+    linear-gradient(to bottom, transparent 0, transparent calc(100% - 1px), rgba(244, 236, 224, 0.04) calc(100% - 1px));
+  background-size: 120px 120px;
+  opacity: 0.36;
 }
 
 body::after {
   content: '';
   position: fixed;
   inset: auto 0 0 0;
-  height: 240px;
+  height: 280px;
   pointer-events: none;
   z-index: 0;
-  background: linear-gradient(180deg, transparent, rgba(124, 234, 216, 0.06));
+  background:
+    linear-gradient(180deg, transparent, rgba(255, 87, 56, 0.12)),
+    repeating-linear-gradient(
+      to right,
+      rgba(255, 87, 56, 0.08) 0,
+      rgba(255, 87, 56, 0.08) 1px,
+      transparent 1px,
+      transparent 64px
+    );
+  opacity: 0.38;
 }
 
 * {
@@ -92,7 +100,7 @@ a:hover {
 }
 
 .mat-mdc-chip {
-  font-family: 'IBM Plex Sans', sans-serif !important;
+  font-family: 'Space Grotesk', sans-serif !important;
   font-size: 0.72rem !important;
 }
 

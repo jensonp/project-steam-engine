@@ -1,17 +1,39 @@
 <div class="search-container" data-ui-check="search-container">
-    <div class="hero-icon-frame">
-        <img id="gaben" src="steam.png" alt="Steam Engine">
+    <div class="hero-frame">
+        <div class="hero-meta">
+            <p class="eyebrow">Steam discovery relay</p>
+            <p class="hero-coordinates">35.6762 N / 139.6503 E</p>
+        </div>
+
+        <div class="hero-main">
+            <div class="hero-icon-frame">
+                <img id="gaben" src="steam.png" alt="Steam Engine">
+            </div>
+
+            <div class="hero-copy">
+                <h1>
+                    <span>Steam</span>
+                    <span>Engine</span>
+                </h1>
+
+                <div class="signal-list" aria-hidden="true">
+                    <span>Search.</span>
+                    <span>Profile.</span>
+                    <span>Filter.</span>
+                </div>
+
+                <p class="subtitle">Filter the storefront through a darker editorial interface. Run a direct search, or load a Steam profile to bias results toward your own library patterns.</p>
+            </div>
+        </div>
     </div>
-
-    <p class="eyebrow">Search and recommendations</p>
-    <h1>Steam Engine</h1>
-
-    <p class="subtitle">Filter by genre, player count, operating system, or keywords. Add a Steam ID if you want results shaped by your library.</p>
 
     <div class="terminal-panel" data-ui-check="terminal-panel">
         <div class="panel-intro">
-            <h2>Search filters</h2>
-            <p>Start with a regular search, or load a profile to switch to library-aware suggestions.</p>
+            <div>
+                <p class="panel-kicker">Query matrix</p>
+                <h2>Build a storefront query</h2>
+            </div>
+            <p>Start with a direct search, or load a profile to switch to recommendation mode without leaving the same surface.</p>
         </div>
 
         <!-- Steam Profile Section -->
@@ -32,7 +54,7 @@
                 @if (isLoadingProfile) {
                     <mat-spinner diameter="16"></mat-spinner>
                 } @else {
-                    Load profile
+                    [ Load profile ]
                 }
             </button>
         </div>
@@ -95,11 +117,11 @@
                 data-ui-check="detect-os-button"
                 (click)="detectAndApplyOs()"
                 [disabled]="isLoading || isLoadingProfile">
-                Use my OS
+                [ Use my OS ]
             </button>
             @if (selected_os) {
                 <button type="button" class="clear-os-button" data-ui-check="clear-os-button" (click)="clearOsFilter()">
-                    Clear
+                    [ Clear ]
                 </button>
             }
         </div>
@@ -123,7 +145,7 @@
             <mat-spinner class="custom-color-spinner" diameter="20"></mat-spinner>
             }
             @else {
-            <ng-container>{{ userProfile ? 'Suggest for me' : 'Suggest games' }}</ng-container>
+            <ng-container>{{ userProfile ? '[ Suggest for me ]' : '[ Suggest games ]' }}</ng-container>
             }
         </button>
     </div>
