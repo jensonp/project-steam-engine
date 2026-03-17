@@ -177,9 +177,9 @@ cs125/
 
 **Express middleware pipeline**: Middleware functions execute in registration order. Each receives `(req, res, next)` and either responds or calls `next()` to pass control. The pipeline in this codebase: `cors() → json() → rateLimit() → route → validate() → handler → 404 → errorHandler`. Order matters — rate limiting before routes means over-limit requests never hit business logic.
 
-**`Promise.allSettled`**: Waits for all promises to complete (fulfilled or rejected) and returns an array of outcomes. Unlike `Promise.all` (which short-circuits on first rejection), `allSettled` ensures all I/O completes. Used in `buildUserProfile` so a failed friend list fetch does not abort the library and recent games fetches.
+`**Promise.allSettled`**: Waits for all promises to complete (fulfilled or rejected) and returns an array of outcomes. Unlike `Promise.all` (which short-circuits on first rejection), `allSettled` ensures all I/O completes. Used in `buildUserProfile` so a failed friend list fetch does not abort the library and recent games fetches.
 
-**`Promise.all` vs `Promise.allSettled`**: `Promise.all` rejects immediately when any input promise rejects — good when all results are required. `Promise.allSettled` waits for everything — good when partial results are acceptable. This codebase uses `allSettled` for Steam API calls because individual failures (private profiles, rate limits) should not cancel the entire profile build.
+`**Promise.all` vs `Promise.allSettled**`: `Promise.all` rejects immediately when any input promise rejects — good when all results are required. `Promise.allSettled` waits for everything — good when partial results are acceptable. This codebase uses `allSettled` for Steam API calls because individual failures (private profiles, rate limits) should not cancel the entire profile build.
 
 ### Infrastructure & DevOps
 
@@ -591,20 +591,20 @@ No `process.on('SIGTERM'|'SIGINT')` handler. On kill, the process exits immediat
 ### Gaps and Known Bugs
 
 
-| Area | Severity | Gap | Suggested Direction |
-| --- | --- | --- | --- |
-| **`pg.Pool` password** | **Bug** | `config.ts` defines `pgPassword` but `db.ts` never passes it to `new Pool()`. Breaks in any environment with password auth (Docker, CI, production). | Add `password: config.pgPassword` to Pool options. See §14.1 Step 1A. |
-| **Health check contract** | **Bug** | Backend returns `{ status, timestamp }`. Frontend expects `{ status, apiKeyConfigured }`. Field `apiKeyConfigured` is never sent. | Add `apiKeyConfigured: !!config.steamApiKey` to health response. See §14.1 Step 1B. |
-| **ESLint missing** | **Bug** | `package.json` defines `"lint": "eslint src/**/*.ts"` but no ESLint config exists and ESLint is not in devDependencies. `npm run lint` fails. | Install ESLint + TypeScript plugin; create `eslint.config.mjs`. See §14.1 Step 1C. |
-| RecommenderService init | High | Sync `fs.readFileSync` in constructor blocks event loop for seconds. No explicit READY/FAILED state. | Async load via `fs.promises.readFile`; expose `whenReady()` Promise; add FAILED state. See §14.1 Step 2. |
-| Graceful shutdown | High | No `SIGTERM`/`SIGINT` handler. Process drops connections on kill. Docker `stop` causes ungraceful termination. | Register handlers; call `server.close()` then `pool.end()`. See §14.1 Step 5. |
-| Config immutability | Low | `config` object is not frozen. Can be mutated at runtime accidentally. | Wrap in `Object.freeze()`. |
-| Steam response validation | Medium | Steam API responses use `as Type` assertions (compile-time only). No runtime validation. Malformed responses cause silent data corruption. | Add Zod schemas for Steam response types; use `safeParse()`. |
-| Dependency injection | Medium | Services instantiate repositories and strategies directly (`new PostgresGameMetadataRepository()`). | Introduce a composition root; inject interfaces via constructor. |
-| Domain invariants | Low | Types are anemic data bags. No validation in constructors (e.g., playtime could be negative). | Add domain entities with invariant checks; use factories for construction. |
-| SearchService SQL | Low | Builds SQL internally; repository accepts raw SQL via `searchGames(sqlQuery, params)`. | Move query construction into repository or a dedicated query builder. |
-| Composition root | Medium | No single place that wires dependencies. Concrete implementations are hardcoded at 6+ call sites. | Create `composition.ts` or use a lightweight DI container. |
-| Test coverage | High | `user.routes`, `recommend.routes`, `SteamService`, `user-profile.service`, and all 3 strategies are untested. The critical path (recommendation flow) has zero test coverage. | Write unit tests for the critical path before adding infrastructure. See §14.1 Step 3. |
+| Area                      | Severity | Gap                                                                                                                                                                           | Suggested Direction                                                                                      |
+| ------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `**pg.Pool` password**    | **Bug**  | `config.ts` defines `pgPassword` but `db.ts` never passes it to `new Pool()`. Breaks in any environment with password auth (Docker, CI, production).                          | Add `password: config.pgPassword` to Pool options. See §14.1 Step 1A.                                    |
+| **Health check contract** | **Bug**  | Backend returns `{ status, timestamp }`. Frontend expects `{ status, apiKeyConfigured }`. Field `apiKeyConfigured` is never sent.                                             | Add `apiKeyConfigured: !!config.steamApiKey` to health response. See §14.1 Step 1B.                      |
+| **ESLint missing**        | **Bug**  | `package.json` defines `"lint": "eslint src/**/*.ts"` but no ESLint config exists and ESLint is not in devDependencies. `npm run lint` fails.                                 | Install ESLint + TypeScript plugin; create `eslint.config.mjs`. See §14.1 Step 1C.                       |
+| RecommenderService init   | High     | Sync `fs.readFileSync` in constructor blocks event loop for seconds. No explicit READY/FAILED state.                                                                          | Async load via `fs.promises.readFile`; expose `whenReady()` Promise; add FAILED state. See §14.1 Step 2. |
+| Graceful shutdown         | High     | No `SIGTERM`/`SIGINT` handler. Process drops connections on kill. Docker `stop` causes ungraceful termination.                                                                | Register handlers; call `server.close()` then `pool.end()`. See §14.1 Step 5.                            |
+| Config immutability       | Low      | `config` object is not frozen. Can be mutated at runtime accidentally.                                                                                                        | Wrap in `Object.freeze()`.                                                                               |
+| Steam response validation | Medium   | Steam API responses use `as Type` assertions (compile-time only). No runtime validation. Malformed responses cause silent data corruption.                                    | Add Zod schemas for Steam response types; use `safeParse()`.                                             |
+| Dependency injection      | Medium   | Services instantiate repositories and strategies directly (`new PostgresGameMetadataRepository()`).                                                                           | Introduce a composition root; inject interfaces via constructor.                                         |
+| Domain invariants         | Low      | Types are anemic data bags. No validation in constructors (e.g., playtime could be negative).                                                                                 | Add domain entities with invariant checks; use factories for construction.                               |
+| SearchService SQL         | Low      | Builds SQL internally; repository accepts raw SQL via `searchGames(sqlQuery, params)`.                                                                                        | Move query construction into repository or a dedicated query builder.                                    |
+| Composition root          | Medium   | No single place that wires dependencies. Concrete implementations are hardcoded at 6+ call sites.                                                                             | Create `composition.ts` or use a lightweight DI container.                                               |
+| Test coverage             | High     | `user.routes`, `recommend.routes`, `SteamService`, `user-profile.service`, and all 3 strategies are untested. The critical path (recommendation flow) has zero test coverage. | Write unit tests for the critical path before adding infrastructure. See §14.1 Step 3.                   |
 
 
 ---
@@ -648,6 +648,7 @@ This section catalogs patterns in the codebase that are not outright bugs but re
 ### 10A.5 Inconsistent Service Instantiation
 
 Three different instantiation patterns coexist:
+
 - `SteamService`: lazy singleton via `getSteamService()`
 - `RecommenderService`: lazy singleton via `getRecommenderService()`
 - `SearchService`: new instance per call (`new SearchService()`)
@@ -700,16 +701,18 @@ L1 normalization: O(unique_genres) — single pass
 
 ### Memory Profile
 
-| Data structure | Size (50k games) | Location | Lifecycle |
-|---|---|---|---|
-| `similarityIndex` Map | ~30–50 MB | RecommenderService | Process lifetime |
-| `gameVectors` Map | ~15–30 MB | RecommenderService | Process lifetime |
-| `idf` Map | ~2–5 MB | RecommenderService | Process lifetime |
-| `pg.Pool` connections | ~10 × 50KB = 500KB | db.ts | Process lifetime |
-| Per-request `UserProfile` | ~50–200 KB | Stack/heap | Request-scoped, GC'd after response |
-| Per-request candidate `Map` | ~100–500 KB | Stack/heap | Request-scoped, GC'd after response |
 
-**Total steady-state**: ~50–100 MB for the recommender + ~500 KB for the pool = **~50–100 MB**. Per-request allocations are small and short-lived. The V8 garbage collector handles them efficiently under normal load. At high concurrency (>100 concurrent recommendation requests), per-request allocations could cause GC pauses.
+| Data structure              | Size (50k games)   | Location           | Lifecycle                           |
+| --------------------------- | ------------------ | ------------------ | ----------------------------------- |
+| `similarityIndex` Map       | ~30–50 MB          | RecommenderService | Process lifetime                    |
+| `gameVectors` Map           | ~15–30 MB          | RecommenderService | Process lifetime                    |
+| `idf` Map                   | ~2–5 MB            | RecommenderService | Process lifetime                    |
+| `pg.Pool` connections       | ~10 × 50KB = 500KB | db.ts              | Process lifetime                    |
+| Per-request `UserProfile`   | ~50–200 KB         | Stack/heap         | Request-scoped, GC'd after response |
+| Per-request candidate `Map` | ~100–500 KB        | Stack/heap         | Request-scoped, GC'd after response |
+
+
+**Total steady-state**: ~~50–100 MB for the recommender + ~500 KB for the pool = **~~50–100 MB**. Per-request allocations are small and short-lived. The V8 garbage collector handles them efficiently under normal load. At high concurrency (>100 concurrent recommendation requests), per-request allocations could cause GC pauses.
 
 ---
 
@@ -723,19 +726,23 @@ One Node.js process, one PostgreSQL instance, no caching, no load balancer. Hand
 
 ### 10x Load (~500–1,000 concurrent users)
 
-| Bottleneck | Impact | Mitigation |
-|---|---|---|
-| Steam API rate limits | 429 responses increase; circuit breaker opens frequently | **Redis caching** — cache responses by steamId/appId with 15-min TTL. Most users re-request the same profiles. Cache hit rate of 60–80% reduces Steam calls by 3–5x. |
-| PostgreSQL connection pool | 10 connections saturate under concurrent recommendation requests (each does a batch metadata query) | Increase `max` to 25–50. Add `connectionTimeoutMillis` to fail fast instead of queuing indefinitely. |
-| Event loop blocking | Already resolved if async loading is implemented (§14.1 Step 2). Otherwise, first recommendation request blocks all other requests for seconds. | Async `loadData()` at startup. |
+
+| Bottleneck                 | Impact                                                                                                                                          | Mitigation                                                                                                                                                           |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Steam API rate limits      | 429 responses increase; circuit breaker opens frequently                                                                                        | **Redis caching** — cache responses by steamId/appId with 15-min TTL. Most users re-request the same profiles. Cache hit rate of 60–80% reduces Steam calls by 3–5x. |
+| PostgreSQL connection pool | 10 connections saturate under concurrent recommendation requests (each does a batch metadata query)                                             | Increase `max` to 25–50. Add `connectionTimeoutMillis` to fail fast instead of queuing indefinitely.                                                                 |
+| Event loop blocking        | Already resolved if async loading is implemented (§14.1 Step 2). Otherwise, first recommendation request blocks all other requests for seconds. | Async `loadData()` at startup.                                                                                                                                       |
+
 
 ### 100x Load (~5,000–10,000 concurrent users)
 
-| Bottleneck | Impact | Mitigation |
-|---|---|---|
-| Single Node.js process | CPU-bound scoring phases compete with request handling on one thread | **Cluster mode** (Node.js `cluster` module) or **PM2** — spawn N workers (one per CPU core). Each worker holds its own copy of the recommender data. 4 cores = 4 × 100 MB = 400 MB memory for recommender data alone. |
-| In-memory recommender per process | Each worker loads ~100 MB. 8 workers = 800 MB just for similarity data. | **pgvector** — move similarity index to PostgreSQL with vector similarity queries. Workers share the database instead of each holding a copy. Memory drops to near-zero per worker. |
-| PostgreSQL query latency | Batch metadata queries for 3,000 candidates take 50–200 ms under load | **Read replicas** — separate read traffic from write traffic. Recommendation queries go to replicas. |
+
+| Bottleneck                        | Impact                                                                  | Mitigation                                                                                                                                                                                                            |
+| --------------------------------- | ----------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Single Node.js process            | CPU-bound scoring phases compete with request handling on one thread    | **Cluster mode** (Node.js `cluster` module) or **PM2** — spawn N workers (one per CPU core). Each worker holds its own copy of the recommender data. 4 cores = 4 × 100 MB = 400 MB memory for recommender data alone. |
+| In-memory recommender per process | Each worker loads ~100 MB. 8 workers = 800 MB just for similarity data. | **pgvector** — move similarity index to PostgreSQL with vector similarity queries. Workers share the database instead of each holding a copy. Memory drops to near-zero per worker.                                   |
+| PostgreSQL query latency          | Batch metadata queries for 3,000 candidates take 50–200 ms under load   | **Read replicas** — separate read traffic from write traffic. Recommendation queries go to replicas.                                                                                                                  |
+
 
 ### 1000x Load (~50,000–100,000 concurrent users)
 
@@ -789,11 +796,11 @@ The initiatives are grouped by theme and ordered within each group by recommende
 | ---------------------------- | ------------------------ | ------ | ------ | -------------------------------------------------------------------------------------------------------------- | ---------- | ------------------------ | ----------- | --------------------- | --------------------- |
 | **CI/CD (GitHub Actions)**   | "CI/CD pipelines"        | Low    | 2–4h   | Lint, test, deploy; baseline expectation. No workflow exists today.                                            | **High**   | High                     | Strong      | Low                   | None                  |
 | **Docker + docker-compose**  | "Containerized services" | Low    | 4–8h   | Dev parity; easier onboarding. No Dockerfile exists today.                                                     | **High**   | High                     | Strong      | Low                   | None                  |
-| **Health check enhancement** | "Production readiness"   | Low    | 1–2h   | `/api/health` returns a static `{status:'ok'}` — does not verify DB, recommender, or Steam API key.           | **High**   | Medium                   | Strong      | Low                   | None                  |
-| **Graceful shutdown**        | "Production operations"  | Low    | 2–4h   | No SIGTERM/SIGINT handler. Process drops connections on kill. Prerequisite for Docker and CI/CD credibility.    | **High**   | Medium                   | Strong      | Low                   | None                  |
+| **Health check enhancement** | "Production readiness"   | Low    | 1–2h   | `/api/health` returns a static `{status:'ok'}` — does not verify DB, recommender, or Steam API key.            | **High**   | Medium                   | Strong      | Low                   | None                  |
+| **Graceful shutdown**        | "Production operations"  | Low    | 2–4h   | No SIGTERM/SIGINT handler. Process drops connections on kill. Prerequisite for Docker and CI/CD credibility.   | **High**   | Medium                   | Strong      | Low                   | None                  |
 | **Redis caching layer**      | "Distributed caching"    | Medium | 8–16h  | Steam API is the latency bottleneck (200–800ms); responses are highly cacheable. Requires adding ioredis back. | **High**   | High                     | Strong      | Low                   | Docker (optional)     |
 | **Prometheus + Grafana**     | "Observability stack"    | Medium | 8–12h  | No metrics today; production visibility. Can start with express-prom-bundle alone (no Grafana required).       | **High**   | High                     | Strong      | Low                   | Docker (optional)     |
-| **OpenTelemetry tracing**    | "Distributed tracing"    | Medium | 16–24h | Request flow visibility; valuable for debugging multi-service calls. Complements Prometheus.                    | **Medium** | Medium                   | Moderate    | Medium                | Prometheus (optional) |
+| **OpenTelemetry tracing**    | "Distributed tracing"    | Medium | 16–24h | Request flow visibility; valuable for debugging multi-service calls. Complements Prometheus.                   | **Medium** | Medium                   | Moderate    | Medium                | Prometheus (optional) |
 | **Kubernetes manifests**     | "Orchestrated at scale"  | Medium | 16–32h | Overkill for single-node; interview fodder                                                                     | **High**   | High                     | Weak        | High                  | Docker, deploy target |
 | **Terraform / Pulumi**       | "Infrastructure as Code" | Medium | 16–40h | If deploying to cloud; IaC standard                                                                            | **High**   | High                     | Moderate    | Low                   | Cloud account         |
 
@@ -999,11 +1006,13 @@ Infrastructure without substance is hollow. A CI/CD pipeline running against a c
 
 These are broken right now. None are design decisions; they are just wrong.
 
-| # | Bug | File | Fix | Time |
-|---|-----|------|-----|------|
-| A | `pg.Pool` does not receive password | `backend/src/config/db.ts` line 5 | Add `password: config.pgPassword` to Pool options | 2 min |
-| B | Frontend/backend health check contract mismatch | `backend/src/index.ts` lines 42–47; `frontend/src/app/services/steam-api.service.ts` lines 55–59 | Add `apiKeyConfigured: !!config.steamApiKey` to health response | 5 min |
-| C | No ESLint config — `npm run lint` fails | `backend/package.json` line 10 | Install `eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin` as devDeps; create `backend/eslint.config.mjs` (see §15.1.4 Step 3) | 10 min |
+
+| #   | Bug                                             | File                                                                                             | Fix                                                                                                                                             | Time   |
+| --- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| A   | `pg.Pool` does not receive password             | `backend/src/config/db.ts` line 5                                                                | Add `password: config.pgPassword` to Pool options                                                                                               | 2 min  |
+| B   | Frontend/backend health check contract mismatch | `backend/src/index.ts` lines 42–47; `frontend/src/app/services/steam-api.service.ts` lines 55–59 | Add `apiKeyConfigured: !!config.steamApiKey` to health response                                                                                 | 5 min  |
+| C   | No ESLint config — `npm run lint` fails         | `backend/package.json` line 10                                                                   | Install `eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin` as devDeps; create `backend/eslint.config.mjs` (see §15.1.4 Step 3) | 10 min |
+
 
 Commit as: `fix: db password, health contract, eslint config`
 
@@ -1024,25 +1033,24 @@ Small code change (~40 lines), but touches three discussable concepts: async I/O
 
 The untested code is the most important code in the project:
 
-| Tested | Not tested |
-|--------|-----------|
-| `game.routes` (validation, error handling) | `user.routes` (3 endpoints, all untested) |
-| `search.routes` (validation, error handling) | `recommend.routes` (5 endpoints, all untested) |
-| `RecommenderService` (similarity, tags, library) | `SteamService` (circuit breaker behavior, API mapping) |
-| `SearchService` (SQL construction) | `user-profile.service` (the entire recommendation pipeline) |
-| `validate.middleware` (Zod rejection) | All 3 strategies (genre vector, friend overlap, scoring) |
+
+| Tested                                           | Not tested                                                  |
+| ------------------------------------------------ | ----------------------------------------------------------- |
+| `game.routes` (validation, error handling)       | `user.routes` (3 endpoints, all untested)                   |
+| `search.routes` (validation, error handling)     | `recommend.routes` (5 endpoints, all untested)              |
+| `RecommenderService` (similarity, tags, library) | `SteamService` (circuit breaker behavior, API mapping)      |
+| `SearchService` (SQL construction)               | `user-profile.service` (the entire recommendation pipeline) |
+| `validate.middleware` (Zod rejection)            | All 3 strategies (genre vector, friend overlap, scoring)    |
+
 
 The recommendation flow — `buildUserProfile` → strategy execution → `scoreWithUserContext` — is the entire point of the application. If an interviewer asks "how do you know your recommendation engine works?" and the answer is "I did not test it," that is worse than not having CI/CD.
 
 What to test, in order of value:
 
-1. **`SteamService`** — Mock Axios. Test that circuit breaker trips on 429/5xx and does not trip on 403/404. Test that `getOwnedGames` maps the Steam response correctly. Test that `SteamApiError` is thrown with correct status codes.
-
+1. `**SteamService`** — Mock Axios. Test that circuit breaker trips on 429/5xx and does not trip on 403/404. Test that `getOwnedGames` maps the Steam response correctly. Test that `SteamApiError` is thrown with correct status codes.
 2. **Strategies in isolation** — `GenreVectorStrategy.buildVector()` with a mock repository: verify L1-normalization. `FriendOverlapStrategy.buildOverlapSet()` with known input: verify the ≥2-friends threshold. `RecommendationScoringStrategy.scoreCandidates()` with a mock profile: verify the 50/30/20 weight formula. Pure logic, no I/O.
-
-3. **`user.routes`** — Mock `getSteamService`. Test 17-digit Steam ID passes validation, non-numeric returns 400, `SteamApiError` with 403 returns 403. Same pattern as existing `game.routes` tests.
-
-4. **`recommend.routes`** — Mock `getRecommenderService` and `buildUserProfile`. Test `/status` returns `ready: true/false`, `/similar/:appId` returns 503 when not ready, `/user/:steamId` returns 404 for empty libraries.
+3. `**user.routes`** — Mock `getSteamService`. Test 17-digit Steam ID passes validation, non-numeric returns 400, `SteamApiError` with 403 returns 403. Same pattern as existing `game.routes` tests.
+4. `**recommend.routes**` — Mock `getRecommenderService` and `buildUserProfile`. Test `/status` returns `ready: true/false`, `/similar/:appId` returns 503 when not ready, `/user/:steamId` returns 404 for empty libraries.
 
 This is unit and route-level testing using patterns already in the codebase (Jest, supertest, mocked services). 4–6 hours total.
 
@@ -1090,36 +1098,40 @@ Address the gap from §10: `user-profile.service.ts` lines 57–59 create `new P
 
 #### Day 4+: If Time Permits
 
-| Step | Item | Time | Depends on | Resume line |
-|------|------|------|------------|-------------|
-| 10 | Redis caching | 8–10h | Docker, graceful shutdown | "Distributed caching with Redis" |
-| 11 | E2E with Playwright | 8–10h | Docker, CI/CD | "End-to-end testing with Playwright" |
-| 12 | Move SQL into repository | 3–4h | DI | — |
-| 13 | Prometheus metrics | 8–10h | Docker | "Observability with Prometheus" |
-| 14 | pgvector | 8–10h | Docker, DI | "Vector similarity search with pgvector" |
+
+| Step | Item                     | Time  | Depends on                | Resume line                              |
+| ---- | ------------------------ | ----- | ------------------------- | ---------------------------------------- |
+| 10   | Redis caching            | 8–10h | Docker, graceful shutdown | "Distributed caching with Redis"         |
+| 11   | E2E with Playwright      | 8–10h | Docker, CI/CD             | "End-to-end testing with Playwright"     |
+| 12   | Move SQL into repository | 3–4h  | DI                        | —                                        |
+| 13   | Prometheus metrics       | 8–10h | Docker                    | "Observability with Prometheus"          |
+| 14   | pgvector                 | 8–10h | Docker, DI                | "Vector similarity search with pgvector" |
+
 
 ---
 
 ### 14.2 Quick Reference
 
-| Step | Item | Day | Time | Blocked by |
-|------|------|-----|------|------------|
-| 1A | Fix `pg.Pool` password | 1 | 2 min | — |
-| 1B | Fix health check contract | 1 | 5 min | — |
-| 1C | Create ESLint config | 1 | 10 min | — |
-| 2 | Async recommender loading | 1 | 2–3h | — |
-| 3 | Unit tests for critical path | 1 | 4–6h | — |
-| 4 | CI/CD (GitHub Actions) | 2 | 2–4h | 1A–C, 3 |
-| 5 | Graceful shutdown + health check | 2 | 3–4h | 1B |
-| 6 | Docker + docker-compose | 2 | 4–8h | 1A, 4, 5 |
-| 7 | Freeze config + strip dead code | 3 | 20 min | — |
-| 8 | Zod for Steam responses | 3 | 3–4h | — |
-| 9 | Dependency injection | 3 | 8–10h | 3, 4 |
-| 10 | Redis caching | 4+ | 8–10h | 5, 6 |
-| 11 | E2E with Playwright | 4+ | 8–10h | 4, 6 |
-| 12 | Move SQL into repository | 4+ | 3–4h | 9 |
-| 13 | Prometheus metrics | 4+ | 8–10h | 6 |
-| 14 | pgvector | 4+ | 8–10h | 6, 9 |
+
+| Step | Item                             | Day | Time   | Blocked by |
+| ---- | -------------------------------- | --- | ------ | ---------- |
+| 1A   | Fix `pg.Pool` password           | 1   | 2 min  | —          |
+| 1B   | Fix health check contract        | 1   | 5 min  | —          |
+| 1C   | Create ESLint config             | 1   | 10 min | —          |
+| 2    | Async recommender loading        | 1   | 2–3h   | —          |
+| 3    | Unit tests for critical path     | 1   | 4–6h   | —          |
+| 4    | CI/CD (GitHub Actions)           | 2   | 2–4h   | 1A–C, 3    |
+| 5    | Graceful shutdown + health check | 2   | 3–4h   | 1B         |
+| 6    | Docker + docker-compose          | 2   | 4–8h   | 1A, 4, 5   |
+| 7    | Freeze config + strip dead code  | 3   | 20 min | —          |
+| 8    | Zod for Steam responses          | 3   | 3–4h   | —          |
+| 9    | Dependency injection             | 3   | 8–10h  | 3, 4       |
+| 10   | Redis caching                    | 4+  | 8–10h  | 5, 6       |
+| 11   | E2E with Playwright              | 4+  | 8–10h  | 4, 6       |
+| 12   | Move SQL into repository         | 4+  | 3–4h   | 9          |
+| 13   | Prometheus metrics               | 4+  | 8–10h  | 6          |
+| 14   | pgvector                         | 4+  | 8–10h  | 6, 9       |
+
 
 **Total**: Day 1 ~7–10 hours. Day 2 ~9–16 hours. Day 3 ~11–14 hours. Day 4+ ~35–44 hours.
 
@@ -1178,6 +1190,7 @@ Step-by-step guides for the two largest infrastructure items in §14 (Steps 4 an
 #### 14.1.3 Concepts You Need to Understand
 
 **GitHub Actions vocabulary**:
+
 - **Workflow**: A YAML file in `.github/workflows/` that defines an automated process. Triggered by events (push, pull_request, schedule, manual).
 - **Job**: A set of steps that run on a single runner (virtual machine). Jobs in the same workflow run in parallel by default. Use `needs:` to create sequential dependencies.
 - **Step**: A single task within a job. Can be a shell command (`run:`) or a reusable action (`uses:`).
@@ -1324,6 +1337,7 @@ jobs:
 ```
 
 **Why this structure**:
+
 - Two parallel jobs (backend, frontend) — independent concerns run independently.
 - Backend job includes a PostgreSQL service container — tests can run against a real database if integration tests are added later. The existing unit tests mock the DB, so this is forward-looking.
 - `npm ci` over `npm install` — deterministic installs from the lock file.
@@ -1414,14 +1428,16 @@ On GitHub, go to Settings → Branches → Add rule. Set the branch name pattern
 
 #### 14.1.6 Common Pitfalls
 
-| Pitfall | Symptom | Fix |
-| --- | --- | --- |
-| `npm ci` fails with "no package-lock.json" | CI fails at install step | Commit `package-lock.json`; remove from `.gitignore` |
-| Lint fails because no ESLint config exists | `npm run lint` exits non-zero | Create `eslint.config.mjs` (see Step 3) |
-| Tests fail because env vars are missing | `config.ts` reads undefined keys | Add `env:` block to the test step with dummy values |
-| PostgreSQL service not ready | Connection refused errors | Ensure `options:` includes `--health-cmd` and `--health-retries` |
-| Cache miss every run | Slow installs | Verify `cache-dependency-path` points to the correct `package-lock.json` |
-| Frontend build fails with AOT errors | Template compilation errors | Run `npm run build` locally first; fix template issues before pushing |
+
+| Pitfall                                    | Symptom                          | Fix                                                                      |
+| ------------------------------------------ | -------------------------------- | ------------------------------------------------------------------------ |
+| `npm ci` fails with "no package-lock.json" | CI fails at install step         | Commit `package-lock.json`; remove from `.gitignore`                     |
+| Lint fails because no ESLint config exists | `npm run lint` exits non-zero    | Create `eslint.config.mjs` (see Step 3)                                  |
+| Tests fail because env vars are missing    | `config.ts` reads undefined keys | Add `env:` block to the test step with dummy values                      |
+| PostgreSQL service not ready               | Connection refused errors        | Ensure `options:` includes `--health-cmd` and `--health-retries`         |
+| Cache miss every run                       | Slow installs                    | Verify `cache-dependency-path` points to the correct `package-lock.json` |
+| Frontend build fails with AOT errors       | Template compilation errors      | Run `npm run build` locally first; fix template issues before pushing    |
+
 
 ---
 
@@ -1462,6 +1478,7 @@ On GitHub, go to Settings → Branches → Add rule. Set the branch name pattern
 #### 14.2.3 Concepts You Need to Understand
 
 **Docker vocabulary**:
+
 - **Image**: A read-only template containing the application, its dependencies, and configuration. Built from a Dockerfile. Think of it as a class.
 - **Container**: A running instance of an image. Think of it as an object. Multiple containers can run from the same image.
 - **Dockerfile**: A text file with instructions (`FROM`, `RUN`, `COPY`, `CMD`) that define how to build an image. Each instruction creates a layer.
@@ -1543,6 +1560,7 @@ CMD ["node", "dist/index.js"]
 ```
 
 **Key decisions explained**:
+
 - `node:22-alpine` — Alpine-based images are ~5x smaller than Debian-based (150MB vs 800MB). Less surface area, faster pulls.
 - `COPY package*.json` before `COPY src/` — layer caching. Dependencies change rarely; source code changes frequently.
 - `npm ci --omit=dev` in production stage — no TypeScript, no Jest, no ts-node-dev in the final image.
@@ -1595,6 +1613,7 @@ volumes:
 ```
 
 **Key decisions explained**:
+
 - `depends_on` with `condition: service_healthy` — the API container does not start until PostgreSQL is accepting connections. This prevents the "connection refused" race condition that happens when the API starts before the database is ready. The `healthcheck` on the postgres service drives this.
 - `PGHOST: postgres` — inside the Docker network, the PostgreSQL container is reachable at hostname `postgres` (the service name). Not `localhost`.
 - `${STEAM_API_KEY}` — reads from the host's environment or a `.env` file at the repository root. Secrets are not hardcoded in `docker-compose.yml`.
@@ -1637,12 +1656,14 @@ docker compose up --build
 ```
 
 This will:
+
 1. Build the `api` image from `backend/Dockerfile` (multi-stage: compile TypeScript, then create production image).
 2. Pull `postgres:16-alpine` if not already cached.
 3. Start PostgreSQL, wait for its healthcheck to pass.
 4. Start the API container, connected to PostgreSQL.
 
 Verify:
+
 ```bash
 curl http://localhost:3000/api/health
 # Should return: {"status":"ok","timestamp":"..."}
@@ -1670,6 +1691,7 @@ services:
 ```
 
 Run with:
+
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
 ```
@@ -1706,15 +1728,17 @@ This does not run the container in CI — just verifies the Dockerfile is valid 
 
 #### 14.2.6 Common Pitfalls
 
-| Pitfall | Symptom | Fix |
-| --- | --- | --- |
-| API cannot connect to PostgreSQL | `ECONNREFUSED 127.0.0.1:5432` | Use `PGHOST=postgres` (service name), not `localhost`. Inside Docker, `localhost` is the container itself. |
-| PostgreSQL requires password but API does not send one | `password authentication failed` | Add `password: config.pgPassword` to `pg.Pool` in `db.ts` (Step 4) |
-| Docker build includes `node_modules` from host | Huge build context; stale dependencies in image | Create `.dockerignore` with `node_modules` (Step 1) |
-| Data files missing in container | Recommender returns 503 | Ensure `COPY data/processed ./data/processed` is in the Dockerfile and the files exist locally before building |
-| Container starts before Postgres is ready | Connection errors on first request | Use `depends_on` with `condition: service_healthy` and add a `healthcheck` to the postgres service |
-| Image is too large (>500MB) | Slow pulls, slow deploys | Verify multi-stage build is correct; ensure `npm ci --omit=dev` is used in the production stage |
-| Hot reload does not work in dev | Code changes have no effect | Use `docker-compose.dev.yml` override with volume mount (Step 7) |
+
+| Pitfall                                                | Symptom                                         | Fix                                                                                                            |
+| ------------------------------------------------------ | ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| API cannot connect to PostgreSQL                       | `ECONNREFUSED 127.0.0.1:5432`                   | Use `PGHOST=postgres` (service name), not `localhost`. Inside Docker, `localhost` is the container itself.     |
+| PostgreSQL requires password but API does not send one | `password authentication failed`                | Add `password: config.pgPassword` to `pg.Pool` in `db.ts` (Step 4)                                             |
+| Docker build includes `node_modules` from host         | Huge build context; stale dependencies in image | Create `.dockerignore` with `node_modules` (Step 1)                                                            |
+| Data files missing in container                        | Recommender returns 503                         | Ensure `COPY data/processed ./data/processed` is in the Dockerfile and the files exist locally before building |
+| Container starts before Postgres is ready              | Connection errors on first request              | Use `depends_on` with `condition: service_healthy` and add a `healthcheck` to the postgres service             |
+| Image is too large (>500MB)                            | Slow pulls, slow deploys                        | Verify multi-stage build is correct; ensure `npm ci --omit=dev` is used in the production stage                |
+| Hot reload does not work in dev                        | Code changes have no effect                     | Use `docker-compose.dev.yml` override with volume mount (Step 7)                                               |
+
 
 ---
 
@@ -1723,6 +1747,7 @@ This does not run the container in CI — just verifies the Dockerfile is valid 
 Understanding Docker's layer cache is essential for writing efficient Dockerfiles. Each instruction (`FROM`, `RUN`, `COPY`, etc.) creates a layer. Docker caches each layer and reuses it if the inputs have not changed.
 
 **Cache invalidation rules**:
+
 - `COPY` invalidates if any copied file has changed (by content hash, not modification time).
 - `RUN` invalidates if the command string has changed or if any previous layer was invalidated.
 - Once a layer is invalidated, all subsequent layers are also invalidated (the cache is linear).
@@ -1744,10 +1769,12 @@ If you put `COPY . .` before `RUN npm ci`, then every source code change invalid
 
 With CI/CD and Docker in place, the next highest-return steps from §13.2 are:
 
-| Priority | Initiative | Time | Why next |
-| --- | --- | --- | --- |
-| 3 | Health check + graceful shutdown | 3–6h | Completes the "production-ready" narrative. The health check can now be used by Docker's `healthcheck` directive for the API container. Graceful shutdown ensures `docker stop` does not drop connections. |
-| 4 | Redis caching | 8–10h | Docker makes Redis trivial to add (one service in `docker-compose.yml`). The CI pipeline validates the caching layer automatically. |
-| 5 | Dependency injection | 8–10h | Improves testability. CI verifies the refactored code does not break anything. |
+
+| Priority | Initiative                       | Time  | Why next                                                                                                                                                                                                   |
+| -------- | -------------------------------- | ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 3        | Health check + graceful shutdown | 3–6h  | Completes the "production-ready" narrative. The health check can now be used by Docker's `healthcheck` directive for the API container. Graceful shutdown ensures `docker stop` does not drop connections. |
+| 4        | Redis caching                    | 8–10h | Docker makes Redis trivial to add (one service in `docker-compose.yml`). The CI pipeline validates the caching layer automatically.                                                                        |
+| 5        | Dependency injection             | 8–10h | Improves testability. CI verifies the refactored code does not break anything.                                                                                                                             |
+
 
 Each subsequent initiative builds on the CI/CD + Docker foundation. This is why these two are the correct starting point.
