@@ -111,19 +111,21 @@
                     <mat-option value="linux">Linux</mat-option>
                 </mat-select>
             </mat-form-field>
-            <button
-                type="button"
-                class="detect-os-button"
-                data-ui-check="detect-os-button"
-                (click)="detectAndApplyOs()"
-                [disabled]="isLoading || isLoadingProfile">
-                [ Use my OS ]
-            </button>
-            @if (selected_os) {
-                <button type="button" class="clear-os-button" data-ui-check="clear-os-button" (click)="clearOsFilter()">
-                    [ Clear ]
+            <div class="os-actions">
+                <button
+                    type="button"
+                    class="detect-os-button"
+                    data-ui-check="detect-os-button"
+                    (click)="detectAndApplyOs()"
+                    [disabled]="isLoading || isLoadingProfile">
+                    [ Use my OS ]
                 </button>
-            }
+                @if (selected_os) {
+                    <button type="button" class="clear-os-button" data-ui-check="clear-os-button" (click)="clearOsFilter()">
+                        [ Clear ]
+                    </button>
+                }
+            </div>
         </div>
 
         @if (selected_os) {
@@ -133,21 +135,23 @@
             <div class="error-message">{{ osDetectionError }}</div>
         }
 
-        <div>
+        <div class="keyword-row">
             <mat-form-field appearance="outline" class="search-form" data-ui-check="keyword-field">
                 <mat-label>Keywords</mat-label>
                 <input matInput [(ngModel)]="keyword_input" placeholder="" [disabled]="isLoading">
             </mat-form-field>
         </div>
 
-        <button (click)="onQuery()" [disabled]="isLoading" class="search-button" data-ui-check="search-button">
-            @if (isLoading) {
-            <mat-spinner class="custom-color-spinner" diameter="20"></mat-spinner>
-            }
-            @else {
-            <ng-container>{{ userProfile ? '[ Suggest for me ]' : '[ Suggest games ]' }}</ng-container>
-            }
-        </button>
+        <div class="form-actions">
+            <button (click)="onQuery()" [disabled]="isLoading" class="search-button" data-ui-check="search-button">
+                @if (isLoading) {
+                <mat-spinner class="custom-color-spinner" diameter="20"></mat-spinner>
+                }
+                @else {
+                <ng-container>{{ userProfile ? '[ Suggest for me ]' : '[ Suggest games ]' }}</ng-container>
+                }
+            </button>
+        </div>
     </div>
 
     @if (error) {

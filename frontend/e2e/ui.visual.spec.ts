@@ -26,6 +26,11 @@ const REQUIRED_SELECTORS = [
   'search-button',
 ];
 
+const MENU_VIEWPORTS = [
+  { name: 'desktop', width: 1280, height: 800 },
+  { name: 'mobile', width: 390, height: 844 },
+];
+
 async function disableMotion(page: import('@playwright/test').Page): Promise<void> {
   await page.addStyleTag({
     content: `
@@ -199,6 +204,93 @@ for (const viewport of VIEWPORTS) {
       result.viewportOverflow,
       `Horizontal viewport overflow at ${viewport.name}: ${result.viewportOverflow.join(', ')}`
     ).toEqual([]);
+  });
+}
+
+for (const viewport of MENU_VIEWPORTS) {
+  test(`Genre menu overlay integrity: ${viewport.name}`, async ({ page }) => {
+    await page.setViewportSize({ width: viewport.width, height: viewport.height });
+    await page.goto('/');
+    await page.waitForSelector('[data-ui-check="genre-field"]');
+    await disableMotion(page);
+
+    await page.click('[data-ui-check="genre-field"] .mat-mdc-select-trigger');
+    await page.waitForSelector('.cdk-overlay-pane .topunit.mat-mdc-select-panel');
+
+    const diagnostics = await page.evaluate(() => {
+      type MenuDiagnostics = {
+        panelFound: boolean;
+        alpha: number;
+        paneZIndex: number;
+        misalignedCheckboxes: number;
+      };
+
+      const panel = document.querySelector(
+        '.cdk-overlay-pane .topunit.mat-mdc-select-panel'
+      ) as HTMLElement | null;
+
+      if (!panel) {
+        return {
+          panelFound: false,
+          alpha: 0,
+          paneZIndex: 0,
+          misalignedCheckboxes: 0,
+        } satisfies MenuDiagnostics;
+      }
+
+      const panelStyles = getComputedStyle(panel);
+      const backgroundColor = panelStyles.backgroundColor;
+      const rgbaMatch = backgroundColor.match(/rgba?\(([^)]+)\)/);
+      let alpha = 1;
+      if (rgbaMatch) {
+        const rgbaValues = rgbaMatch[1].split(',').map(value => value.trim());
+        if (rgbaValues.length === 4) {
+          alpha = Number.parseFloat(rgbaValues[3]);
+        }
+      }
+
+      const pane = panel.closest('.cdk-overlay-pane') as HTMLElement | null;
+      const paneZIndex = pane ? Number.parseInt(getComputedStyle(pane).zIndex || '0', 10) || 0 : 0;
+
+      const options = Array.from(panel.querySelectorAll('.mat-mdc-option')).slice(0, 8);
+      let misalignedCheckboxes = 0;
+      for (const option of options) {
+        const checkbox = option.querySelector('.mat-pseudo-checkbox') as HTMLElement | null;
+        const text = option.querySelector('.mdc-list-item__primary-text') as HTMLElement | null;
+        if (!checkbox || !text) continue;
+
+        const checkboxRect = checkbox.getBoundingClientRect();
+        const textRect = text.getBoundingClientRect();
+        const checkboxMid = (checkboxRect.top + checkboxRect.bottom) / 2;
+        const textMid = (textRect.top + textRect.bottom) / 2;
+        const verticalOffset = Math.abs(checkboxMid - textMid);
+
+        if (checkboxRect.right > textRect.left || verticalOffset > 10) {
+          misalignedCheckboxes += 1;
+        }
+      }
+
+      return {
+        panelFound: true,
+        alpha,
+        paneZIndex,
+        misalignedCheckboxes,
+      } satisfies MenuDiagnostics;
+    });
+
+    expect(diagnostics.panelFound, `Genre menu panel not found at ${viewport.name}`).toBe(true);
+    expect(
+      diagnostics.alpha,
+      `Genre menu background is too transparent at ${viewport.name} (alpha=${diagnostics.alpha})`
+    ).toBeGreaterThanOrEqual(0.95);
+    expect(
+      diagnostics.paneZIndex,
+      `Genre menu overlay z-index is too low at ${viewport.name} (z-index=${diagnostics.paneZIndex})`
+    ).toBeGreaterThanOrEqual(1000);
+    expect(
+      diagnostics.misalignedCheckboxes,
+      `Genre menu checkboxes are misaligned at ${viewport.name}`
+    ).toBe(0);
   });
 }
 

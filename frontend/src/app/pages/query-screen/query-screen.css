@@ -24,6 +24,7 @@
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.03),
     var(--shadow-1);
+  animation: panel-enter 560ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
 .hero-frame::before,
@@ -158,6 +159,8 @@ h1 span {
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.03),
     var(--shadow-2);
+  animation: panel-enter 620ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: 80ms;
 }
 
 .panel-intro {
@@ -196,35 +199,46 @@ h1 span {
 
 .steam-section,
 .filter-row {
-  display: flex;
+  display: grid;
   gap: var(--space-4);
-  align-items: flex-end;
-  justify-content: flex-start;
-  flex-wrap: wrap;
+  align-items: end;
 }
 
 .steam-section {
+  grid-template-columns: minmax(0, 1fr) auto;
   margin-bottom: 1rem;
+  animation: section-enter 520ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: 160ms;
 }
 
 .filter-row {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   margin-top: 1rem;
+  row-gap: 0.9rem;
+  animation: section-enter 520ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: 220ms;
 }
 
 .steam-field,
 .search-field {
-  flex: 1 1 19rem;
-  min-width: min(100%, 16rem);
+  min-width: 0;
   max-width: none;
 }
 
 .search-form {
   width: 100%;
-  margin-top: var(--space-4);
+  margin-top: 0;
 }
 
 .os-row {
-  align-items: flex-end;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.os-actions {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  justify-content: flex-end;
 }
 
 button,
@@ -283,8 +297,22 @@ button:disabled,
   min-width: auto;
 }
 
-.search-button {
+.keyword-row {
+  margin-top: var(--space-4);
+  animation: section-enter 520ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: 280ms;
+}
+
+.form-actions {
   margin-top: 1.25rem;
+  display: flex;
+  justify-content: center;
+  animation: section-enter 520ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: 320ms;
+}
+
+.search-button {
+  margin-top: 0;
   min-width: 13rem;
   background: linear-gradient(180deg, rgba(255, 87, 56, 0.24), rgba(255, 87, 56, 0.1));
 }
@@ -372,6 +400,10 @@ button:disabled,
 .search-container ::ng-deep .mat-mdc-text-field-wrapper {
   border-radius: 14px !important;
   background: rgba(255, 255, 255, 0.02) !important;
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    background-color 180ms ease;
 }
 
 .search-container ::ng-deep .mdc-notched-outline__leading,
@@ -400,6 +432,13 @@ button:disabled,
   letter-spacing: 0.01em !important;
 }
 
+.search-container ::ng-deep .mat-mdc-form-field.mat-focused .mat-mdc-text-field-wrapper {
+  background: rgba(255, 87, 56, 0.08) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.03),
+    0 0 0 1px rgba(255, 87, 56, 0.24) !important;
+}
+
 @keyframes rise-in {
   from {
     opacity: 0;
@@ -408,6 +447,59 @@ button:disabled,
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes panel-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes section-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 1024px) {
+  .panel-intro {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 920px) {
+  .steam-section,
+  .filter-row,
+  .os-row {
+    grid-template-columns: 1fr;
+  }
+
+  .os-actions {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .load-profile-button,
+  .detect-os-button {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .search-button {
+    width: 100%;
+    min-width: 0;
   }
 }
 
@@ -438,7 +530,8 @@ button:disabled,
 
   .steam-section,
   .filter-row {
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: 1fr;
     align-items: stretch;
   }
 
@@ -446,6 +539,15 @@ button:disabled,
   .search-field {
     min-width: 0;
     max-width: none;
+  }
+
+  .os-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .form-actions {
+    justify-content: stretch;
   }
 
   .search-button,
@@ -458,5 +560,20 @@ button:disabled,
 
   .profile-card {
     flex-direction: column;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .search-container,
+  .hero-frame,
+  .terminal-panel,
+  .steam-section,
+  .filter-row,
+  .keyword-row,
+  .form-actions,
+  button,
+  .search-container ::ng-deep .mat-mdc-text-field-wrapper {
+    animation: none !important;
+    transition: none !important;
   }
 }
