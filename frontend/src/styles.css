@@ -1,55 +1,87 @@
 
-/*
-  Include theming for Angular Material with `mat.theme()`.
-  This Sass mixin will define CSS variables that are used for styling Angular Material
-  components according to the Material 3 design spec.
-  Learn more about theming and how to use it for your application's
-  custom components at https://material.angular.dev/guide/theming
-  @import '@angular/material' as mat
-*/
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Share+Tech+Mono&display=swap');
 
-html {
+:root {
+  --neo-bg: #04070d;
+  --neo-bg-soft: #081119;
+  --neo-surface: rgba(6, 17, 24, 0.84);
+  --neo-border: rgba(35, 244, 209, 0.32);
+  --neo-primary: #23f4d1;
+  --neo-primary-soft: rgba(35, 244, 209, 0.72);
+  --neo-text: #b8fff3;
+  --neo-muted: #78bdb0;
+  --neo-danger: #ff6b6b;
+}
+
+html,
+body {
   height: 100%;
-  /*@include mat.theme((
-    color: (
-      primary: mat.$azure-palette,
-      tertiary: mat.$blue-palette,
-    ),
-    typography: Roboto,
-    density: 0,
-  )); */
 }
 
 body {
-  /*
-    Default the application to a light color theme. This can be changed to
-    `dark` to enable the dark color theme, or to `light dark` to defer to the
-    user's system settings.
-  */
-  color-scheme: light;
-
-  /*
-    Set a default background, font and text colors for the application using
-    Angular Material's system-level CSS variables. Learn more about these
-    variables at https://material.angular.dev/guide/system-variables
-  */
-  background-color: white;
-  color: var(--mat-sys-on-surface);
-  font: var(--mat-sys-body-medium);
-
-  /* Reset the user agent margin. */
   margin: 0;
-  height: 100%;
-  --mat-select-panel-background-color: #ffffff;
+  color-scheme: dark;
+  color: var(--neo-text);
+  font-family: 'Share Tech Mono', monospace;
+  background:
+    radial-gradient(circle at 50% -20%, rgba(35, 244, 209, 0.16), transparent 42%),
+    radial-gradient(circle at 5% 12%, rgba(35, 244, 209, 0.1), transparent 36%),
+    linear-gradient(180deg, #060b13 0%, #03070c 50%, #02050b 100%);
+  overflow-x: hidden;
 }
-/* Global styles */
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      rgba(132, 255, 235, 0.05) 0px,
+      rgba(132, 255, 235, 0.05) 1px,
+      transparent 2px,
+      transparent 4px
+    );
+  opacity: 0.42;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  left: -10%;
+  right: -10%;
+  bottom: -22vh;
+  height: 58vh;
+  pointer-events: none;
+  z-index: 0;
+  transform-origin: center bottom;
+  transform: perspective(700px) rotateX(70deg);
+  background:
+    repeating-linear-gradient(
+      to right,
+      rgba(35, 244, 209, 0.15) 0px,
+      rgba(35, 244, 209, 0.15) 2px,
+      transparent 2px,
+      transparent 72px
+    ),
+    repeating-linear-gradient(
+      to bottom,
+      rgba(35, 244, 209, 0.14) 0px,
+      rgba(35, 244, 209, 0.14) 2px,
+      transparent 2px,
+      transparent 64px
+    );
+  filter: drop-shadow(0 -4px 20px rgba(35, 244, 209, 0.24));
+}
 
 * {
   box-sizing: border-box;
 }
 
 a {
-  color: var(--mat-sys-primary);
+  color: var(--neo-primary);
   text-decoration: none;
 }
 
@@ -57,39 +89,23 @@ a:hover {
   text-decoration: underline;
 }
 
-/* Material overrides */
 .mat-mdc-card {
-  border-radius: 12px !important;
+  border-radius: 14px !important;
 }
 
 .mat-mdc-chip {
-  font-size: 0.75rem !important;
-}
-
-body {
-  font-family: system-ui, Geneva, sans-serif;
+  font-size: 0.7rem !important;
 }
 
 .custom-color-spinner circle {
-  stroke: white !important;
+  stroke: var(--neo-primary) !important;
 }
 
-/*
- * When glass mode is active, the body gets a dark background.
- * This is critical because liquidGL uses html2canvas to snapshot the body.
- * If the body is white, the glass panes refract white = invisible effect.
- */
 body.glass-active {
-  background-color: #0a1628;
-  color: #ffffff;
+  background-color: var(--neo-bg);
+  color: var(--neo-text);
 }
 
-/*
- * liquidGL global rules.
- * The library sets the target element to opacity:0, background:transparent,
- * pointer-events:none. It renders the glass effect on a shared WebGL canvas.
- * Children must sit above that canvas via z-index so they remain visible/clickable.
- */
 .liquidGL > * {
   position: relative;
   z-index: 3;

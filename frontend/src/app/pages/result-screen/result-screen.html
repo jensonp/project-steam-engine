@@ -5,7 +5,7 @@
     }
 
     <div class="result-header" data-liquid-ignore>
-        <h1>Recommendations</h1>
+        <h1>Recommendation Matrix</h1>
         <button mat-flat-button color="primary" class="glass-toggle-button" (click)="onToggleGlass()">
             {{ glassEnabled ? 'Disable Liquid Glass' : 'Enable Liquid Glass' }}
         </button>
@@ -18,7 +18,7 @@
             }
         </div>
     } @else {
-        <p>No results found. Try adjusting your preferences and searching again!</p>
+        <p class="empty-state">No results found. Adjust your filters and run another scan.</p>
     }
 
     <div data-liquid-ignore>
