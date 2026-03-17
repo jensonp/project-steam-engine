@@ -73,6 +73,15 @@ Update visual baselines intentionally:
 bash scripts/ui-check.sh --update
 ```
 
+### CI/CD
+
+GitHub Actions CI is configured in `.github/workflows/ci.yml`.
+
+On every push/PR to `main`, it runs:
+- Backend install + tests + build
+- Frontend install + tests + build
+- `docker compose build` to validate container builds
+
 ### Local development prerequisites
 
 In order to run our web application, you need to have the following software installed on your system. All are cross-platform
