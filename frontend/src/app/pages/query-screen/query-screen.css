@@ -632,12 +632,12 @@ button:disabled,
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.03),
     0 0 0 1px rgba(255, 87, 56, 0.5),
-    0 0 30px rgba(255, 87, 56, 0.2) !important;
+    0 0 40px rgba(255, 87, 56, 0.15) !important;
   transform: scale(1.01);
   overflow: hidden;
 }
 
-/* Technical Scanline */
+/* Technical Scanline - Refined */
 .search-container ::ng-deep .mat-mdc-form-field.mat-focused .mat-mdc-text-field-wrapper::before {
   content: '';
   position: absolute;
@@ -648,10 +648,10 @@ button:disabled,
   background: linear-gradient(
     to bottom,
     transparent,
-    rgba(255, 87, 56, 0.15) 50%,
+    rgba(255, 87, 56, 0.08) 50%,
     transparent
   );
-  animation: scanline 2s linear infinite;
+  animation: scanline 3s linear infinite;
   pointer-events: none;
   z-index: 10;
 }
@@ -661,35 +661,87 @@ button:disabled,
   100% { top: 100%; }
 }
 
-/* Corner Brackets / Target Lock */
+/* Refined HUD Corner Brackets - Sleek Lines */
 .search-container ::ng-deep .mat-mdc-form-field.mat-focused .mat-mdc-text-field-wrapper::after {
   content: '';
   position: absolute;
   inset: 0;
-  border: 2px solid transparent;
+  border-radius: 14px;
   background: 
-    linear-gradient(to right, var(--neo-primary) 12px, transparent 12px) 0 0,
-    linear-gradient(to right, var(--neo-primary) 12px, transparent 12px) 0 100%,
-    linear-gradient(to left, var(--neo-primary) 12px, transparent 12px) 100% 0,
-    linear-gradient(to left, var(--neo-primary) 12px, transparent 12px) 100% 100%,
-    linear-gradient(to bottom, var(--neo-primary) 12px, transparent 12px) 0 0,
-    linear-gradient(to bottom, var(--neo-primary) 12px, transparent 12px) 100% 0,
-    linear-gradient(to top, var(--neo-primary) 12px, transparent 12px) 0 100%,
-    linear-gradient(to top, var(--neo-primary) 12px, transparent 12px) 100% 100%;
+    linear-gradient(to right, var(--neo-primary) 15px, transparent 15px) 0 0,
+    linear-gradient(to right, var(--neo-primary) 15px, transparent 15px) 0 100%,
+    linear-gradient(to left, var(--neo-primary) 15px, transparent 15px) 100% 0,
+    linear-gradient(to left, var(--neo-primary) 15px, transparent 15px) 100% 100%,
+    linear-gradient(to bottom, var(--neo-primary) 15px, transparent 15px) 0 0,
+    linear-gradient(to bottom, var(--neo-primary) 15px, transparent 15px) 100% 0,
+    linear-gradient(to top, var(--neo-primary) 15px, transparent 15px) 0 100%,
+    linear-gradient(to top, var(--neo-primary) 15px, transparent 15px) 100% 100%;
   background-repeat: no-repeat;
-  background-size: 20px 20px;
-  animation: bracket-in 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  background-size: 2px 2px; /* Base for positioning */
+  mask: 
+    linear-gradient(to right, #fff 15px, transparent 15px) 0 0 / 100% 1px no-repeat,
+    linear-gradient(to right, #fff 15px, transparent 15px) 0 100% / 100% 1px no-repeat,
+    linear-gradient(to left, #fff 15px, transparent 15px) 100% 0 / 100% 1px no-repeat,
+    linear-gradient(to left, #fff 15px, transparent 15px) 100% 100% / 100% 1px no-repeat,
+    linear-gradient(to bottom, #fff 15px, transparent 15px) 0 0 / 1px 100% no-repeat,
+    linear-gradient(to bottom, #fff 15px, transparent 15px) 100% 0 / 1px 100% no-repeat,
+    linear-gradient(to top, #fff 15px, transparent 15px) 0 100% / 1px 100% no-repeat,
+    linear-gradient(to top, #fff 15px, transparent 15px) 100% 100% / 1px 100% no-repeat;
+  border: 1px solid transparent;
+  animation: bracket-lock 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
   pointer-events: none;
   z-index: 11;
-  opacity: 0.8;
 }
 
-@keyframes bracket-in {
-  from { inset: -10px; opacity: 0; }
-  to { inset: 0; opacity: 0.8; }
+@keyframes bracket-lock {
+  from { inset: -8px; opacity: 0; }
+  to { inset: 0; opacity: 1; }
 }
 
-/* Terminal Flicker for Labels */
+/* Cyberpunk Hover Effects */
+.search-container ::ng-deep .mat-mdc-form-field:hover .mdc-floating-label {
+  text-shadow: 
+    2px 0 #ff00ff88, 
+    -2px 0 #00ffff88;
+  animation: glitch-text 0.3s steps(2, start) infinite;
+  color: var(--neo-primary) !important;
+}
+
+@keyframes glitch-text {
+  0% { transform: translate(0); }
+  20% { transform: translate(-2px, 2px); }
+  40% { transform: translate(-2px, -2px); }
+  60% { transform: translate(2px, 2px); }
+  80% { transform: translate(2px, -2px); }
+  100% { transform: translate(0); }
+}
+
+.search-container ::ng-deep .mat-mdc-form-field:hover .mat-mdc-text-field-wrapper {
+  background: rgba(255, 87, 56, 0.05) !important;
+  box-shadow: 0 0 15px rgba(255, 87, 56, 0.1) !important;
+}
+
+/* Neon Travel Pulse on Hover */
+.search-container ::ng-deep .mat-mdc-form-field:hover .mat-mdc-text-field-wrapper::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  border: 1px solid transparent;
+  background: linear-gradient(90deg, transparent, var(--neo-primary), transparent) border-box;
+  mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  background-size: 200% 100%;
+  animation: neon-pulse 1.5s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes neon-pulse {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+
+/* Terminal Flicker for Selected Labels */
 .search-container ::ng-deep .mat-mdc-form-field.mat-focused .mdc-floating-label {
   animation: terminal-flicker 3s linear infinite;
   color: var(--neo-primary) !important;
