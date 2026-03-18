@@ -1,7 +1,8 @@
 :host {
   display: block;
   height: auto;
-  contain: layout paint style;
+  contain: layout style;
+  overflow: visible;
 }
 
 .card-link {
@@ -63,7 +64,7 @@
 }
 
 .game-card:hover {
-  transform: translate3d(3px, -3px, 0) scale(1.005);
+  transform: translate3d(0, -2px, 0) scale(1.003);
   border-color: rgba(255, 87, 56, 0.52);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.04),
