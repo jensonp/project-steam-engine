@@ -99,11 +99,11 @@ export class QueryScreen implements OnInit, OnDestroy {
   }
 
   get hasInput(): boolean {
-    return (
+    return !!(
       (this.steamId_input && this.steamId_input.length > 0) ||
       (this.selected_genre && this.selected_genre.length > 0) ||
       (this.keyword_input && this.keyword_input.length > 0) ||
-      (this.selected_os && this.selected_os !== '') ||
+      this.selected_os ||
       (this.selected_player_count && this.selected_player_count !== 'Any')
     );
   }
