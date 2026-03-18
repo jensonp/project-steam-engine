@@ -238,7 +238,6 @@ export class QueryScreen implements OnInit, OnDestroy {
   }
 
   onSearchButtonHoverEnter(event: MouseEvent): void {
-    if (this.prefersReducedMotion) return;
     this.isKatanaCursorVisible = true;
     this.updateKatanaCursor(event);
   }
