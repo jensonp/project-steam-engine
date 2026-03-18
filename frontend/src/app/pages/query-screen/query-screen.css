@@ -93,25 +93,37 @@
 
 .valve-layer {
   position: absolute;
-  top: -22%;
-  left: 56%;
-  width: min(62vw, 640px);
+  top: -10%;
+  left: 57%;
+  width: min(44vw, 460px);
   aspect-ratio: 1 / 1;
   transform: translateX(-50%);
   pointer-events: none;
-  opacity: 0.9;
+  opacity: 0.82;
   z-index: 0;
   transition: opacity 0.28s linear;
   filter:
-    drop-shadow(0 0 30px rgba(255, 40, 18, 0.24))
-    saturate(1.08);
+    drop-shadow(0 0 22px rgba(255, 40, 18, 0.2))
+    saturate(1.06);
 }
 
 .valve-model {
   width: 100%;
   height: 100%;
+  display: block;
   --progress-bar-color: transparent;
   --poster-color: transparent;
+  animation: valve-fallback-spin 24s linear infinite;
+  transform-origin: 50% 50%;
+}
+
+@keyframes valve-fallback-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .hero-icon-frame {
@@ -1003,9 +1015,9 @@ button:focus-visible,
   }
 
   .valve-layer {
-    top: -10%;
+    top: -5%;
     left: 50%;
-    width: min(88vw, 460px);
+    width: min(72vw, 320px);
   }
 
   .terminal-panel {
@@ -1069,5 +1081,9 @@ button:focus-visible,
 
   .valve-layer {
     transition: none !important;
+  }
+
+  .valve-model {
+    animation-duration: 40s;
   }
 }
