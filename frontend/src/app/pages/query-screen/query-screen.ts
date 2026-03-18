@@ -174,7 +174,7 @@ export class QueryScreen implements OnInit, OnDestroy {
       if (this.awaitingSearchResults && !this.isLoading) {
         this.awaitingSearchResults = false;
         if (!this.error) {
-          this.router.navigate(['/results'], { state: { results } });
+          this.router.navigate(['/results'], { state: { results, source: 'search' } });
         }
       }
     }));
@@ -183,7 +183,7 @@ export class QueryScreen implements OnInit, OnDestroy {
       if (this.awaitingRecommendationResults && !this.isLoading) {
         this.awaitingRecommendationResults = false;
         if (!this.error) {
-          this.router.navigate(['/results'], { state: { results } });
+          this.router.navigate(['/results'], { state: { results, source: 'recommendations' } });
         }
       }
     }));

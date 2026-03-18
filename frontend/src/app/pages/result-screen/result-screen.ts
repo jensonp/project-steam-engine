@@ -7,6 +7,8 @@ import { BackendService } from '../../services/backend-service';
 import { MatButtonModule } from '@angular/material/button';
 import { Subscription } from 'rxjs';
 
+type ResultSource = 'search' | 'recommendations';
+
 @Component({
   selector: 'app-result-screen',
   standalone: true,
@@ -22,6 +24,7 @@ export class ResultScreen implements OnInit, OnDestroy {
   private renderFrameId: number | null = null;
   private readonly renderBatchSize = 6;
   private hydratedFromNavigationState = false;
+  private activeResultSource: ResultSource | null = null;
   private readonly prefersReducedMotion =
     typeof window !== 'undefined' &&
     window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true;
@@ -32,7 +35,12 @@ export class ResultScreen implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef
   ) {
     // Fallback: Check router state first in case page was reloaded manually.
-    const state = this.router.getCurrentNavigation()?.extras.state as { results: Game[] };
+    const state = this.router.getCurrentNavigation()?.extras.state as
+      | { results?: Game[]; source?: ResultSource }
+      | undefined;
+    if (state?.source === 'search' || state?.source === 'recommendations') {
+      this.activeResultSource = state.source;
+    }
     if (state?.results) {
       this.hydratedFromNavigationState = true;
       this.setResults(state.results);
@@ -40,10 +48,17 @@ export class ResultScreen implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    // Subscribe to both general search results AND personalized recommendations.
-    // Whichever emits data last will overwrite the view.
+    this.subs.add(
+      this.backendService.lastResultSource$.subscribe(source => {
+        if (!source) return;
+        this.activeResultSource = source;
+      })
+    );
+
+    // Subscribe to both streams, but only apply the currently active result source.
     this.subs.add(this.backendService.searchResults$.subscribe(results => {
       if (Array.isArray(results)) {
+        if (!this.shouldAcceptSource('search')) return;
         if (this.shouldSkipInitialEmptyEmission(results)) return;
         if (this.shouldIgnoreCompetingEmptyEmission(results)) return;
         if (results.length > 0) this.hydratedFromNavigationState = false;
@@ -53,6 +68,7 @@ export class ResultScreen implements OnInit, OnDestroy {
 
     this.subs.add(this.backendService.recommendations$.subscribe(recs => {
       if (Array.isArray(recs)) {
+        if (!this.shouldAcceptSource('recommendations')) return;
         // The HTML template uses generic fields present in both types.
         const mapped = recs as unknown as Game[];
         if (this.shouldSkipInitialEmptyEmission(mapped)) return;
@@ -130,5 +146,10 @@ export class ResultScreen implements OnInit, OnDestroy {
     // Once one stream has populated results, ignore empty emissions
     // from the other stream so cards do not disappear unexpectedly.
     return next.length === 0 && this.results.length > 0;
+  }
+
+  private shouldAcceptSource(source: ResultSource): boolean {
+    if (!this.activeResultSource) return true;
+    return this.activeResultSource === source;
   }
 }

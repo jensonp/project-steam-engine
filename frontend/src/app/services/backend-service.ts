@@ -5,12 +5,15 @@ import { catchError, finalize, tap } from 'rxjs/operators';
 import { Game, UserProfile, ScoredRecommendation } from '../types/steam.types';
 import { normalizeApiUrl } from '../utils/api-url';
 
+type ResultSource = 'search' | 'recommendations' | null;
+
 // State interface for strict typing
 interface AppState {
   steamId: string;
   userProfile: UserProfile | null;
   recommendations: ScoredRecommendation[];
   searchResults: Game[];
+  lastResultSource: ResultSource;
   isLoadingProfile: boolean;
   isLoadingRecommendations: boolean;
   isLoadingSearch: boolean;
@@ -22,6 +25,7 @@ const defaultState: AppState = {
   userProfile: null,
   recommendations: [],
   searchResults: [],
+  lastResultSource: null,
   isLoadingProfile: false,
   isLoadingRecommendations: false,
   isLoadingSearch: false,
@@ -61,6 +65,7 @@ export class BackendService {
   userProfile$ = new Observable<UserProfile | null>(subscriber => this.state.subscribe(s => subscriber.next(s.userProfile)));
   recommendations$ = new Observable<ScoredRecommendation[]>(subscriber => this.state.subscribe(s => subscriber.next(s.recommendations)));
   searchResults$ = new Observable<Game[]>(subscriber => this.state.subscribe(s => subscriber.next(s.searchResults)));
+  lastResultSource$ = new Observable<ResultSource>(subscriber => this.state.subscribe(s => subscriber.next(s.lastResultSource)));
   
   isLoadingProfile$ = new Observable<boolean>(subscriber => this.state.subscribe(s => subscriber.next(s.isLoadingProfile)));
   isLoadingRecommendations$ = new Observable<boolean>(subscriber => this.state.subscribe(s => subscriber.next(s.isLoadingRecommendations)));
@@ -139,7 +144,12 @@ export class BackendService {
       return;
     }
 
-    this.patchState({ isLoadingRecommendations: true, error: null, recommendations: [] });
+    this.patchState({
+      isLoadingRecommendations: true,
+      error: null,
+      recommendations: [],
+      lastResultSource: 'recommendations',
+    });
 
     const url = `${this.backendUrl}/api/recommend/user/${encodeURIComponent(currentState.steamId)}`;
     const params = new HttpParams().set('limit', limit.toString());
@@ -179,7 +189,12 @@ export class BackendService {
 
   // Command: Execute Search
   executeSearch(genres: string, keyword: string, playerCount: string, os?: string): void {
-    this.patchState({ isLoadingSearch: true, error: null, searchResults: [] });
+    this.patchState({
+      isLoadingSearch: true,
+      error: null,
+      searchResults: [],
+      lastResultSource: 'search',
+    });
 
     const url = `${this.backendUrl}/api/search`;
     let params = new HttpParams();
