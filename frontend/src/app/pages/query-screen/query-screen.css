@@ -1142,6 +1142,7 @@ button:focus-visible,
 }
 
 .search-container ::ng-deep .mdc-floating-label--float-above {
+  transform: translateY(-34px) scale(0.75) !important;
   padding: 0 !important; 
 }
 
