@@ -23,4 +23,4 @@ COPY --from=build /app/dist ./dist
 
 EXPOSE 3000
 
-CMD ["node", "dist/index.js"]
+CMD ["sh", "-lc", "if [ \"$AUTO_SEED_DB\" = \"true\" ]; then node dist/scripts/bootstrap-db.js; fi && node dist/index.js"]

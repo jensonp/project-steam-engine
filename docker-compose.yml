@@ -31,6 +31,7 @@ services:
       PGPASSWORD: postgres
       PGPORT: 5432
       STEAM_API_KEY: ${STEAM_API_KEY:-}
+      AUTO_SEED_DB: "true"
     depends_on:
       db:
         condition: service_healthy

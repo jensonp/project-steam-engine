@@ -46,7 +46,8 @@ docker compose down -v
 
 Notes:
 - The backend container uses `PGHOST=db` and connects to the Postgres service in `docker-compose.yml`.
-- Search/recommendation quality depends on your dataset/table state in Postgres.
+- On first run with an empty DB volume, the backend now auto-creates a starter `games` table and seeds a local sample catalog so `/api/search` works immediately.
+- If you already have an old/empty Postgres volume, reset once with `docker compose down -v` and then re-run `docker compose up --build`.
 - To use Steam API endpoints, set `STEAM_API_KEY` in your shell or `.env` before `docker compose up`.
 
 ### UI quality checks (terminal)
