@@ -139,15 +139,23 @@
 }
 
 .results-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1.3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: min(1040px, 100%);
+  margin-inline: auto;
   position: relative;
   z-index: 1;
 }
 
-/* Universal stagger: use a variable computed from child index */
 .results-container app-game-card {
+  opacity: 1;
+  transform: none;
+  content-visibility: auto;
+  contain-intrinsic-size: 252px;
+}
+
+.results-container app-game-card:nth-child(-n+12) {
   opacity: 0;
   transform: translateY(16px);
   animation: card-rise 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
@@ -163,7 +171,8 @@
 .results-container app-game-card:nth-child(8)  { animation-delay: 410ms; }
 .results-container app-game-card:nth-child(9)  { animation-delay: 460ms; }
 .results-container app-game-card:nth-child(10) { animation-delay: 510ms; }
-.results-container app-game-card:nth-child(n+11) { animation-delay: 550ms; }
+.results-container app-game-card:nth-child(11) { animation-delay: 560ms; }
+.results-container app-game-card:nth-child(12) { animation-delay: 600ms; }
 
 .result-screen p {
   color: var(--neo-muted);
@@ -268,6 +277,10 @@
 
   .back-button {
     width: 100%;
+  }
+
+  .results-container {
+    gap: 0.85rem;
   }
 }
 

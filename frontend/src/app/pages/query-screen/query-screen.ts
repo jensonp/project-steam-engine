@@ -1,4 +1,5 @@
-import { Component, OnDestroy, OnInit, HostListener } from '@angular/core';
+import '@google/model-viewer';
+import { Component, OnDestroy, OnInit, HostListener, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -34,9 +35,10 @@ type SearchOs = '' | 'windows' | 'mac' | 'linux';
     {
       provide: MAT_SELECT_SCROLL_STRATEGY,
       deps: [Overlay],
-      useFactory: (overlay: Overlay) => () => overlay.scrollStrategies.close(),
+      useFactory: (overlay: Overlay) => () => overlay.scrollStrategies.reposition(),
     },
   ],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class QueryScreen implements OnInit, OnDestroy {
   genres: string[] = [
@@ -65,6 +67,7 @@ export class QueryScreen implements OnInit, OnDestroy {
   selected_os: SearchOs = '';
   keyword_input = '';
   steamId_input = '';
+  isFormFocused = false;
 
   private isSearchLoading = false;
   private isRecommendationLoading = false;
@@ -76,6 +79,15 @@ export class QueryScreen implements OnInit, OnDestroy {
   userProfile: UserProfile | null = null;
   osDetectionError: string | null = null;
   mouseCoordinates = '35.6762 N / 139.6503 E';
+  private lastCoordinateUpdate = 0;
+  prefersReducedMotion = false;
+  isKatanaCursorVisible = false;
+  katanaCursorX = 0;
+  katanaCursorY = 0;
+  valveEnabled = true;
+  valveOpacity = 1;
+  private readonly valveStorageKey = 'ui.query.valveEnabled';
+  private valveScrollRafId: number | null = null;
 
   private readonly subs = new Subscription();
 
@@ -108,7 +120,25 @@ export class QueryScreen implements OnInit, OnDestroy {
     );
   }
 
+  get isSteamIdValid(): boolean {
+    return /^\d{17}$/.test(this.steamId_input.trim());
+  }
+
   ngOnInit() {
+    this.prefersReducedMotion =
+      typeof window !== 'undefined' &&
+      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true;
+
+    if (typeof window !== 'undefined') {
+      const savedValveState = window.localStorage.getItem(this.valveStorageKey);
+      if (savedValveState !== null) {
+        this.valveEnabled = savedValveState === '1';
+      }
+    }
+
+    this.updateValveOpacity();
+    this.prefetchResultsScreen();
+
     this.subs.add(this.backendService.isLoadingSearch$.subscribe(l => this.isSearchLoading = l));
     this.subs.add(this.backendService.isLoadingRecommendations$.subscribe(l => this.isRecommendationLoading = l));
     this.subs.add(this.backendService.isLoadingProfile$.subscribe(l => this.isLoadingProfile = l));
@@ -137,36 +167,65 @@ export class QueryScreen implements OnInit, OnDestroy {
 
   @HostListener('document:mousemove', ['$event'])
   onMouseMove(e: MouseEvent) {
+    if (this.prefersReducedMotion) return;
+
+    const now =
+      typeof performance !== 'undefined' && typeof performance.now === 'function'
+        ? performance.now()
+        : Date.now();
+    if (now - this.lastCoordinateUpdate < 80) return;
+    this.lastCoordinateUpdate = now;
+
     const xPct = (e.clientX / window.innerWidth) * 100;
     const yPct = (e.clientY / window.innerHeight) * 100;
-    
-    // Map screen position to geographic-ish coordinates
-    // Latitude: 0-90N, Longitude: 0-180E
+
+    // Map screen position to geographic-ish coordinates.
     const targetLat = (yPct * 0.9).toFixed(4);
     const targetLng = (xPct * 1.8).toFixed(4);
-    
-    // Scrambling effect: randomly rotate through characters for a tactical readout feel
-    if (Math.random() > 0.85) {
-      const scramble = (val: string) => val.split('').map(char => 
-        (char >= '0' && char <= '9') ? Math.floor(Math.random() * 10).toString() : char
-      ).join('');
-      
-      this.mouseCoordinates = `${scramble(targetLat)} N / ${scramble(targetLng)} E`;
-    } else {
-      this.mouseCoordinates = `${targetLat} N / ${targetLng} E`;
-    }
+    this.mouseCoordinates = `${targetLat} N / ${targetLng} E`;
+  }
+
+  @HostListener('window:scroll')
+  onWindowScroll() {
+    if (typeof window === 'undefined') return;
+    if (this.valveScrollRafId !== null) return;
+
+    this.valveScrollRafId = window.requestAnimationFrame(() => {
+      this.valveScrollRafId = null;
+      this.updateValveOpacity();
+    });
   }
 
   ngOnDestroy() {
+    if (this.valveScrollRafId !== null && typeof window !== 'undefined') {
+      window.cancelAnimationFrame(this.valveScrollRafId);
+      this.valveScrollRafId = null;
+    }
     this.subs.unsubscribe();
   }
 
   loadSteamProfile(): void {
-    if (!this.steamId_input || this.steamId_input.length !== 17) return;
+    if (!this.isSteamIdValid) return;
 
     this.backendService.setSteamId(this.steamId_input);
     this.backendService.loadUserProfile();
     this.scrollToCenter('.steam-section');
+  }
+
+  onSteamIdInput(value: string): void {
+    this.steamId_input = value.replace(/\D+/g, '').slice(0, 17);
+  }
+
+  onFocusIn(): void {
+    this.isFormFocused = true;
+  }
+
+  onFocusOut(event: FocusEvent): void {
+    const currentTarget = event.currentTarget as HTMLElement | null;
+    const nextFocused = event.relatedTarget as Node | null;
+    if (!currentTarget || !nextFocused || !currentTarget.contains(nextFocused)) {
+      this.isFormFocused = false;
+    }
   }
 
   detectAndApplyOs(): void {
@@ -208,13 +267,77 @@ export class QueryScreen implements OnInit, OnDestroy {
     this.scrollToCenter('app-game-list');
   }
 
+  onSearchButtonHoverEnter(event: MouseEvent): void {
+    if (this.prefersReducedMotion) return;
+    this.isKatanaCursorVisible = true;
+    this.updateKatanaCursor(event);
+  }
+
+  onSearchButtonHoverMove(event: MouseEvent): void {
+    if (!this.isKatanaCursorVisible) return;
+    this.updateKatanaCursor(event);
+  }
+
+  onSearchButtonHoverLeave(): void {
+    this.isKatanaCursorVisible = false;
+  }
+
+  private updateKatanaCursor(event: MouseEvent): void {
+    this.katanaCursorX = event.clientX;
+    this.katanaCursorY = event.clientY;
+  }
+
+  toggleValve(): void {
+    this.valveEnabled = !this.valveEnabled;
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(this.valveStorageKey, this.valveEnabled ? '1' : '0');
+    }
+    this.updateValveOpacity();
+  }
+
+  private updateValveOpacity(): void {
+    if (!this.valveEnabled) {
+      if (this.valveOpacity !== 0) this.valveOpacity = 0;
+      return;
+    }
+
+    if (typeof window === 'undefined') {
+      if (this.valveOpacity !== 1) this.valveOpacity = 1;
+      return;
+    }
+
+    const scrollY = window.scrollY || 0;
+    const fadeStart = 24;
+    const fadeEnd = 420;
+    const progress = Math.min(Math.max((scrollY - fadeStart) / (fadeEnd - fadeStart), 0), 1);
+    const nextOpacity = 1 - progress;
+    if (Math.abs(nextOpacity - this.valveOpacity) > 0.005) {
+      this.valveOpacity = nextOpacity;
+    }
+  }
+
+  private prefetchResultsScreen(): void {
+    if (typeof window === 'undefined') return;
+    const load = () => {
+      void import('../result-screen/result-screen');
+    };
+
+    if ('requestIdleCallback' in window) {
+      (window as Window & { requestIdleCallback: (cb: () => void, options?: { timeout: number }) => number })
+        .requestIdleCallback(load, { timeout: 1500 });
+      return;
+    }
+
+    setTimeout(load, 350);
+  }
+
   private scrollToCenter(selector: string): void {
-    setTimeout(() => {
+    requestAnimationFrame(() => {
       const element = document.querySelector(selector);
       if (element) {
         element.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
-    }, 100);
+    });
   }
 
   private detectCurrentOs(): SearchOs | null {

@@ -14,8 +14,8 @@
 
     @if (results && results.length > 0) {
         <div class="results-container">
-            @for (game of results; track game.appId) {
-                <app-game-card [game]="game"></app-game-card>
+            @for (game of visibleResults; track trackByAppId($index, game); let i = $index) {
+                <app-game-card [game]="game" [prioritizeImage]="i < 8"></app-game-card>
             }
         </div>
     } @else {
