@@ -228,12 +228,14 @@
                     (pointermove)="onSearchButtonHoverMove($event)"
                     (pointerleave)="onSearchButtonHoverLeave()"
                     (pointerdown)="onSearchButtonPress($event)">
-                    @if (isLoading) {
-                    <mat-spinner class="custom-color-spinner" diameter="20"></mat-spinner>
-                    }
-                    @else {
-                    <ng-container>{{ userProfile ? '[ Suggest for me ]' : '[ Suggest games ]' }}</ng-container>
-                    }
+                    <span class="search-button-label">
+                        @if (isLoading) {
+                        <mat-spinner class="custom-color-spinner" diameter="20"></mat-spinner>
+                        }
+                        @else {
+                        <ng-container>{{ userProfile ? '[ Suggest for me ]' : '[ Suggest games ]' }}</ng-container>
+                        }
+                    </span>
                 </button>
             </div>
         </form>
