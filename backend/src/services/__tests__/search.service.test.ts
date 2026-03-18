@@ -38,7 +38,7 @@ describe('SearchService', () => {
     const [sqlText, params] = (query as jest.Mock).mock.calls[0];
     
     // Verify SQL structure
-    expect(sqlText).toContain('WHERE ((genres %% $1 OR tags %% $1) AND (genres %% $2 OR tags %% $2))');
+    expect(sqlText).toContain('WHERE ((genres % $1 OR tags % $1) AND (genres % $2 OR tags % $2))');
     
     // Verify parameterized inputs are safely wrapped in wildcards
     expect(params).toEqual(['RPG', 'Action']);
@@ -80,5 +80,19 @@ describe('SearchService', () => {
     const [sqlText, params] = (query as jest.Mock).mock.calls[0];
     expect(sqlText).toContain('WHERE windows_support = TRUE');
     expect(params).toEqual([]);
+  });
+
+  it('should retry search without OS filter when support columns are missing', async () => {
+    (query as jest.Mock)
+      .mockRejectedValueOnce({ code: '42703', message: 'column "mac_support" does not exist' })
+      .mockResolvedValueOnce({ rows: [] });
+
+    await searchService.searchByGenres([], 'aaa', '', 'mac');
+
+    expect(query).toHaveBeenCalledTimes(2);
+    const [firstSql] = (query as jest.Mock).mock.calls[0];
+    const [secondSql] = (query as jest.Mock).mock.calls[1];
+    expect(firstSql).toContain('mac_support = TRUE');
+    expect(secondSql).not.toContain('mac_support = TRUE');
   });
 });

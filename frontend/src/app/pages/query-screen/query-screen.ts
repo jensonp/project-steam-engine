@@ -5,12 +5,13 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatSelectModule } from '@angular/material/select';
+import { MAT_SELECT_SCROLL_STRATEGY, MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { BackendService } from '../../services/backend-service';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { UserProfile } from '../../types/steam.types';
+import { Overlay } from '@angular/cdk/overlay';
 
 type SearchOs = '' | 'windows' | 'mac' | 'linux';
 
@@ -29,6 +30,13 @@ type SearchOs = '' | 'windows' | 'mac' | 'linux';
   ],
   templateUrl: './query-screen.html',
   styleUrl: './query-screen.css',
+  providers: [
+    {
+      provide: MAT_SELECT_SCROLL_STRATEGY,
+      deps: [Overlay],
+      useFactory: (overlay: Overlay) => () => overlay.scrollStrategies.close(),
+    },
+  ],
 })
 export class QueryScreen implements OnInit, OnDestroy {
   genres: string[] = [

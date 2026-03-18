@@ -812,10 +812,13 @@ button:disabled,
   .steam-section,
   .filter-row,
   .keyword-row,
-  .form-actions,
+  .form-actions {
+    animation: none !important;
+  }
+
+  /* Keep interactive controls smooth even in reduced-motion mode. */
   button,
   .search-container ::ng-deep .mat-mdc-text-field-wrapper {
-    animation: none !important;
-    transition: none !important;
+    transition-duration: 140ms !important;
   }
 }
