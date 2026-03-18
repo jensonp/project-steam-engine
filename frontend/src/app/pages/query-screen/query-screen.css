@@ -191,6 +191,10 @@ h1 {
   color: var(--neo-primary-strong);
   white-space: normal;
   text-wrap: balance;
+  text-shadow:
+    0 0 14px rgba(255, 87, 56, 0.34),
+    0 0 34px rgba(255, 87, 56, 0.18);
+  animation: cyber-glow 5.2s ease-in-out infinite;
 }
 
 .signal-list {
@@ -478,13 +482,15 @@ button:focus-visible,
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  border: 1px solid rgba(255, 87, 56, 0.62);
+  border: 1px solid rgba(255, 126, 186, 0.68);
   border-radius: 12px;
-  background: linear-gradient(135deg, #ff5738, #ff2e1a);
+  background: linear-gradient(118deg, #ff7f5a 0%, #ff34cc 42%, #8ec5ff 72%, #ff8a4d 100%);
+  background-size: 220% 220%;
   color: #fff;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
   box-shadow:
-    0 8px 24px rgba(255, 87, 56, 0.22),
+    0 10px 30px rgba(255, 87, 56, 0.24),
+    0 0 34px rgba(255, 64, 210, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
   transition:
     transform 0.16s cubic-bezier(0.2, 0.8, 0.2, 1),
@@ -525,10 +531,10 @@ button:focus-visible,
 
 .search-button:hover:not(:disabled) {
   transform: translateY(-2px);
-  background: linear-gradient(135deg, #ff6b52, #ff412e);
-  border-color: #ff8b77;
+  border-color: rgba(255, 170, 214, 0.86);
   box-shadow:
-    0 12px 32px rgba(255, 87, 56, 0.28),
+    0 14px 36px rgba(255, 87, 56, 0.3),
+    0 0 42px rgba(255, 56, 201, 0.28),
     inset 0 1px 0 rgba(255, 255, 255, 0.24);
 }
 
@@ -543,7 +549,9 @@ button:focus-visible,
   transition: transform 0.16s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.2s ease, border-color 0.16s ease;
   will-change: transform, opacity;
   backface-visibility: hidden;
-  animation: suggest-breathe 2.4s ease-in-out infinite;
+  animation:
+    suggest-spectrum 4.8s linear infinite,
+    suggest-breathe 2.4s ease-in-out infinite;
 }
 
 .search-button:hover,
@@ -553,6 +561,7 @@ button:focus-visible,
 
 .search-button.is-firing:not(:disabled) {
   animation:
+    suggest-spectrum 4.8s linear infinite,
     suggest-launch 460ms cubic-bezier(0.2, 0.8, 0.2, 1),
     suggest-breathe 2.4s ease-in-out infinite;
 }
@@ -745,16 +754,29 @@ button:focus-visible,
 @keyframes suggest-breathe {
   0%, 100% {
     box-shadow:
-      0 8px 24px rgba(255, 87, 56, 0.22),
+      0 10px 30px rgba(255, 87, 56, 0.24),
+      0 0 30px rgba(255, 66, 210, 0.19),
       inset 0 1px 0 rgba(255, 255, 255, 0.2);
-    border-color: rgba(255, 87, 56, 0.62);
+    border-color: rgba(255, 126, 186, 0.68);
   }
   50% {
     box-shadow:
-      0 12px 34px rgba(255, 87, 56, 0.3),
-      0 0 28px rgba(255, 87, 56, 0.2),
+      0 14px 38px rgba(255, 87, 56, 0.32),
+      0 0 36px rgba(255, 56, 201, 0.32),
       inset 0 1px 0 rgba(255, 255, 255, 0.24);
-    border-color: #ff8b77;
+    border-color: rgba(255, 170, 214, 0.86);
+  }
+}
+
+@keyframes suggest-spectrum {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
   }
 }
 
