@@ -135,6 +135,9 @@
         @if (osDetectionError) {
             <div class="error-message">{{ osDetectionError }}</div>
         }
+        @if (error) {
+            <div class="error-message">{{ error }}</div>
+        }
 
         <div class="keyword-row">
             <mat-form-field appearance="outline" class="search-form" data-ui-check="keyword-field">
