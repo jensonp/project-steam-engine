@@ -135,6 +135,13 @@ export class QueryScreen implements OnInit, OnDestroy {
     );
   }
 
+  get searchButtonLabel(): string {
+    if (!this.hasExplicitSearchFilters() && this.userProfile) {
+      return '[ Suggest for me ]';
+    }
+    return '[ Suggest games ]';
+  }
+
   get isSteamIdValid(): boolean {
     return /^\d{17}$/.test(this.steamId_input.trim());
   }
@@ -314,8 +321,9 @@ export class QueryScreen implements OnInit, OnDestroy {
     this.triggerSearchButtonFire();
 
     const steamId = this.steamId_input || this.backendService.getSteamId();
+    const usePersonalizedMode = !!(this.userProfile && steamId && !this.hasExplicitSearchFilters());
 
-    if (this.userProfile && steamId) {
+    if (usePersonalizedMode) {
       this.awaitingRecommendationResults = true;
       this.awaitingSearchResults = false;
       this.backendService.setSteamId(steamId);
@@ -545,5 +553,14 @@ export class QueryScreen implements OnInit, OnDestroy {
     if (fingerprint.includes('linux') || fingerprint.includes('x11')) return 'linux';
 
     return null;
+  }
+
+  private hasExplicitSearchFilters(): boolean {
+    return !!(
+      this.keyword_input.trim().length > 0 ||
+      this.selected_genre.length > 0 ||
+      this.selected_player_count !== 'Any' ||
+      this.selected_os
+    );
   }
 }
