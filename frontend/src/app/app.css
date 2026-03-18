@@ -29,7 +29,7 @@
   font-size: 20px;
   color: var(--neo-primary-strong);
   justify-content: flex-end;
-  transition: color 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: color 0.18s ease;
 }
 
 .app-toolbar mat-icon:hover {
@@ -47,11 +47,12 @@
   border: 1px solid var(--neo-border);
   box-shadow: none;
   cursor: pointer;
+  will-change: transform;
   transition:
-    transform 0.34s cubic-bezier(0.16, 1, 0.3, 1),
-    border-color 0.3s ease,
-    background-color 0.3s ease,
-    box-shadow 0.36s cubic-bezier(0.22, 1, 0.36, 1);
+    transform 0.16s cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 #valve-button {
@@ -67,16 +68,17 @@
   justify-content: center;
   overflow: hidden;
   cursor: pointer;
+  will-change: transform;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
   transition:
-    transform 0.34s cubic-bezier(0.16, 1, 0.3, 1),
-    border-color 0.3s ease,
-    background-color 0.3s ease,
-    box-shadow 0.36s cubic-bezier(0.22, 1, 0.36, 1);
+    transform 0.16s cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 #valve-button:hover {
-  transform: translateY(-1px) scale(1.01);
+  transform: translateY(-1px) scale(1.006);
   border-color: rgba(255, 87, 56, 0.58);
   background: rgba(255, 87, 56, 0.16);
   box-shadow:
@@ -85,7 +87,7 @@
 }
 
 #config-button:hover {
-  transform: translateY(-1px) scale(1.01);
+  transform: translateY(-1px) scale(1.006);
   background: rgba(255, 87, 56, 0.14);
   border-color: var(--neo-border-strong);
 }
@@ -102,7 +104,8 @@
   display: block;
   pointer-events: auto;
   cursor: grab;
-  touch-action: none;
+  touch-action: pan-y;
+  will-change: transform;
 }
 
 .toolbar-valve-model:active {
@@ -145,15 +148,16 @@
   background: rgba(255, 87, 56, 0.08);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
   cursor: pointer;
+  will-change: transform;
   transition:
-    transform 0.34s cubic-bezier(0.16, 1, 0.3, 1),
-    border-color 0.3s ease,
-    background-color 0.3s ease,
-    box-shadow 0.34s cubic-bezier(0.22, 1, 0.36, 1);
+    transform 0.16s cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 #header-icon:hover {
-  transform: translateY(-1px) scale(1.01);
+  transform: translateY(-1px) scale(1.006);
   border-color: var(--neo-border-strong);
   background: rgba(255, 87, 56, 0.14);
 }
@@ -163,11 +167,11 @@
   flex-direction: column;
   gap: 0.12rem;
   cursor: pointer;
-  transition: transform 0.38s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .brand-block:hover {
-  transform: translateX(4px);
+  transform: translateX(2px);
 }
 
 #header-title {
@@ -177,7 +181,7 @@
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--neo-primary-strong);
-  transition: text-shadow 0.42s ease;
+  transition: text-shadow 0.22s ease;
 }
 
 .brand-block:hover #header-title {
@@ -194,11 +198,11 @@
 
 #config-icon {
   cursor: pointer;
-  transition: transform 0.42s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 #config-button:hover #config-icon {
-  transform: rotate(90deg);
+  transform: rotate(72deg);
 }
 
 @keyframes toolbar-enter {
