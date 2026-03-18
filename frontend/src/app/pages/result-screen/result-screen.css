@@ -1,7 +1,7 @@
 .result-screen {
   position: relative;
   z-index: 1;
-  padding: 1rem 0.25rem 2.6rem;
+  padding: 1rem 0.25rem 1.5rem;
   min-height: calc(100vh - 130px);
   animation: results-fade 360ms ease-out;
 }
@@ -86,60 +86,59 @@
   font-size: 0.82rem;
   font-weight: 500;
   letter-spacing: 0.08em;
-  box-shadow: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   transition:
-    transform 0.2s ease,
+    transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1),
     background-color 0.2s ease,
     border-color 0.2s ease,
-    box-shadow 0.2s ease;
+    box-shadow 0.24s ease;
   animation: button-rise 460ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
   animation-delay: 260ms;
 }
 
 .back-button:hover {
-  transform: translateY(-1px);
-  background: linear-gradient(180deg, rgba(255, 87, 56, 0.2), rgba(255, 87, 56, 0.08));
+  transform: translateY(-2px);
+  background: linear-gradient(180deg, rgba(255, 87, 56, 0.22), rgba(255, 87, 56, 0.1));
   border-color: var(--neo-border-strong);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.24);
+  box-shadow:
+    0 6px 20px rgba(255, 87, 56, 0.15),
+    0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.back-button:active {
+  transform: translateY(0) scale(0.97);
+  box-shadow:
+    0 0 12px rgba(255, 87, 56, 0.2),
+    inset 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition-duration: 0.06s;
 }
 
 .results-container {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
-  gap: 1.2rem;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.3rem;
   position: relative;
   z-index: 1;
 }
 
+/* Universal stagger: use a variable computed from child index */
 .results-container app-game-card {
   opacity: 0;
-  transform: translateY(12px);
-  animation: card-rise 0.42s ease-out forwards;
+  transform: translateY(16px);
+  animation: card-rise 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
 
-.results-container app-game-card:nth-child(1) {
-  animation-delay: 40ms;
-}
-
-.results-container app-game-card:nth-child(2) {
-  animation-delay: 75ms;
-}
-
-.results-container app-game-card:nth-child(3) {
-  animation-delay: 110ms;
-}
-
-.results-container app-game-card:nth-child(4) {
-  animation-delay: 145ms;
-}
-
-.results-container app-game-card:nth-child(5) {
-  animation-delay: 180ms;
-}
-
-.results-container app-game-card:nth-child(6) {
-  animation-delay: 215ms;
-}
+.results-container app-game-card:nth-child(1)  { animation-delay: 60ms; }
+.results-container app-game-card:nth-child(2)  { animation-delay: 110ms; }
+.results-container app-game-card:nth-child(3)  { animation-delay: 160ms; }
+.results-container app-game-card:nth-child(4)  { animation-delay: 210ms; }
+.results-container app-game-card:nth-child(5)  { animation-delay: 260ms; }
+.results-container app-game-card:nth-child(6)  { animation-delay: 310ms; }
+.results-container app-game-card:nth-child(7)  { animation-delay: 360ms; }
+.results-container app-game-card:nth-child(8)  { animation-delay: 410ms; }
+.results-container app-game-card:nth-child(9)  { animation-delay: 460ms; }
+.results-container app-game-card:nth-child(10) { animation-delay: 510ms; }
+.results-container app-game-card:nth-child(n+11) { animation-delay: 550ms; }
 
 .result-screen p {
   color: var(--neo-muted);
@@ -159,11 +158,11 @@
 @keyframes card-rise {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(16px) scale(0.97);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
 }
 
@@ -231,5 +230,7 @@
   .empty-state {
     animation: none !important;
     transition: none !important;
+    opacity: 1 !important;
+    transform: none !important;
   }
 }

@@ -7,7 +7,7 @@
 
 .search-container {
   text-align: left;
-  padding: 1.25rem 1rem 2.8rem;
+  padding: 1.25rem 1rem 1rem;
   max-width: 1120px;
   margin: 0 auto;
   animation: rise-in 420ms ease-out;
@@ -67,6 +67,8 @@
   justify-content: space-between;
   gap: var(--space-4);
   margin-bottom: 1.25rem;
+  animation: text-reveal 500ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: 100ms;
 }
 
 .hero-main {
@@ -87,7 +89,9 @@
   background: var(--neo-surface-strong);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.03),
-    var(--shadow-1);
+    var(--shadow-1),
+    0 0 24px rgba(255, 87, 56, 0.08);
+  animation: icon-pulse 3s ease-in-out infinite alternate;
 }
 
 #gaben {
@@ -127,6 +131,7 @@ h1 {
   font-weight: 700;
   letter-spacing: -0.04em;
   color: var(--neo-primary-strong);
+  animation: cyber-glow 4s ease-in-out infinite alternate;
 }
 
 h1 span {
@@ -145,12 +150,22 @@ h1 span {
   color: var(--neo-primary-soft);
 }
 
+.signal-list span {
+  animation: text-reveal 500ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.signal-list span:nth-child(1) { animation-delay: 300ms; }
+.signal-list span:nth-child(2) { animation-delay: 420ms; }
+.signal-list span:nth-child(3) { animation-delay: 540ms; }
+
 .subtitle {
   color: var(--neo-muted);
   margin: 0;
   max-width: 46rem;
   font-size: 1.02rem;
   line-height: 1.6;
+  animation: text-reveal 600ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: 650ms;
 }
 
 .terminal-panel {
@@ -170,22 +185,23 @@ h1 span {
 }
 
 .panel-intro {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
-  gap: 1rem 1.5rem;
-  align-items: start;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
   margin-bottom: 1.25rem;
   padding-bottom: 1rem;
   border-bottom: 1px solid var(--neo-border);
 }
 
 .panel-kicker {
-  margin: 0 0 0.35rem;
+  margin: 0;
   font-family: 'IBM Plex Mono', monospace;
   font-size: 0.76rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--neo-primary-soft);
+  animation: text-reveal 600ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: 120ms;
 }
 
 .panel-intro h2 {
@@ -195,12 +211,18 @@ h1 span {
   font-weight: 700;
   line-height: 1.05;
   color: var(--neo-primary-strong);
+  animation: text-reveal 600ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: 200ms;
 }
 
 .panel-intro p {
   margin: 0;
   color: var(--neo-muted);
-  line-height: 1.5;
+  line-height: 1.6;
+  max-width: 42rem;
+  font-size: 0.94rem;
+  animation: text-reveal 600ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: 320ms;
 }
 
 .steam-section,
@@ -213,16 +235,16 @@ h1 span {
 .steam-section {
   grid-template-columns: minmax(0, 1fr) auto;
   margin-bottom: 1rem;
-  animation: section-enter 520ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
-  animation-delay: 160ms;
+  animation: section-enter 640ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: 200ms;
 }
 
 .filter-row {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   margin-top: 1rem;
   row-gap: 0.9rem;
-  animation: section-enter 520ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
-  animation-delay: 220ms;
+  animation: section-enter 640ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: 280ms;
 }
 
 .steam-field,
@@ -245,7 +267,11 @@ h1 span {
   gap: 0.6rem;
   align-items: center;
   justify-content: flex-end;
-  padding-top: 0.4rem;
+  margin-top: 0.5rem;
+}
+
+.load-profile-button {
+  margin-top: 0.5rem;
 }
 
 button,
@@ -262,16 +288,15 @@ button,
   font-size: 0.84rem;
   font-weight: 500;
   letter-spacing: 0.08em;
-  box-shadow: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   cursor: pointer;
   min-height: 48px;
-  padding: 0.75rem 1rem;
-  margin-top: 0.4rem;
+  padding: 0.75rem 1.2rem;
   transition:
-    transform 0.18s ease,
+    transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1),
     background-color 0.18s ease,
     border-color 0.18s ease,
-    box-shadow 0.18s ease;
+    box-shadow 0.22s ease;
 }
 
 button:hover:not(:disabled),
@@ -279,9 +304,30 @@ button:hover:not(:disabled),
 .detect-os-button:hover:not(:disabled),
 .clear-os-button:hover:not(:disabled),
 .load-profile-button:hover:not(:disabled) {
-  transform: translateY(-1px);
+  transform: translateY(-2px);
   border-color: var(--neo-border-strong);
-  background: linear-gradient(180deg, rgba(255, 87, 56, 0.18), rgba(255, 87, 56, 0.08));
+  background: linear-gradient(180deg, rgba(255, 87, 56, 0.22), rgba(255, 87, 56, 0.1));
+  box-shadow:
+    0 6px 20px rgba(255, 87, 56, 0.15),
+    0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+button:active:not(:disabled),
+.search-button:active:not(:disabled),
+.detect-os-button:active:not(:disabled),
+.clear-os-button:active:not(:disabled),
+.load-profile-button:active:not(:disabled) {
+  transform: translateY(0) scale(0.97);
+  background: linear-gradient(180deg, rgba(255, 87, 56, 0.28), rgba(255, 87, 56, 0.14));
+  border-color: rgba(255, 87, 56, 0.5);
+  box-shadow:
+    0 0 12px rgba(255, 87, 56, 0.25),
+    inset 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition:
+    transform 0.06s ease,
+    background-color 0.06s ease,
+    border-color 0.06s ease,
+    box-shadow 0.06s ease;
 }
 
 button:disabled,
@@ -308,28 +354,108 @@ button:disabled,
 
 .keyword-row {
   margin-top: var(--space-4);
-  animation: section-enter 520ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
-  animation-delay: 280ms;
+  animation: section-enter 640ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: 360ms;
 }
 
 .form-actions {
   margin-top: 1.25rem;
   display: flex;
   justify-content: center;
-  animation: section-enter 520ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
-  animation-delay: 320ms;
+  animation: section-enter 640ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: 420ms;
 }
 
 .search-button {
   margin-top: 0;
-  min-width: 13rem;
-  background: linear-gradient(180deg, rgba(255, 87, 56, 0.24), rgba(255, 87, 56, 0.1));
+  min-width: 15rem;
+  min-height: 54px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  position: relative;
+  overflow: hidden;
+  border: 1.5px solid rgba(255, 87, 56, 0.5);
+  background: linear-gradient(135deg, rgba(255, 87, 56, 0.3), rgba(255, 40, 20, 0.15), rgba(255, 87, 56, 0.25));
+  background-size: 200% 100%;
+  box-shadow:
+    0 0 16px rgba(255, 87, 56, 0.15),
+    0 0 40px rgba(255, 87, 56, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  animation:
+    shimmer-btn 3s ease-in-out infinite,
+    cta-pulse 2s ease-in-out infinite alternate;
+}
+
+.search-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+  animation: shimmer-sweep 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.search-button:hover:not(:disabled) {
+  border-color: rgba(255, 87, 56, 0.8);
+  background: linear-gradient(135deg, rgba(255, 87, 56, 0.42), rgba(255, 40, 20, 0.24), rgba(255, 87, 56, 0.38));
+  background-size: 200% 100%;
+  box-shadow:
+    0 0 24px rgba(255, 87, 56, 0.3),
+    0 0 60px rgba(255, 87, 56, 0.1),
+    0 8px 24px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transform: translateY(-3px) scale(1.02);
+}
+
+.search-button:active:not(:disabled) {
+  transform: translateY(0) scale(0.97);
+  box-shadow:
+    0 0 20px rgba(255, 87, 56, 0.35),
+    inset 0 2px 4px rgba(0, 0, 0, 0.3);
+  transition-duration: 0.06s;
+}
+
+@keyframes shimmer-btn {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes shimmer-sweep {
+  0% { left: -100%; }
+  50%, 100% { left: 120%; }
+}
+
+@keyframes cta-pulse {
+  from {
+    box-shadow:
+      0 0 16px rgba(255, 87, 56, 0.15),
+      0 0 40px rgba(255, 87, 56, 0.06),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  }
+  to {
+    box-shadow:
+      0 0 22px rgba(255, 87, 56, 0.25),
+      0 0 56px rgba(255, 87, 56, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  }
 }
 
 .os-status {
   margin: 0.7rem 0 0;
   color: var(--neo-primary-soft);
-  font-size: 0.88rem;
+  font-size: 0.82rem;
+  font-family: 'IBM Plex Mono', monospace;
+  letter-spacing: 0.06em;
+  padding: 0.4rem 0.8rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid rgba(255, 87, 56, 0.2);
+  background: rgba(255, 87, 56, 0.06);
+  display: inline-block;
+  animation: section-enter 400ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
 .profile-card {
@@ -340,10 +466,19 @@ button:disabled,
   margin: 0 0 1rem;
   padding: var(--space-4);
   border: 1px solid var(--neo-border);
+  border-radius: 12px;
   background:
     linear-gradient(180deg, rgba(255, 87, 56, 0.08), transparent 36%),
     rgba(255, 255, 255, 0.02);
   max-width: none;
+  animation: section-enter 640ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: 100ms;
+  transition: border-color 0.2s ease, box-shadow 0.24s ease;
+}
+
+.profile-card:hover {
+  border-color: var(--neo-border-strong);
+  box-shadow: 0 4px 16px rgba(255, 87, 56, 0.08);
 }
 
 .profile-avatar {
@@ -351,6 +486,12 @@ button:disabled,
   height: 64px;
   border-radius: 12px;
   border: 1px solid var(--neo-border);
+  transition: border-color 0.2s ease, box-shadow 0.24s ease;
+}
+
+.profile-card:hover .profile-avatar {
+  border-color: var(--neo-border-strong);
+  box-shadow: 0 0 16px rgba(255, 87, 56, 0.12);
 }
 
 .profile-info {
@@ -386,6 +527,12 @@ button:disabled,
   font-size: 0.78rem;
   color: var(--neo-primary-strong);
   background: rgba(255, 87, 56, 0.08);
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.genre-chip:hover {
+  border-color: rgba(255, 87, 56, 0.3);
+  background: rgba(255, 87, 56, 0.14);
 }
 
 .error-message {
@@ -400,6 +547,8 @@ button:disabled,
   background: rgba(61, 17, 17, 0.44);
   color: #ffc0c0;
   line-height: 1.5;
+  animation: error-slide-in 400ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  box-shadow: 0 0 16px rgba(255, 100, 100, 0.08);
 }
 
 .search-container ::ng-deep .mat-mdc-form-field {
@@ -409,6 +558,7 @@ button:disabled,
 .search-container ::ng-deep .mat-mdc-text-field-wrapper {
   border-radius: 14px !important;
   background: rgba(255, 255, 255, 0.02) !important;
+  padding-left: 12px !important;
   transition:
     border-color 180ms ease,
     box-shadow 180ms ease,
@@ -429,6 +579,12 @@ button:disabled,
 .search-container ::ng-deep .mdc-floating-label {
   color: var(--neo-text) !important;
   font-family: 'Space Grotesk', sans-serif !important;
+}
+
+.search-container ::ng-deep .steam-field .mat-mdc-input-element {
+  font-family: 'IBM Plex Mono', monospace !important;
+  letter-spacing: 0.08em !important;
+  font-size: 0.95rem !important;
 }
 
 .search-container ::ng-deep .mat-mdc-select-arrow-wrapper {
@@ -480,6 +636,17 @@ button:disabled,
   }
 }
 
+@keyframes error-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 @keyframes section-enter {
   from {
     opacity: 0;
@@ -488,6 +655,61 @@ button:disabled,
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes text-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(8px) translateX(-4px);
+    filter: blur(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) translateX(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes icon-pulse {
+  from {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.03),
+      var(--shadow-1),
+      0 0 20px rgba(255, 87, 56, 0.06);
+  }
+  to {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.03),
+      var(--shadow-1),
+      0 0 32px rgba(255, 87, 56, 0.16),
+      0 0 64px rgba(255, 87, 56, 0.06);
+  }
+}
+
+@keyframes cyber-glow {
+  0% {
+    text-shadow:
+      0 0 8px rgba(255, 87, 56, 0.3),
+      0 0 20px rgba(255, 87, 56, 0.1);
+  }
+  33% {
+    text-shadow:
+      0 0 12px rgba(255, 87, 56, 0.5),
+      0 0 30px rgba(255, 87, 56, 0.2),
+      0 0 60px rgba(255, 87, 56, 0.08);
+  }
+  66% {
+    text-shadow:
+      0 0 8px rgba(255, 140, 56, 0.4),
+      0 0 24px rgba(255, 140, 56, 0.15),
+      0 0 48px rgba(255, 87, 56, 0.06);
+  }
+  100% {
+    text-shadow:
+      0 0 14px rgba(255, 87, 56, 0.55),
+      0 0 36px rgba(255, 87, 56, 0.22),
+      0 0 72px rgba(255, 87, 56, 0.1);
   }
 }
 

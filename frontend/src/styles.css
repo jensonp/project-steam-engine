@@ -30,6 +30,11 @@
 html,
 body {
   height: 100%;
+  background-color: var(--neo-bg);
+}
+
+html {
+  overscroll-behavior-y: none;
 }
 
 body {
@@ -41,6 +46,7 @@ body {
     radial-gradient(circle at 85% 0%, rgba(255, 87, 56, 0.2), transparent 24%),
     linear-gradient(180deg, #0d0d0d 0%, #080808 42%, #050505 100%);
   overflow-x: hidden;
+  overscroll-behavior-y: none;
 }
 
 body::before {
@@ -150,15 +156,28 @@ a:hover {
 }
 
 .cdk-overlay-pane .topunit .mat-pseudo-checkbox {
-  width: 15px !important;
-  height: 15px !important;
+  width: 16px !important;
+  height: 16px !important;
   margin-right: 10px !important;
-  border-color: rgba(244, 236, 224, 0.32) !important;
+  border-color: rgba(244, 236, 224, 0.28) !important;
+  border-radius: 4px !important;
+  border-width: 1.5px !important;
+  transition: border-color 0.18s ease, background-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.cdk-overlay-pane .topunit .mat-pseudo-checkbox:hover {
+  border-color: rgba(255, 87, 56, 0.5) !important;
 }
 
 .cdk-overlay-pane .topunit .mat-pseudo-checkbox-checked,
 .cdk-overlay-pane .topunit .mat-pseudo-checkbox-indeterminate {
-  background: rgba(255, 87, 56, 0.9) !important;
+  background: rgba(255, 87, 56, 0.18) !important;
+  border-color: rgba(255, 87, 56, 0.6) !important;
+  box-shadow: 0 0 8px rgba(255, 87, 56, 0.12) !important;
+}
+
+.cdk-overlay-pane .topunit .mat-pseudo-checkbox-checked::after {
+  color: var(--neo-primary-strong) !important;
 }
 
 /* ── Dropdown panel entrance animation ── */
