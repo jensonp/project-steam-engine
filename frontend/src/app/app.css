@@ -29,7 +29,7 @@
   font-size: 20px;
   color: var(--neo-primary-strong);
   justify-content: flex-end;
-  transition: color 0.2s ease;
+  transition: color 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .app-toolbar mat-icon:hover {
@@ -48,9 +48,10 @@
   box-shadow: none;
   cursor: pointer;
   transition:
-    transform 0.18s ease,
-    border-color 0.18s ease,
-    background-color 0.18s ease;
+    transform 0.34s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.3s ease,
+    background-color 0.3s ease,
+    box-shadow 0.36s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 #valve-button {
@@ -68,14 +69,14 @@
   cursor: pointer;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
   transition:
-    transform 0.18s ease,
-    border-color 0.18s ease,
-    background-color 0.18s ease,
-    box-shadow 0.2s ease;
+    transform 0.34s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.3s ease,
+    background-color 0.3s ease,
+    box-shadow 0.36s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 #valve-button:hover {
-  transform: translateY(-1px);
+  transform: translateY(-1px) scale(1.01);
   border-color: rgba(255, 87, 56, 0.58);
   background: rgba(255, 87, 56, 0.16);
   box-shadow:
@@ -84,7 +85,7 @@
 }
 
 #config-button:hover {
-  transform: translateY(-1px);
+  transform: translateY(-1px) scale(1.01);
   background: rgba(255, 87, 56, 0.14);
   border-color: var(--neo-border-strong);
 }
@@ -145,13 +146,14 @@
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
   cursor: pointer;
   transition:
-    transform 0.18s ease,
-    border-color 0.18s ease,
-    background-color 0.18s ease;
+    transform 0.34s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.3s ease,
+    background-color 0.3s ease,
+    box-shadow 0.34s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 #header-icon:hover {
-  transform: translateY(-1px);
+  transform: translateY(-1px) scale(1.01);
   border-color: var(--neo-border-strong);
   background: rgba(255, 87, 56, 0.14);
 }
@@ -161,11 +163,11 @@
   flex-direction: column;
   gap: 0.12rem;
   cursor: pointer;
-  transition: transform 0.2s ease;
+  transition: transform 0.38s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .brand-block:hover {
-  transform: translateX(3px);
+  transform: translateX(4px);
 }
 
 #header-title {
@@ -175,7 +177,7 @@
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--neo-primary-strong);
-  transition: text-shadow 0.3s ease;
+  transition: text-shadow 0.42s ease;
 }
 
 .brand-block:hover #header-title {
@@ -192,7 +194,7 @@
 
 #config-icon {
   cursor: pointer;
-  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition: transform 0.42s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 #config-button:hover #config-icon {

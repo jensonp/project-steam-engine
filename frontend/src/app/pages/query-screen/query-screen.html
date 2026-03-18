@@ -174,17 +174,30 @@
                         [disabled]="isLoading || isLoadingProfile">
                         [ Use my OS ]
                     </button>
-                    @if (selected_os) {
-                        <button type="button" class="clear-os-button" data-ui-check="clear-os-button" (click)="clearOsFilter()">
-                            [ Clear ]
-                        </button>
-                    }
+                    <button
+                        type="button"
+                        class="clear-os-button os-clear-transition"
+                        data-ui-check="clear-os-button"
+                        [class.is-visible]="!!selected_os"
+                        [attr.aria-hidden]="!selected_os"
+                        [attr.tabindex]="selected_os ? 0 : -1"
+                        [disabled]="isLoading || isLoadingProfile || !selected_os"
+                        (click)="clearOsFilter()">
+                        [ Clear ]
+                    </button>
                 </div>
             </div>
 
-            @if (selected_os) {
-                <p class="os-status" role="status" aria-live="polite">OS filter active: {{ selectedOsLabel }}</p>
-            }
+            <p
+                class="os-status"
+                role="status"
+                aria-live="polite"
+                [class.is-visible]="!!selected_os"
+                [attr.aria-hidden]="!selected_os">
+                @if (selected_os) {
+                    OS filter active: {{ selectedOsLabel }}
+                }
+            </p>
             @if (osDetectionError) {
                 <div class="error-message" role="alert" aria-live="assertive">{{ osDetectionError }}</div>
             }
