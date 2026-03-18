@@ -189,7 +189,8 @@ h1 {
   font-weight: 700;
   letter-spacing: -0.04em;
   color: var(--neo-primary-strong);
-  white-space: nowrap;
+  white-space: normal;
+  text-wrap: balance;
 }
 
 .signal-list {
@@ -1105,6 +1106,12 @@ button:focus-visible,
     flex-direction: column;
   }
 
+  .hero-coordinates {
+    min-width: 0;
+    width: 100%;
+    letter-spacing: 0.08em;
+  }
+
   .terminal-panel {
     padding: 1rem;
   }
@@ -1141,6 +1148,12 @@ button:focus-visible,
 
   .profile-card {
     flex-direction: column;
+  }
+}
+
+@media (min-width: 761px) {
+  h1 {
+    white-space: nowrap;
   }
 }
 
