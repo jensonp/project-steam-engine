@@ -6,6 +6,16 @@ import { validate } from '../middleware/validate.middleware';
 const router = Router();
 const searchService = new SearchService();
 
+const dbUnavailableCodes = new Set([
+  'ECONNREFUSED',
+  'ENOTFOUND',
+  'ETIMEDOUT',
+  '57P01',
+  '08001',
+  '08006',
+  '28P01',
+]);
+
 // Zod Schema: Optional parameters
 const searchSchema = z.object({
   query: z.object({
@@ -46,8 +56,44 @@ router.get(
       res.json(games);
       
     } catch (error: any) {
-      console.error('Search query failed:', error.message);
-      res.status(500).json({ error: 'Internal server error during search' });
+      const message = error?.message ? String(error.message) : String(error ?? '');
+      const code = error?.code ? String(error.code) : '';
+
+      // Log the full object to keep deployment diagnostics actionable.
+      console.error('Search query failed:', error);
+
+      if (dbUnavailableCodes.has(code)) {
+        res.status(503).json({
+          error: 'Search database is unavailable. Configure PostgreSQL connection variables.',
+          code,
+        });
+        return;
+      }
+
+      if (code === '42P01' || message.toLowerCase().includes('relation "games" does not exist')) {
+        res.status(503).json({
+          error: 'Search index is not initialized. Create and populate the games table first.',
+          code: code || '42P01',
+        });
+        return;
+      }
+
+      if (
+        code === '42883' ||
+        message.toLowerCase().includes('operator does not exist') ||
+        message.toLowerCase().includes('gin_trgm_ops')
+      ) {
+        res.status(503).json({
+          error: 'Database text-search extensions are missing (pg_trgm).',
+          code: code || '42883',
+        });
+        return;
+      }
+
+      res.status(500).json({
+        error: 'Internal server error during search',
+        details: message || 'Unknown error',
+      });
     }
   }
 );
