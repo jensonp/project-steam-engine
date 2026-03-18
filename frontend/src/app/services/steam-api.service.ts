@@ -3,6 +3,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { UserLibrary, PlayerSummary, Game, OwnedGame } from '../types/steam.types';
+import { normalizeApiUrl } from '../utils/api-url';
 
 import { environment } from '../../environments/environment';
 
@@ -10,7 +11,7 @@ import { environment } from '../../environments/environment';
   providedIn: 'root'
 })
 export class SteamApiService {
-  private readonly apiUrl = `${environment.apiUrl}/api`;
+  private readonly apiUrl = `${normalizeApiUrl(environment.apiUrl)}/api`;
 
   constructor(private http: HttpClient) {}
 

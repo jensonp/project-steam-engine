@@ -119,14 +119,18 @@ export class QueryScreen implements OnInit, OnDestroy {
     this.subs.add(this.backendService.searchResults$.subscribe(results => {
       if (this.awaitingSearchResults && !this.isLoading) {
         this.awaitingSearchResults = false;
-        this.router.navigate(['/results'], { state: { results } });
+        if (!this.error) {
+          this.router.navigate(['/results'], { state: { results } });
+        }
       }
     }));
 
     this.subs.add(this.backendService.recommendations$.subscribe(results => {
       if (this.awaitingRecommendationResults && !this.isLoading) {
         this.awaitingRecommendationResults = false;
-        this.router.navigate(['/results'], { state: { results } });
+        if (!this.error) {
+          this.router.navigate(['/results'], { state: { results } });
+        }
       }
     }));
   }

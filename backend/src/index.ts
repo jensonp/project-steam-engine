@@ -32,6 +32,21 @@ const limiter = rateLimit({
 
 app.use('/api/', limiter);
 
+const healthPayload = () => ({
+  status: 'ok',
+  timestamp: new Date().toISOString(),
+  apiKeyConfigured: !!config.steamApiKey
+});
+
+// Keep root-level health routes for platforms that probe "/" by default.
+app.get('/', (_req, res) => {
+  res.json(healthPayload());
+});
+
+app.get('/health', (_req, res) => {
+  res.json(healthPayload());
+});
+
 // Routes
 app.use('/api/user', userRoutes);
 app.use('/api/recommend', recommendRoutes);
@@ -40,11 +55,7 @@ app.use('/api/search', searchRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
-  res.json({
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    apiKeyConfigured: !!config.steamApiKey
-  });
+  res.json(healthPayload());
 });
 
 // 404 handler

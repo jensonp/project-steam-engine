@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { BehaviorSubject, Observable, throwError } from 'rxjs';
+import { BehaviorSubject, EMPTY, Observable } from 'rxjs';
 import { catchError, finalize, tap } from 'rxjs/operators';
 import { Game, UserProfile, ScoredRecommendation } from '../types/steam.types';
+import { normalizeApiUrl } from '../utils/api-url';
 
 // State interface for strict typing
 interface AppState {
@@ -50,7 +51,7 @@ import { environment } from '../../environments/environment';
   providedIn: 'root',
 })
 export class BackendService {
-  private readonly backendUrl = environment.apiUrl;
+  private readonly backendUrl = normalizeApiUrl(environment.apiUrl);
   
   // Single Source of Truth (The Store)
   private state = new BehaviorSubject<AppState>(initialState);
@@ -85,6 +86,32 @@ export class BackendService {
     this.patchState({ steamId: id, error: null });
   }
 
+  private getErrorMessage(error: unknown, fallback: string): string {
+    const maybeHttpError = error as {
+      message?: string;
+      error?: { error?: string; details?: string };
+      status?: number;
+    };
+
+    if (maybeHttpError?.error?.error) {
+      return maybeHttpError.error.error;
+    }
+
+    if (maybeHttpError?.error?.details) {
+      return maybeHttpError.error.details;
+    }
+
+    if (maybeHttpError?.status) {
+      return `${fallback} (HTTP ${maybeHttpError.status})`;
+    }
+
+    if (maybeHttpError?.message) {
+      return maybeHttpError.message;
+    }
+
+    return fallback;
+  }
+
   // Request backend to index user data based on the provided Steam ID
   indexUser(): void {
     const url = `${this.backendUrl}/login/${encodeURIComponent(this.state.value.steamId)}`;
@@ -108,7 +135,7 @@ export class BackendService {
       return;
     }
 
-    this.patchState({ isLoadingRecommendations: true, error: null });
+    this.patchState({ isLoadingRecommendations: true, error: null, recommendations: [] });
 
     const url = `${this.backendUrl}/api/recommend/user/${encodeURIComponent(currentState.steamId)}`;
     const params = new HttpParams().set('limit', limit.toString());
@@ -116,8 +143,10 @@ export class BackendService {
     this.http.get<ScoredRecommendation[]>(url, { params }).pipe(
       tap(recommendations => this.patchState({ recommendations })),
       catchError(error => {
-        this.patchState({ error: error.message || 'Failed to load recommendations' });
-        return throwError(() => error);
+        this.patchState({
+          error: this.getErrorMessage(error, 'Failed to load recommendations'),
+        });
+        return EMPTY;
       }),
       finalize(() => this.patchState({ isLoadingRecommendations: false }))
     ).subscribe();
@@ -128,15 +157,17 @@ export class BackendService {
     const currentState = this.state.value;
     if (!currentState.steamId) return;
 
-    this.patchState({ isLoadingProfile: true, error: null });
+    this.patchState({ isLoadingProfile: true, error: null, userProfile: null });
     
     const url = `${this.backendUrl}/api/recommend/user/${encodeURIComponent(currentState.steamId)}/profile`;
     
     this.http.get<UserProfile>(url).pipe(
       tap(userProfile => this.patchState({ userProfile })),
       catchError(error => {
-        this.patchState({ error: error.message || 'Failed to load user profile' });
-        return throwError(() => error);
+        this.patchState({
+          error: this.getErrorMessage(error, 'Failed to load user profile'),
+        });
+        return EMPTY;
       }),
       finalize(() => this.patchState({ isLoadingProfile: false }))
     ).subscribe();
@@ -144,7 +175,7 @@ export class BackendService {
 
   // Command: Execute Search
   executeSearch(genres: string, keyword: string, playerCount: string, os?: string): void {
-    this.patchState({ isLoadingSearch: true, error: null });
+    this.patchState({ isLoadingSearch: true, error: null, searchResults: [] });
 
     const url = `${this.backendUrl}/api/search`;
     let params = new HttpParams();
@@ -157,8 +188,10 @@ export class BackendService {
     this.http.get<Game[]>(url, { params }).pipe(
       tap(searchResults => this.patchState({ searchResults })),
       catchError(error => {
-        this.patchState({ error: error.message || 'Search failed' });
-        return throwError(() => error);
+        this.patchState({
+          error: this.getErrorMessage(error, 'Search failed'),
+        });
+        return EMPTY;
       }),
       finalize(() => this.patchState({ isLoadingSearch: false }))
     ).subscribe();
