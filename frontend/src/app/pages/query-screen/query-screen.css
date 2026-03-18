@@ -607,6 +607,11 @@ button:focus-visible,
   justify-content: center;
 }
 
+.search-button.katana-active,
+.search-button.katana-active * {
+  cursor: none !important;
+}
+
 .search-button:hover::before {
   opacity: 1;
   filter: blur(12px);

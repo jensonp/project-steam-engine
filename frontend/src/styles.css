@@ -97,11 +97,6 @@ input, textarea, [contenteditable="true"] {
   cursor: url('/doomfist-cursor-ready.png') 16 16, text !important;
 }
 
-/* Specific state for the Suggest Games button - Rage Mode */
-.search-button, .search-button * {
-  cursor: url('/doomfist-cursor-angry.png') 16 16, pointer !important;
-}
-
 body::before {
   content: '';
   position: fixed;

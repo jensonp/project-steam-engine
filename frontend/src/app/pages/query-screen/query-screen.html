@@ -224,12 +224,15 @@
                     type="submit"
                     [disabled]="isLoading"
                     class="search-button"
+                    [class.katana-active]="isKatanaCursorVisible"
                     [class.is-firing]="isSearchButtonFiring"
                     data-ui-check="search-button"
                     (pointerenter)="onSearchButtonHoverEnter($event)"
+                    (mouseenter)="onSearchButtonHoverEnter($event)"
                     (pointermove)="onSearchButtonHoverMove($event)"
                     (mousemove)="onSearchButtonHoverMove($event)"
                     (pointerleave)="onSearchButtonHoverLeave()"
+                    (mouseleave)="onSearchButtonHoverLeave()"
                     (pointerdown)="onSearchButtonPress($event)">
                     <span class="search-button-label">
                         @if (isLoading) {
