@@ -326,6 +326,12 @@ export class QueryScreen implements OnInit, OnDestroy {
     this.queueKatanaCursorUpdate(event);
   }
 
+  onSearchButtonHoverMove(event: MouseEvent | PointerEvent): void {
+    if (this.isTouchLikePointer(event)) return;
+    if (!this.isKatanaCursorVisible) return;
+    this.queueKatanaCursorUpdate(event);
+  }
+
   onSearchButtonHoverLeave(): void {
     this.isKatanaCursorVisible = false;
     this.removeKatanaPointerMoveListener?.();
@@ -453,15 +459,22 @@ export class QueryScreen implements OnInit, OnDestroy {
     if (this.removeKatanaPointerMoveListener || typeof window === 'undefined') return;
 
     this.ngZone.runOutsideAngular(() => {
-      const handlePointerMove = (event: PointerEvent) => {
+      const handleMove = (event: MouseEvent | PointerEvent) => {
         if (!this.isKatanaCursorVisible) return;
-        if (event.pointerType === 'touch' || event.pointerType === 'pen') return;
+        if ('pointerType' in event && (event.pointerType === 'touch' || event.pointerType === 'pen')) return;
         this.queueKatanaCursorUpdate(event);
       };
 
-      document.addEventListener('pointermove', handlePointerMove, { passive: true });
+      if ('PointerEvent' in window) {
+        document.addEventListener('pointermove', handleMove as EventListener, { passive: true });
+        this.removeKatanaPointerMoveListener = () =>
+          document.removeEventListener('pointermove', handleMove as EventListener);
+        return;
+      }
+
+      document.addEventListener('mousemove', handleMove as EventListener, { passive: true });
       this.removeKatanaPointerMoveListener = () =>
-        document.removeEventListener('pointermove', handlePointerMove);
+        document.removeEventListener('mousemove', handleMove as EventListener);
     });
   }
 

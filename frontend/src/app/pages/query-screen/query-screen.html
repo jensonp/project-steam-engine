@@ -227,6 +227,8 @@
                     [class.is-firing]="isSearchButtonFiring"
                     data-ui-check="search-button"
                     (pointerenter)="onSearchButtonHoverEnter($event)"
+                    (pointermove)="onSearchButtonHoverMove($event)"
+                    (mousemove)="onSearchButtonHoverMove($event)"
                     (pointerleave)="onSearchButtonHoverLeave()"
                     (pointerdown)="onSearchButtonPress($event)">
                     <span class="search-button-label">

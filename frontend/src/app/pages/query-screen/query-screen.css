@@ -641,11 +641,6 @@ button:focus-visible,
   backface-visibility: hidden;
 }
 
-.search-button:hover,
-.search-button:hover * {
-  cursor: none !important;
-}
-
 .search-button.is-firing:not(:disabled) {
   animation:
     shimmer-btn 1.6s linear infinite,
