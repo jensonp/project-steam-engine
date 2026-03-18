@@ -12,6 +12,8 @@
         type="button"
         [attr.aria-label]="valveEnabled ? 'Disable valve backdrop' : 'Enable valve backdrop'"
         [attr.aria-pressed]="valveEnabled"
+        (pointerdown)="onValvePointerDown($event)"
+        (pointermove)="onValvePointerMove($event)"
         (click)="toggleValveBackdrop()">
         @if (valveEnabled) {
             <model-viewer
@@ -20,8 +22,10 @@
                 alt=""
                 tabindex="-1"
                 auto-rotate
-                auto-rotate-delay="0"
+                auto-rotate-delay="700"
                 rotation-per-second="38deg"
+                camera-controls
+                disable-zoom
                 interaction-prompt="none"
                 reveal="auto"
                 loading="eager"
