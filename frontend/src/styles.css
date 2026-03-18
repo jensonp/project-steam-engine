@@ -55,6 +55,10 @@ a, button, [role="button"], mat-option, .mat-mdc-option {
   cursor: url('/doomfist-cursor.png') 16 16, pointer;
 }
 
+.search-button:hover {
+  cursor: url('/doomfist-cursor-angry.png') 16 16, pointer !important;
+}
+
 body::before {
   content: '';
   position: fixed;
