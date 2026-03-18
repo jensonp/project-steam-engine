@@ -17,4 +17,8 @@ export const config = {
   pgUser: envConfig.PGUSER || process.env.PGUSER || 'postgres',
   pgPort: parseInt(envConfig.PGPORT || process.env.PGPORT || '5432', 10),
   pgPassword: envConfig.PGPASSWORD || process.env.PGPASSWORD || '',
+  pgConnectionTimeoutMs: parseInt(
+    envConfig.PG_CONNECTION_TIMEOUT_MS || process.env.PG_CONNECTION_TIMEOUT_MS || '5000',
+    10
+  ),
 };

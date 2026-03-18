@@ -8,9 +8,12 @@ export const pool = new Pool({
   database: config.pgDatabase,
   user: config.pgUser,
   port: config.pgPort,
+  connectionTimeoutMillis: config.pgConnectionTimeoutMs,
 });
 
-console.log(`[DB] Initialize connection pool: postgres://${config.pgUser}@${config.pgHost}:${config.pgPort}/${config.pgDatabase}`);
+console.log(
+  `[DB] Initialize connection pool: postgres://${config.pgUser}@${config.pgHost}:${config.pgPort}/${config.pgDatabase} (connect timeout ${config.pgConnectionTimeoutMs}ms)`
+);
 
 // Strict Generic query helper mapping exactly to the Promise overload
 export const query = <T extends QueryResultRow = any>(text: string, params?: any[]): Promise<QueryResult<T>> => {

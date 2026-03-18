@@ -16,6 +16,17 @@ const dbUnavailableCodes = new Set([
   '28P01',
 ]);
 
+function isDbUnavailable(code: string, message: string): boolean {
+  const m = message.toLowerCase();
+  return (
+    dbUnavailableCodes.has(code) ||
+    m.includes('connect econnrefused') ||
+    m.includes('timeout exceeded when trying to connect') ||
+    m.includes('connection terminated unexpectedly') ||
+    m.includes('getaddrinfo enotfound')
+  );
+}
+
 // Zod Schema: Optional parameters
 const searchSchema = z.object({
   query: z.object({
@@ -62,10 +73,10 @@ router.get(
       // Log the full object to keep deployment diagnostics actionable.
       console.error('Search query failed:', error);
 
-      if (dbUnavailableCodes.has(code)) {
+      if (isDbUnavailable(code, message)) {
         res.status(503).json({
           error: 'Search database is unavailable. Configure PostgreSQL connection variables.',
-          code,
+          code: code || 'DB_UNAVAILABLE',
         });
         return;
       }
