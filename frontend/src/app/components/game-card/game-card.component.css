@@ -27,11 +27,13 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.04),
     0 8px 24px rgba(0, 0, 0, 0.26);
   transition:
-    transform 0.24s cubic-bezier(0.2, 0.8, 0.2, 1),
-    border-color 0.24s ease,
-    box-shadow 0.28s ease,
-    background-color 0.24s ease;
-  will-change: transform;
+    transform 0.32s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.26s ease,
+    box-shadow 0.34s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.3s ease;
+  will-change: transform, box-shadow;
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 .game-card::before {
@@ -44,7 +46,7 @@
     radial-gradient(circle at 84% 24%, rgba(255, 87, 56, 0.14), transparent 52%);
   opacity: 0;
   z-index: 2;
-  transition: opacity 0.24s ease;
+  transition: opacity 0.32s ease;
 }
 
 .game-card::after {
@@ -57,16 +59,16 @@
   background: linear-gradient(180deg, rgba(255, 87, 56, 0.04), rgba(255, 87, 56, 0.4), rgba(255, 87, 56, 0.04));
   opacity: 0.75;
   pointer-events: none;
-  transition: opacity 0.24s ease;
+  transition: opacity 0.32s ease;
 }
 
 .game-card:hover {
-  transform: translateX(4px) translateY(-2px);
-  border-color: rgba(255, 87, 56, 0.58);
+  transform: translate3d(3px, -3px, 0) scale(1.005);
+  border-color: rgba(255, 87, 56, 0.52);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.04),
-    0 18px 42px rgba(255, 87, 56, 0.17),
-    0 18px 56px rgba(0, 0, 0, 0.38);
+    0 14px 34px rgba(255, 87, 56, 0.14),
+    0 16px 44px rgba(0, 0, 0, 0.34);
 }
 
 .game-card:hover::before {
@@ -95,7 +97,7 @@
   inset: 0;
   background: linear-gradient(125deg, rgba(255, 87, 56, 0.06), rgba(255, 87, 56, 0));
   transform: translateX(-14%);
-  transition: transform 0.34s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition: transform 0.48s cubic-bezier(0.16, 1, 0.3, 1);
   pointer-events: none;
   z-index: 1;
 }
@@ -121,9 +123,9 @@
   object-fit: cover;
   opacity: 0;
   transition:
-    opacity 0.4s ease-in,
-    transform 0.42s cubic-bezier(0.2, 0.8, 0.2, 1),
-    filter 0.32s ease;
+    opacity 0.42s ease-out,
+    transform 0.56s cubic-bezier(0.16, 1, 0.3, 1),
+    filter 0.38s ease;
   filter: saturate(0.94) brightness(0.94);
 }
 
@@ -132,12 +134,12 @@
 }
 
 .game-card:hover .game-img.loaded {
-  transform: scale(1.035);
-  filter: saturate(1.04) brightness(1);
+  transform: scale(1.03);
+  filter: saturate(1.03) brightness(1);
 }
 
 .game-card:hover .game-image::before {
-  transform: translateX(10%);
+  transform: translateX(8%);
 }
 
 @keyframes shimmer {
@@ -198,12 +200,14 @@ mat-card-content {
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   line-clamp: 2;
-  transition: color 0.2s ease, transform 0.24s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition:
+    color 0.24s ease,
+    transform 0.32s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .game-card:hover .game-title {
   color: #fff;
-  transform: translateX(2px);
+  transform: translateX(4px);
 }
 
 .steam-link-hint {
@@ -216,13 +220,16 @@ mat-card-content {
   text-transform: uppercase;
   opacity: 0.86;
   transform: translateX(0);
-  transition: transform 0.2s ease, opacity 0.2s ease, color 0.2s ease;
+  transition:
+    transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.24s ease,
+    color 0.24s ease;
 }
 
 .game-card:hover .steam-link-hint {
   opacity: 1;
   color: var(--neo-primary-strong);
-  transform: translateX(3px);
+  transform: translateX(4px);
 }
 
 .game-details {
@@ -246,8 +253,8 @@ mat-card-content {
   font-size: 0.7rem !important;
   border-radius: 999px !important;
   transition:
-    border-color 0.2s ease,
-    background-color 0.2s ease;
+    border-color 0.24s ease,
+    background-color 0.24s ease;
 }
 
 .game-card:hover .genres mat-chip {
