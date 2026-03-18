@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, HostListener, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { Component, OnDestroy, OnInit, CUSTOM_ELEMENTS_SCHEMA, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -89,12 +89,22 @@ export class QueryScreen implements OnInit, OnDestroy {
   private searchButtonFireTimeoutId: number | null = null;
   private focusUpdateTimeoutId: number | null = null;
   private valveScrollRafId: number | null = null;
+  private katanaCursorRafId: number | null = null;
+  private pendingKatanaCursorX = 0;
+  private pendingKatanaCursorY = 0;
+  private removePointerMoveListener: (() => void) | null = null;
+  private removeScrollListener: (() => void) | null = null;
+  private removeKatanaPointerMoveListener: (() => void) | null = null;
   private readonly valveStorageKey = 'ui.query.valveEnabled';
   private readonly valveBackdropEventName = 'pse:valveBackdropChanged';
 
   private readonly subs = new Subscription();
 
-  constructor(private backendService: BackendService, private router: Router) {}
+  constructor(
+    private backendService: BackendService,
+    private router: Router,
+    private ngZone: NgZone
+  ) {}
 
   get isLoading(): boolean {
     return this.isSearchLoading || this.isRecommendationLoading;
@@ -142,6 +152,7 @@ export class QueryScreen implements OnInit, OnDestroy {
 
     this.updateValveOpacity();
     this.prefetchResultsScreen();
+    this.setupViewportListeners();
 
     this.subs.add(this.backendService.isLoadingSearch$.subscribe(l => this.isSearchLoading = l));
     this.subs.add(this.backendService.isLoadingRecommendations$.subscribe(l => this.isRecommendationLoading = l));
@@ -169,9 +180,7 @@ export class QueryScreen implements OnInit, OnDestroy {
     }));
   }
 
-  @HostListener('document:mousemove', ['$event'])
-  @HostListener('document:pointermove', ['$event'])
-  onPointerMove(e: MouseEvent | PointerEvent): void {
+  private onPointerMove(e: MouseEvent | PointerEvent): void {
     if ('pointerType' in e && e.pointerType === 'touch') return;
     if (typeof window === 'undefined') return;
 
@@ -188,16 +197,24 @@ export class QueryScreen implements OnInit, OnDestroy {
     // Map screen position to geographic-ish coordinates.
     const targetLat = (yPct * 0.9).toFixed(4);
     const targetLng = (xPct * 1.8).toFixed(4);
-    this.mouseCoordinates = `${targetLat} N / ${targetLng} E`;
+    const nextCoordinates = `${targetLat} N / ${targetLng} E`;
+    if (nextCoordinates === this.mouseCoordinates) return;
+
+    this.ngZone.run(() => {
+      this.mouseCoordinates = nextCoordinates;
+    });
   }
 
-  @HostListener('window:scroll')
-  onWindowScroll(): void {
+  private onWindowScroll(): void {
     if (typeof window === 'undefined' || this.valveScrollRafId !== null) return;
 
     this.valveScrollRafId = window.requestAnimationFrame(() => {
       this.valveScrollRafId = null;
-      this.updateValveOpacity();
+      const nextOpacity = this.computeValveOpacity();
+      if (Math.abs(nextOpacity - this.valveOpacity) < 0.01) return;
+      this.ngZone.run(() => {
+        this.valveOpacity = nextOpacity;
+      });
     });
   }
 
@@ -209,6 +226,16 @@ export class QueryScreen implements OnInit, OnDestroy {
       window.cancelAnimationFrame(this.valveScrollRafId);
       this.valveScrollRafId = null;
     }
+    if (this.katanaCursorRafId !== null && typeof window !== 'undefined') {
+      window.cancelAnimationFrame(this.katanaCursorRafId);
+      this.katanaCursorRafId = null;
+    }
+    this.removePointerMoveListener?.();
+    this.removeScrollListener?.();
+    this.removeKatanaPointerMoveListener?.();
+    this.removePointerMoveListener = null;
+    this.removeScrollListener = null;
+    this.removeKatanaPointerMoveListener = null;
     this.subs.unsubscribe();
     this.clearSearchButtonFireTimeout();
     this.clearFocusUpdateTimeout();
@@ -295,27 +322,19 @@ export class QueryScreen implements OnInit, OnDestroy {
   onSearchButtonHoverEnter(event: MouseEvent | PointerEvent): void {
     if (this.isTouchLikePointer(event)) return;
     this.isKatanaCursorVisible = true;
-    this.updateKatanaCursor(event);
-  }
-
-  onSearchButtonHoverMove(event: MouseEvent | PointerEvent): void {
-    if (this.isTouchLikePointer(event)) return;
-    if (!this.isKatanaCursorVisible) return;
-    this.updateKatanaCursor(event);
+    this.startKatanaPointerTracking();
+    this.queueKatanaCursorUpdate(event);
   }
 
   onSearchButtonHoverLeave(): void {
     this.isKatanaCursorVisible = false;
+    this.removeKatanaPointerMoveListener?.();
+    this.removeKatanaPointerMoveListener = null;
   }
 
   onSearchButtonPress(event: Event): void {
     if (this.isLoading) return;
     this.triggerSearchButtonFire(event);
-  }
-
-  private updateKatanaCursor(event: MouseEvent | PointerEvent): void {
-    this.katanaCursorX = event.clientX;
-    this.katanaCursorY = event.clientY;
   }
 
   private triggerSearchButtonFire(event?: Event): void {
@@ -324,7 +343,7 @@ export class QueryScreen implements OnInit, OnDestroy {
     }
 
     if (event && this.isPointerEvent(event)) {
-      this.updateKatanaCursor(event);
+      this.queueKatanaCursorUpdate(event);
     }
 
     this.isSearchButtonFiring = true;
@@ -362,21 +381,88 @@ export class QueryScreen implements OnInit, OnDestroy {
   };
 
   private updateValveOpacity(): void {
+    const nextOpacity = this.computeValveOpacity();
+    if (Math.abs(nextOpacity - this.valveOpacity) < 0.001) return;
+    this.valveOpacity = nextOpacity;
+  }
+
+  private computeValveOpacity(): number {
     if (!this.valveBackdropEnabled) {
-      this.valveOpacity = 0;
-      return;
+      return 0;
     }
 
     if (typeof window === 'undefined') {
-      this.valveOpacity = 0.84;
-      return;
+      return 0.84;
     }
 
     const scrollY = window.scrollY || 0;
     const fadeStart = 12;
     const fadeEnd = 300;
     const progress = Math.min(Math.max((scrollY - fadeStart) / (fadeEnd - fadeStart), 0), 1);
-    this.valveOpacity = 0.84 * (1 - progress);
+    return 0.84 * (1 - progress);
+  }
+
+  private setupViewportListeners(): void {
+    if (typeof window === 'undefined') return;
+
+    this.ngZone.runOutsideAngular(() => {
+      const handlePointerMove = (event: MouseEvent | PointerEvent) => this.onPointerMove(event);
+      const handleWindowScroll = () => this.onWindowScroll();
+
+      if ('PointerEvent' in window) {
+        document.addEventListener('pointermove', handlePointerMove as EventListener, { passive: true });
+        this.removePointerMoveListener = () =>
+          document.removeEventListener('pointermove', handlePointerMove as EventListener);
+      } else {
+        document.addEventListener('mousemove', handlePointerMove as EventListener, { passive: true });
+        this.removePointerMoveListener = () =>
+          document.removeEventListener('mousemove', handlePointerMove as EventListener);
+      }
+
+      window.addEventListener('scroll', handleWindowScroll, { passive: true });
+      this.removeScrollListener = () => window.removeEventListener('scroll', handleWindowScroll);
+    });
+  }
+
+  private queueKatanaCursorUpdate(event: MouseEvent | PointerEvent): void {
+    this.pendingKatanaCursorX = event.clientX;
+    this.pendingKatanaCursorY = event.clientY;
+
+    if (typeof window === 'undefined') {
+      this.katanaCursorX = this.pendingKatanaCursorX;
+      this.katanaCursorY = this.pendingKatanaCursorY;
+      return;
+    }
+
+    if (this.katanaCursorRafId !== null) return;
+
+    this.ngZone.runOutsideAngular(() => {
+      this.katanaCursorRafId = window.requestAnimationFrame(() => {
+        this.katanaCursorRafId = null;
+        const nextX = this.pendingKatanaCursorX;
+        const nextY = this.pendingKatanaCursorY;
+        this.ngZone.run(() => {
+          this.katanaCursorX = nextX;
+          this.katanaCursorY = nextY;
+        });
+      });
+    });
+  }
+
+  private startKatanaPointerTracking(): void {
+    if (this.removeKatanaPointerMoveListener || typeof window === 'undefined') return;
+
+    this.ngZone.runOutsideAngular(() => {
+      const handlePointerMove = (event: PointerEvent) => {
+        if (!this.isKatanaCursorVisible) return;
+        if (event.pointerType === 'touch' || event.pointerType === 'pen') return;
+        this.queueKatanaCursorUpdate(event);
+      };
+
+      document.addEventListener('pointermove', handlePointerMove, { passive: true });
+      this.removeKatanaPointerMoveListener = () =>
+        document.removeEventListener('pointermove', handlePointerMove);
+    });
   }
 
   private isPointerEvent(event: Event): event is PointerEvent {
