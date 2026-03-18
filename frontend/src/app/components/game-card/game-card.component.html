@@ -1,43 +1,48 @@
 @if (game) {
-    <mat-card class="game-card">
-        <div class="game-image">
-            @if (game.headerImage) {
-                <img [src]="game!.headerImage"
-                     [alt]="game.name || 'Unknown Game'"
-                     loading="lazy"
-                     decoding="async"
-                     class="game-img"
-                     (load)="onImageLoad($event)"
-                     (error)="onImageError($event)" />
-            } @else {
-                <div class="placeholder-image">
-                    <img src="steam.png" alt="Placeholder Image" />
-                </div>
-            }
-        </div>
-        <mat-card-content class="card-content">
-            <h3 class="game-title">
-                {{ game.name || 'Unknown Game' }}
-            </h3>
-            <div class="game-details">
-                @if (game.genres && game.genres.length > 0) {
-                    <div class="genres">
-                        @for (genre of game.genres.slice(0, 3); track genre) {
-                            <mat-chip>{{ genre }}</mat-chip>
-                        }
+    <a [href]="'https://store.steampowered.com/app/' + game.appId + '/'" 
+       target="_blank" 
+       class="card-link"
+       aria-label="View on Steam">
+        <mat-card class="game-card">
+            <div class="game-image">
+                @if (game.headerImage) {
+                    <img [src]="game!.headerImage"
+                         [alt]="game.name || 'Unknown Game'"
+                         loading="lazy"
+                         decoding="async"
+                         class="game-img"
+                         (load)="onImageLoad($event)"
+                         (error)="onImageError($event)" />
+                } @else {
+                    <div class="placeholder-image">
+                        <img src="steam.png" alt="Placeholder Image" />
                     </div>
                 }
-                @if (game.description) {
-                    <p class="description">{{ truncateDescription(game.description) }}</p>
-                }
-                <div class="price-info">
-                    @if (game.isFree) {
-                        <span class="free-badge">Free to play</span>
-                    } @else if (game.price) {
-                        <span class="price">${{ game.price.toFixed(2) }}</span>
-                    }
-                </div>
             </div>
-        </mat-card-content>
-    </mat-card>
+            <mat-card-content class="card-content">
+                <h3 class="game-title">
+                    {{ game.name || 'Unknown Game' }}
+                </h3>
+                <div class="game-details">
+                    @if (game.genres && game.genres.length > 0) {
+                        <div class="genres">
+                            @for (genre of game.genres.slice(0, 3); track genre) {
+                                <mat-chip>{{ genre }}</mat-chip>
+                            }
+                        </div>
+                    }
+                    @if (game.description) {
+                        <p class="description">{{ truncateDescription(game.description) }}</p>
+                    }
+                    <div class="price-info">
+                        @if (game.isFree) {
+                            <span class="free-badge">Free to play</span>
+                        } @else if (game.price) {
+                            <span class="price">${{ game.price.toFixed(2) }}</span>
+                        }
+                    </div>
+                </div>
+            </mat-card-content>
+        </mat-card>
+    </a>
 }

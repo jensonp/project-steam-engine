@@ -140,7 +140,8 @@ a:hover {
   min-height: 44px !important;
   padding: 0 14px !important;
   align-items: center !important;
-  transition: background-color 120ms ease;
+  transition: background-color 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+  will-change: background-color;
 }
 
 .cdk-overlay-pane .topunit .mdc-list-item__primary-text {
@@ -182,7 +183,9 @@ a:hover {
 /* ── Dropdown panel entrance animation ── */
 .mat-mdc-select-panel.topunit,
 .cdk-overlay-pane .topunit.mat-mdc-select-panel {
-  animation: panel-fade-in 120ms ease-out both;
+  animation: panel-fade-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  will-change: transform, opacity;
+  transform-origin: top;
 }
 
 .cdk-overlay-pane .topunit .mat-mdc-option {
@@ -192,8 +195,10 @@ a:hover {
 @keyframes panel-fade-in {
   from {
     opacity: 0;
+    transform: translateY(-8px) scale(0.98);
   }
   to {
     opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }
