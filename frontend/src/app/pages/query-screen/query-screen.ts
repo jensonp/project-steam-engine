@@ -250,6 +250,12 @@ export class QueryScreen implements OnInit, OnDestroy {
     this.scrollToCenter('.steam-section');
   }
 
+  clearSteamProfile(): void {
+    this.steamId_input = '';
+    this.backendService.clearUserProfile();
+    this.error = null;
+  }
+
   onSteamIdInput(value: string): void {
     this.steamId_input = value.replace(/\D+/g, '').slice(0, 17);
   }

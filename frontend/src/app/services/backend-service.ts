@@ -86,6 +86,10 @@ export class BackendService {
     this.patchState({ steamId: id, error: null });
   }
 
+  clearUserProfile(): void {
+    this.patchState({ steamId: '', userProfile: null, error: null });
+  }
+
   private getErrorMessage(error: unknown, fallback: string): string {
     const maybeHttpError = error as {
       message?: string;

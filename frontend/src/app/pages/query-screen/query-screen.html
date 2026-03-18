@@ -106,7 +106,10 @@
                         <img class="profile-avatar" [src]="userProfile.avatar" [alt]="userProfile.personaName + ' avatar'">
                     }
                     <div class="profile-info">
-                        <span class="profile-name">{{ userProfile.personaName }}</span>
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
+                            <span class="profile-name">{{ userProfile.personaName }}</span>
+                            <button type="button" class="clear-profile-button" (click)="clearSteamProfile()" aria-label="Clear loaded profile" title="Clear profile">[ disconnect ]</button>
+                        </div>
                         <span class="profile-stats">
                             {{ userProfile.librarySize }} games &nbsp;·&nbsp;
                             {{ userProfile.friendsAnalyzed }} friends analyzed &nbsp;·&nbsp;
