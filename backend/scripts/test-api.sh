@@ -64,6 +64,64 @@ test_endpoint() {
   fi
 }
 
+test_search_non_empty() {
+  local endpoint="$1"
+  local url="${API_BASE}${endpoint}"
+  local label="GET ${endpoint} (non-empty payload)"
+
+  local result
+  result=$(curl -s -o /tmp/pse_api_response.json -w '%{http_code} %{time_total}' "$url" 2>/dev/null) || true
+
+  local status_code="${result%% *}"
+  local time_secs="${result##* }"
+  local time_ms
+  time_ms=$(echo "$time_secs" | awk '{printf "%.0f", $1 * 1000}')
+
+  if [[ ! "$status_code" =~ ^2 ]]; then
+    echo -e "  ${RED}❌ ${label}${NC}  ${DIM}${status_code} · ${time_ms}ms${NC}"
+    FAILED=$((FAILED + 1))
+    return
+  fi
+
+  local validation_output
+  if validation_output=$(node - /tmp/pse_api_response.json <<'NODE'
+const fs = require('fs');
+const path = process.argv[2];
+
+try {
+  const raw = fs.readFileSync(path, 'utf8');
+  const data = JSON.parse(raw);
+  if (!Array.isArray(data)) {
+    console.log('payload is not an array');
+    process.exit(2);
+  }
+  if (data.length === 0) {
+    console.log('array is empty');
+    process.exit(3);
+  }
+
+  const first = data[0] || {};
+  const missing = ['appId', 'name'].filter(k => !(k in first));
+  if (missing.length > 0) {
+    console.log(`missing fields on first item: ${missing.join(', ')}`);
+    process.exit(4);
+  }
+
+  console.log(`count=${data.length}`);
+} catch (error) {
+  console.log(`invalid JSON: ${error instanceof Error ? error.message : String(error)}`);
+  process.exit(5);
+}
+NODE
+); then
+    echo -e "  ${GREEN}✅ ${label}${NC}  ${DIM}${status_code} · ${time_ms}ms · ${validation_output}${NC}"
+    PASSED=$((PASSED + 1))
+  else
+    echo -e "  ${RED}❌ ${label}${NC}  ${DIM}${status_code} · ${time_ms}ms · ${validation_output}${NC}"
+    FAILED=$((FAILED + 1))
+  fi
+}
+
 skip_endpoint() {
   local label="$1"
   local reason="$2"
@@ -128,6 +186,7 @@ echo ""
 # ── Search Endpoint ──────────────────────────────────────────
 echo -e "${BOLD}[Search Query — search.routes.ts]${NC}"
 test_endpoint GET "/api/search?genres=RPG"
+test_search_non_empty "/api/search?genres=RPG"
 echo ""
 
 # ── Summary ─────────────────────────────────────────────────
