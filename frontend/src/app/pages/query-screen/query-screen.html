@@ -190,10 +190,12 @@
                     type="submit"
                     [disabled]="isLoading"
                     class="search-button"
+                    [class.is-firing]="isSearchButtonFiring"
                     data-ui-check="search-button"
-                    (mouseenter)="onSearchButtonHoverEnter($event)"
-                    (mousemove)="onSearchButtonHoverMove($event)"
-                    (mouseleave)="onSearchButtonHoverLeave()">
+                    (pointerenter)="onSearchButtonHoverEnter($event)"
+                    (pointermove)="onSearchButtonHoverMove($event)"
+                    (pointerleave)="onSearchButtonHoverLeave()"
+                    (pointerdown)="onSearchButtonPress($event)">
                     @if (isLoading) {
                     <mat-spinner class="custom-color-spinner" diameter="20"></mat-spinner>
                     }

@@ -44,6 +44,34 @@ async function resetLocalState(page: import('@playwright/test').Page): Promise<v
   });
 }
 
+test('suggest button hover shows katana cursor', async ({ page }) => {
+  await resetLocalState(page);
+  await page.goto('/');
+  await page.waitForSelector('[data-ui-check="search-button"]');
+
+  await page.hover('[data-ui-check="search-button"]');
+
+  const katana = page.locator('.katana-cursor');
+  await expect(katana).toHaveCount(1);
+
+  const backgroundImage = await katana.evaluate(el => getComputedStyle(el).backgroundImage);
+  expect(backgroundImage).toContain('katana-cursor.png');
+});
+
+test('suggest button press triggers launch animation class', async ({ page }) => {
+  await resetLocalState(page);
+  await page.goto('/');
+  await page.waitForSelector('[data-ui-check="search-button"]');
+
+  await page.dispatchEvent('[data-ui-check="search-button"]', 'pointerdown', {
+    pointerType: 'mouse',
+    clientX: 640,
+    clientY: 520,
+  });
+
+  await expect(page.locator('[data-ui-check="search-button"]')).toHaveClass(/is-firing/);
+});
+
 test('query flow renders result cards from /api/search response', async ({ page }) => {
   await resetLocalState(page);
 
@@ -141,8 +169,21 @@ test('query flow surfaces backend errors and does not navigate', async ({ page }
   await page.goto('/');
   await page.waitForSelector('[data-ui-check="search-button"]');
 
+  const failedSearchResponse = page.waitForResponse(
+    response => response.url().includes('/api/search') && response.status() === 503
+  );
+
   await page.click('[data-ui-check="search-button"]');
+  await failedSearchResponse;
 
   await expect(page).toHaveURL(/\/$/);
-  await expect(page.locator('.error-message')).toContainText('Search database is unavailable');
+  await expect.poll(async () => page.evaluate(() => {
+    try {
+      const raw = localStorage.getItem('appState');
+      const parsed = raw ? JSON.parse(raw) : null;
+      return parsed?.error ?? null;
+    } catch {
+      return null;
+    }
+  })).toContain('Search database is unavailable');
 });

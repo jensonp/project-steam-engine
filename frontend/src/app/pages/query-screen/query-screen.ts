@@ -82,6 +82,9 @@ export class QueryScreen implements OnInit, OnDestroy {
   isKatanaCursorVisible = false;
   katanaCursorX = 0;
   katanaCursorY = 0;
+  isSearchButtonFiring = false;
+  private searchButtonFireTimeoutId: number | null = null;
+  private focusUpdateTimeoutId: number | null = null;
 
   private readonly subs = new Subscription();
 
@@ -172,6 +175,8 @@ export class QueryScreen implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.subs.unsubscribe();
+    this.clearSearchButtonFireTimeout();
+    this.clearFocusUpdateTimeout();
   }
 
   loadSteamProfile(): void {
@@ -187,6 +192,7 @@ export class QueryScreen implements OnInit, OnDestroy {
   }
 
   onFocusIn(): void {
+    this.clearFocusUpdateTimeout();
     this.isFormFocused = true;
   }
 
@@ -194,7 +200,19 @@ export class QueryScreen implements OnInit, OnDestroy {
     const currentTarget = event.currentTarget as HTMLElement | null;
     const nextFocused = event.relatedTarget as Node | null;
     if (!currentTarget || !nextFocused || !currentTarget.contains(nextFocused)) {
-      this.isFormFocused = false;
+      this.clearFocusUpdateTimeout();
+
+      if (typeof window === 'undefined') {
+        this.isFormFocused = false;
+        return;
+      }
+
+      // Defer focus-class updates to avoid ExpressionChanged errors
+      // when focus shifts during submit/disabled-state transitions.
+      this.focusUpdateTimeoutId = window.setTimeout(() => {
+        this.isFormFocused = false;
+        this.focusUpdateTimeoutId = null;
+      }, 0);
     }
   }
 
@@ -216,6 +234,8 @@ export class QueryScreen implements OnInit, OnDestroy {
   }
 
   onQuery(): void {
+    this.triggerSearchButtonFire();
+
     const steamId = this.steamId_input || this.backendService.getSteamId();
 
     if (this.userProfile && steamId) {
@@ -237,12 +257,14 @@ export class QueryScreen implements OnInit, OnDestroy {
     this.scrollToCenter('app-game-list');
   }
 
-  onSearchButtonHoverEnter(event: MouseEvent): void {
+  onSearchButtonHoverEnter(event: MouseEvent | PointerEvent): void {
+    if (this.isTouchLikePointer(event)) return;
     this.isKatanaCursorVisible = true;
     this.updateKatanaCursor(event);
   }
 
-  onSearchButtonHoverMove(event: MouseEvent): void {
+  onSearchButtonHoverMove(event: MouseEvent | PointerEvent): void {
+    if (this.isTouchLikePointer(event)) return;
     if (!this.isKatanaCursorVisible) return;
     this.updateKatanaCursor(event);
   }
@@ -251,9 +273,59 @@ export class QueryScreen implements OnInit, OnDestroy {
     this.isKatanaCursorVisible = false;
   }
 
-  private updateKatanaCursor(event: MouseEvent): void {
+  onSearchButtonPress(event: Event): void {
+    if (this.isLoading) return;
+    this.triggerSearchButtonFire(event);
+  }
+
+  private updateKatanaCursor(event: MouseEvent | PointerEvent): void {
     this.katanaCursorX = event.clientX;
     this.katanaCursorY = event.clientY;
+  }
+
+  private triggerSearchButtonFire(event?: Event): void {
+    if (event && this.isPointerEvent(event) && this.isTouchLikePointer(event)) {
+      return;
+    }
+
+    if (event && this.isPointerEvent(event)) {
+      this.updateKatanaCursor(event);
+    }
+
+    this.isSearchButtonFiring = true;
+    this.clearSearchButtonFireTimeout();
+
+    if (typeof window === 'undefined') {
+      this.isSearchButtonFiring = false;
+      return;
+    }
+
+    this.searchButtonFireTimeoutId = window.setTimeout(() => {
+      this.isSearchButtonFiring = false;
+      this.searchButtonFireTimeoutId = null;
+    }, 460);
+  }
+
+  private clearSearchButtonFireTimeout(): void {
+    if (this.searchButtonFireTimeoutId !== null && typeof window !== 'undefined') {
+      window.clearTimeout(this.searchButtonFireTimeoutId);
+      this.searchButtonFireTimeoutId = null;
+    }
+  }
+
+  private clearFocusUpdateTimeout(): void {
+    if (this.focusUpdateTimeoutId !== null && typeof window !== 'undefined') {
+      window.clearTimeout(this.focusUpdateTimeoutId);
+      this.focusUpdateTimeoutId = null;
+    }
+  }
+
+  private isPointerEvent(event: Event): event is PointerEvent {
+    return 'clientX' in event && 'pointerType' in event;
+  }
+
+  private isTouchLikePointer(event: MouseEvent | PointerEvent): boolean {
+    return 'pointerType' in event && (event.pointerType === 'touch' || event.pointerType === 'pen');
   }
 
   private prefetchResultsScreen(): void {
