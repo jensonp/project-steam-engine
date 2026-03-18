@@ -7,6 +7,31 @@
     <!-- <ul>
       <li routerLink="/todos">Todos</li>
     </ul> -->
+    <button
+        id="valve-button"
+        type="button"
+        [attr.aria-label]="valveEnabled ? 'Disable valve backdrop' : 'Enable valve backdrop'"
+        [attr.aria-pressed]="valveEnabled"
+        (click)="toggleValveBackdrop()">
+        @if (valveEnabled) {
+            <model-viewer
+                class="toolbar-valve-model"
+                src="/models/red-valve.glb"
+                alt=""
+                tabindex="-1"
+                auto-rotate
+                auto-rotate-delay="0"
+                rotation-per-second="38deg"
+                interaction-prompt="none"
+                reveal="auto"
+                loading="eager"
+                environment-image="neutral"
+                exposure="1.06"
+                shadow-intensity="0.7"></model-viewer>
+        } @else {
+            <mat-icon id="valve-off-icon" aria-hidden="true">visibility_off</mat-icon>
+        }
+    </button>
     <button id="config-button" routerLink="/config" aria-label="Open settings">
         <mat-icon id="config-icon" aria-hidden="true">settings</mat-icon>
     </button>

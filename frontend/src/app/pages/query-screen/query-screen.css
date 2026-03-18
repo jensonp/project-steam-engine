@@ -74,14 +74,6 @@
   animation-delay: 100ms;
 }
 
-.hero-controls {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  flex-wrap: wrap;
-  gap: 0.7rem;
-}
-
 .hero-main {
   display: grid;
   grid-template-columns: 120px minmax(0, 1fr);
@@ -89,41 +81,6 @@
   align-items: start;
   position: relative;
   z-index: 1;
-}
-
-.valve-layer {
-  position: absolute;
-  top: -10%;
-  left: 57%;
-  width: min(44vw, 460px);
-  aspect-ratio: 1 / 1;
-  transform: translateX(-50%);
-  pointer-events: none;
-  opacity: 0.82;
-  z-index: 0;
-  transition: opacity 0.28s linear;
-  filter:
-    drop-shadow(0 0 22px rgba(255, 40, 18, 0.2))
-    saturate(1.06);
-}
-
-.valve-model {
-  width: 100%;
-  height: 100%;
-  display: block;
-  --progress-bar-color: transparent;
-  --poster-color: transparent;
-  animation: valve-fallback-spin 24s linear infinite;
-  transform-origin: 50% 50%;
-}
-
-@keyframes valve-fallback-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
 }
 
 .hero-icon-frame {
@@ -525,22 +482,6 @@ button:focus-visible,
 .search-button:hover,
 .search-button:hover * {
   cursor: none !important;
-}
-
-.valve-toggle {
-  min-height: 40px;
-  padding: 0.45rem 0.75rem;
-  font-size: 0.72rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  border-radius: 999px;
-  border-color: rgba(255, 87, 56, 0.4);
-  background: rgba(10, 10, 10, 0.64);
-  backdrop-filter: blur(2px);
-}
-
-.valve-toggle:hover:not(:disabled) {
-  background: rgba(255, 87, 56, 0.18);
 }
 
 .os-status {
@@ -1009,17 +950,6 @@ button:focus-visible,
     flex-direction: column;
   }
 
-  .hero-controls {
-    width: 100%;
-    justify-content: space-between;
-  }
-
-  .valve-layer {
-    top: -5%;
-    left: 50%;
-    width: min(72vw, 320px);
-  }
-
   .terminal-panel {
     padding: 1rem;
   }
@@ -1077,13 +1007,5 @@ button:focus-visible,
 
   .katana-cursor {
     animation: none !important;
-  }
-
-  .valve-layer {
-    transition: none !important;
-  }
-
-  .valve-model {
-    animation-duration: 40s;
   }
 }

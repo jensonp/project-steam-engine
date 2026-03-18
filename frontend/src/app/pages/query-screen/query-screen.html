@@ -6,39 +6,9 @@
     (focusin)="onFocusIn()"
     (focusout)="onFocusOut($event)">
     <div class="hero-frame">
-        <div class="valve-layer" [style.opacity]="valveOpacity" inert>
-            @if (valveEnabled && valveOpacity > 0.02) {
-                <model-viewer
-                    class="valve-model"
-                    src="/models/red-valve.glb"
-                    alt=""
-                    tabindex="-1"
-                    auto-rotate
-                    auto-rotate-delay="0"
-                    rotation-per-second="34deg"
-                    interaction-prompt="none"
-                    environment-image="neutral"
-                    shadow-intensity="0.8"
-                    exposure="1.08"
-                    reveal="auto"
-                    loading="eager"
-                    ></model-viewer>
-            }
-        </div>
-
         <div class="hero-meta">
             <p class="eyebrow">Steam discovery relay</p>
-            <div class="hero-controls">
-                <p class="hero-coordinates">{{ mouseCoordinates }}</p>
-                <button
-                    type="button"
-                    class="valve-toggle"
-                    data-ui-check="valve-toggle"
-                    [attr.aria-pressed]="valveEnabled"
-                    (click)="toggleValve()">
-                    {{ valveEnabled ? '[ Valve backdrop: on ]' : '[ Valve backdrop: off ]' }}
-                </button>
-            </div>
+            <p class="hero-coordinates">{{ mouseCoordinates }}</p>
         </div>
 
         <div class="hero-main">
