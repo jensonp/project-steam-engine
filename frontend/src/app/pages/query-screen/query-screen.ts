@@ -170,8 +170,10 @@ export class QueryScreen implements OnInit, OnDestroy {
   }
 
   @HostListener('document:mousemove', ['$event'])
-  onMouseMove(e: MouseEvent) {
-    if (this.prefersReducedMotion) return;
+  @HostListener('document:pointermove', ['$event'])
+  onPointerMove(e: MouseEvent | PointerEvent): void {
+    if ('pointerType' in e && e.pointerType === 'touch') return;
+    if (typeof window === 'undefined') return;
 
     const now =
       typeof performance !== 'undefined' && typeof performance.now === 'function'
