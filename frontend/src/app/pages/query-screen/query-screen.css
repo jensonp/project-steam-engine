@@ -431,6 +431,23 @@ button:disabled,
     inset 0 3px 6px rgba(0, 0, 0, 0.4);
 }
 
+/* Excessive sparkle on button click/active */
+.search-button:active::after {
+  content: '✨✨✨';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 24px;
+  animation: sparkle-burst 0.5s ease-out forwards;
+  pointer-events: none;
+}
+
+@keyframes sparkle-burst {
+  0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; filter: blur(0); }
+  100% { transform: translate(-50%, -50%) scale(3); opacity: 0; filter: blur(4px); }
+}
+
 @keyframes rotate-neon {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
@@ -604,11 +621,47 @@ button:disabled,
 }
 
 .search-container ::ng-deep .mat-mdc-form-field.mat-focused .mat-mdc-text-field-wrapper {
-  background: rgba(255, 87, 56, 0.08) !important;
+  background: rgba(255, 87, 56, 0.12) !important;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.03),
-    0 0 0 1px rgba(255, 87, 56, 0.24) !important;
-  transform: scale(1.005);
+    0 0 0 1px rgba(255, 87, 56, 0.4),
+    0 0 20px rgba(255, 87, 56, 0.15) !important;
+  transform: scale(1.01);
+  animation: field-sparkle 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes field-sparkle {
+  0% { box-shadow: 0 0 15px rgba(255, 87, 56, 0.1), 0 0 5px rgba(255, 255, 255, 0.05); }
+  50% { box-shadow: 0 0 25px rgba(255, 87, 56, 0.25), 0 0 15px rgba(255, 255, 255, 0.15); }
+  100% { box-shadow: 0 0 15px rgba(255, 87, 56, 0.1), 0 0 5px rgba(255, 255, 255, 0.05); }
+}
+
+/* Sparkle particles on focus */
+.search-container ::ng-deep .mat-mdc-form-field.mat-focused::before {
+  content: '✨';
+  position: absolute;
+  top: -10px;
+  right: 10px;
+  font-size: 14px;
+  animation: sparkle-float 2s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.search-container ::ng-deep .mat-mdc-form-field.mat-focused::after {
+  content: '✨';
+  position: absolute;
+  bottom: -5px;
+  left: 10px;
+  font-size: 10px;
+  animation: sparkle-float 2.5s ease-in-out infinite reverse;
+  pointer-events: none;
+  z-index: 10;
+}
+
+@keyframes sparkle-float {
+  0%, 100% { transform: translateY(0) scale(1) rotate(0deg); opacity: 0.5; }
+  50% { transform: translateY(-10px) scale(1.2) rotate(15deg); opacity: 1; }
 }
 
 .search-container ::ng-deep .mat-mdc-form-field-subscript-wrapper {
