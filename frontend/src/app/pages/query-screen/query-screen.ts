@@ -128,10 +128,19 @@ export class QueryScreen implements OnInit, OnDestroy {
     
     // Map screen position to geographic-ish coordinates
     // Latitude: 0-90N, Longitude: 0-180E
-    const lat = (yPct * 0.9).toFixed(4);
-    const lng = (xPct * 1.8).toFixed(4);
+    const targetLat = (yPct * 0.9).toFixed(4);
+    const targetLng = (xPct * 1.8).toFixed(4);
     
-    this.mouseCoordinates = `${lat} N / ${lng} E`;
+    // Scrambling effect: randomly rotate through characters for a tactical readout feel
+    if (Math.random() > 0.85) {
+      const scramble = (val: string) => val.split('').map(char => 
+        (char >= '0' && char <= '9') ? Math.floor(Math.random() * 10).toString() : char
+      ).join('');
+      
+      this.mouseCoordinates = `${scramble(targetLat)} N / ${scramble(targetLng)} E`;
+    } else {
+      this.mouseCoordinates = `${targetLat} N / ${targetLng} E`;
+    }
   }
 
   ngOnDestroy() {

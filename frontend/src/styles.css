@@ -155,10 +155,20 @@ a:hover {
   margin-top: 8px !important;
 }
 
-/* Force overlay pane to stay below the trigger */
+/* Force overlay pane to stay below the trigger - more aggressive strategy */
 .cdk-overlay-pane:has(> .topunit) {
   transform: translateY(0) !important;
   margin-top: 4px !important;
+  /* Prevent Material from trying to center the panel over the trigger */
+  top: auto !important; 
+  left: auto !important;
+  position: relative !important; /* This helps with some layout engines but might need adjustment */
+}
+
+/* Ensure the panel itself respects the flow */
+.mat-mdc-select-panel.topunit {
+  max-height: 400px !important;
+  overflow-y: auto !important;
 }
 
 .cdk-overlay-pane .topunit .mat-mdc-option {
