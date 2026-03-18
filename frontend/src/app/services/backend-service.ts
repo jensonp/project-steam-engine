@@ -44,11 +44,13 @@ const loadInitialState = (): AppState => {
 
 const initialState: AppState = loadInitialState();
 
+import { environment } from '../../environments/environment';
+
 @Injectable({
   providedIn: 'root',
 })
 export class BackendService {
-  private readonly backendUrl = 'http://localhost:3000';
+  private readonly backendUrl = environment.apiUrl;
   
   // Single Source of Truth (The Store)
   private state = new BehaviorSubject<AppState>(initialState);

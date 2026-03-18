@@ -4,11 +4,13 @@ import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { UserLibrary, PlayerSummary, Game, OwnedGame } from '../types/steam.types';
 
+import { environment } from '../../environments/environment';
+
 @Injectable({
   providedIn: 'root'
 })
 export class SteamApiService {
-  private readonly apiUrl = 'http://localhost:3000/api';
+  private readonly apiUrl = `${environment.apiUrl}/api`;
 
   constructor(private http: HttpClient) {}
 
