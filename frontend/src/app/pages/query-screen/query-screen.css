@@ -580,7 +580,7 @@ button:focus-visible,
     #ff00ff,
     #ff5738
   );
-  z-index: -1;
+  z-index: 0;
   animation: rotate-neon 3s linear infinite;
   filter: blur(8px);
   opacity: 0.4;
