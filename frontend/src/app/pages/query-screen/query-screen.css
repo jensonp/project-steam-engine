@@ -817,7 +817,8 @@ button:focus-visible,
 .search-container ::ng-deep .mat-mdc-text-field-wrapper {
   border-radius: 14px !important;
   background: rgba(255, 255, 255, 0.02) !important;
-  padding-left: 12px !important;
+  padding-left: 18px !important;
+  padding-right: 12px !important;
   transition:
     transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1),
     background-color 0.15s ease !important;
@@ -872,6 +873,11 @@ button:focus-visible,
   background-color: transparent !important;
   /* Add a very subtle text shadow to lift the label if it's over a complex background */
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.search-container ::ng-deep .mat-mdc-input-element,
+.search-container ::ng-deep .mat-mdc-select-value-text {
+  padding-left: 2px !important;
 }
 
 .search-container ::ng-deep .steam-field .mat-mdc-input-element {
@@ -1086,6 +1092,10 @@ button:focus-visible,
 
   .hero-frame {
     padding: 1rem;
+  }
+
+  .search-container ::ng-deep .mat-mdc-text-field-wrapper {
+    padding-left: 20px !important;
   }
 
   .valve-layer {
