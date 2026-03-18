@@ -37,33 +37,32 @@ html {
   overscroll-behavior-y: none;
 }
 
-body {
-  margin: 0;
-  color-scheme: dark;
-  color: var(--neo-text);
-  font-family: 'Space Grotesk', sans-serif;
-  background:
-    radial-gradient(circle at 85% 0%, rgba(255, 87, 56, 0.2), transparent 24%),
-    linear-gradient(180deg, #0d0d0d 0%, #080808 42%, #050505 100%);
-  overflow-x: hidden;
-  overscroll-behavior-y: none;
+/* 
+   ENFORCE GLOBAL DOOMFIST CONSISTENCY
+   Catch-all for anything that would normally show a pointer or text cursor 
+*/
+* {
+  /* Default fallback to standard doomfist */
   cursor: url('/doomfist-cursor.png') 16 16, auto;
 }
 
-/* Ensure interactive elements show the 'ready' doomfist icon, no pointer finger or I-beam */
+/* Areas where we want the 'ready' pointing doomfist */
 a, button, [role="button"], mat-option, .mat-mdc-option, 
 input, select, mat-select, .mat-mdc-form-field, 
-.load-profile-button, .detect-os-button, .clear-os-button {
-  cursor: url('/doomfist-cursor-ready.png') 16 16, auto !important;
+.load-profile-button, .detect-os-button, .clear-os-button,
+.mat-mdc-select-trigger, .mat-mdc-select-arrow-wrapper,
+label, .mdc-label, [click], 
+.genre-chip, .game-card, .steam-card {
+  cursor: url('/doomfist-cursor-ready.png') 16 16, pointer !important;
 }
 
-/* Explicitly target the text cursor for inputs to prevent the 'I-beam' from appearing */
-input, textarea {
+/* Explicitly target writing areas to kill the 'I-beam' */
+input, textarea, [contenteditable="true"] {
   cursor: url('/doomfist-cursor-ready.png') 16 16, text !important;
 }
 
-/* Specific state for the Suggest Games button */
-.search-button:hover {
+/* Specific state for the Suggest Games button - Rage Mode */
+.search-button, .search-button * {
   cursor: url('/doomfist-cursor-angry.png') 16 16, pointer !important;
 }
 
