@@ -55,8 +55,14 @@ a, button, [role="button"], mat-option, .mat-mdc-option {
   cursor: url('/doomfist-cursor.png') 16 16, pointer;
 }
 
+/* Specific state for the Suggest Games button */
 .search-button:hover {
   cursor: url('/doomfist-cursor-angry.png') 16 16, pointer !important;
+}
+
+/* Ready/Interactive state for forms and other inputs */
+input, select, mat-select, .mat-mdc-form-field, .load-profile-button, .detect-os-button, .clear-os-button {
+  cursor: url('/doomfist-cursor-ready.png') 16 16, pointer !important;
 }
 
 body::before {

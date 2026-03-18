@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -75,6 +75,7 @@ export class QueryScreen implements OnInit, OnDestroy {
   error: string | null = null;
   userProfile: UserProfile | null = null;
   osDetectionError: string | null = null;
+  mouseCoordinates = '35.6762 N / 139.6503 E';
 
   private readonly subs = new Subscription();
 
@@ -118,6 +119,19 @@ export class QueryScreen implements OnInit, OnDestroy {
         this.router.navigate(['/results'], { state: { results } });
       }
     }));
+  }
+
+  @HostListener('document:mousemove', ['$event'])
+  onMouseMove(e: MouseEvent) {
+    const xPct = (e.clientX / window.innerWidth) * 100;
+    const yPct = (e.clientY / window.innerHeight) * 100;
+    
+    // Map screen position to geographic-ish coordinates
+    // Latitude: 0-90N, Longitude: 0-180E
+    const lat = (yPct * 0.9).toFixed(4);
+    const lng = (xPct * 1.8).toFixed(4);
+    
+    this.mouseCoordinates = `${lat} N / ${lng} E`;
   }
 
   ngOnDestroy() {
