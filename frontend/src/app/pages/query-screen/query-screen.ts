@@ -162,6 +162,7 @@ export class QueryScreen implements OnInit, OnDestroy {
 
     this.backendService.setSteamId(this.steamId_input);
     this.backendService.loadUserProfile();
+    this.scrollToCenter('.steam-section');
   }
 
   detectAndApplyOs(): void {
@@ -173,6 +174,7 @@ export class QueryScreen implements OnInit, OnDestroy {
     }
 
     this.selected_os = detectedOs;
+    this.scrollToCenter('.os-row');
   }
 
   clearOsFilter(): void {
@@ -199,6 +201,16 @@ export class QueryScreen implements OnInit, OnDestroy {
         this.selected_os || undefined
       );
     }
+    this.scrollToCenter('app-game-list');
+  }
+
+  private scrollToCenter(selector: string): void {
+    setTimeout(() => {
+      const element = document.querySelector(selector);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 100);
   }
 
   private detectCurrentOs(): SearchOs | null {
