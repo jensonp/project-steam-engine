@@ -547,25 +547,23 @@ button:focus-visible,
   border: none;
   border-radius: 12px;
   background: linear-gradient(135deg, #ff5738, #ff2e1a, #ff5738);
-  background-size: 220% 100%;
+  background-size: 260% 100%;
   color: #fff;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
   box-shadow:
-    0 0 16px rgba(255, 87, 56, 0.26),
-    0 0 34px rgba(255, 87, 56, 0.08),
+    0 0 20px rgba(255, 87, 56, 0.3),
+    0 0 50px rgba(255, 87, 56, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
-  transition:
-    transform 0.12s cubic-bezier(0.2, 0.8, 0.2, 1),
-    background-position 0.22s linear,
-    box-shadow 0.14s ease;
+  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
   animation:
-    shimmer-btn 3.2s linear infinite;
+    shimmer-btn 1.9s linear infinite,
+    cta-neon-pulse 1.7s ease-in-out infinite alternate;
 }
 
 .search-button::before {
   content: '';
   position: absolute;
-  inset: -6px;
+  inset: -8px;
   border-radius: inherit;
   background: conic-gradient(
     from 0deg,
@@ -576,8 +574,9 @@ button:focus-visible,
     #ff5738
   );
   z-index: 0;
-  filter: blur(4px);
-  opacity: 0.26;
+  animation: rotate-neon 2.6s linear infinite;
+  filter: blur(10px);
+  opacity: 0.56;
   transition: opacity 0.3s ease;
 }
 
@@ -593,8 +592,8 @@ button:focus-visible,
     rgba(255, 255, 255, 0) 66%
   );
   transform: translateX(-145%) skewX(-18deg);
-  opacity: 0.3;
-  animation: shimmer-sweep 3.2s ease-in-out infinite;
+  opacity: 0.52;
+  animation: shimmer-sweep 1.85s linear infinite;
   pointer-events: none;
   z-index: 1;
 }
@@ -608,35 +607,29 @@ button:focus-visible,
 }
 
 .search-button:hover::before {
-  opacity: 0.72;
-  filter: blur(8px);
-  animation: rotate-neon 4.2s linear infinite;
+  opacity: 1;
+  filter: blur(12px);
 }
 
 .search-button:hover:not(:disabled) {
-  transform: translateY(-1px) scale(1.008);
+  transform: translateY(-4px) scale(1.04);
   background: linear-gradient(135deg, #ff6b52, #ff412e, #ff6b52);
   box-shadow:
-    0 0 18px rgba(255, 87, 56, 0.34),
-    0 0 30px rgba(255, 87, 56, 0.12),
-    0 8px 20px rgba(0, 0, 0, 0.26);
+    0 0 30px rgba(255, 87, 56, 0.5),
+    0 0 70px rgba(255, 87, 56, 0.2),
+    0 12px 24px rgba(0, 0, 0, 0.3);
 }
 
 .search-button:active:not(:disabled) {
-  transform: translateY(0) scale(0.99);
+  transform: translateY(0) scale(0.96);
   box-shadow:
-    0 0 8px rgba(255, 87, 56, 0.28),
+    0 0 15px rgba(255, 87, 56, 0.4),
     inset 0 3px 6px rgba(0, 0, 0, 0.4);
-  transition-duration: 0.05s;
 }
 
 .search-button:not(:disabled) {
-  transition:
-    transform 0.12s cubic-bezier(0.2, 0.8, 0.2, 1),
-    opacity 0.16s ease,
-    background-position 0.22s linear,
-    box-shadow 0.14s ease;
-  will-change: transform, opacity, background-position;
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease;
+  will-change: transform, opacity;
   backface-visibility: hidden;
 }
 
@@ -647,17 +640,17 @@ button:focus-visible,
 
 .search-button.is-firing:not(:disabled) {
   animation:
-    shimmer-btn 1.8s linear infinite,
-    suggest-launch 420ms cubic-bezier(0.2, 0.8, 0.2, 1);
+    shimmer-btn 1.6s linear infinite,
+    suggest-launch 460ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    cta-neon-pulse 1.6s ease-in-out infinite alternate;
 }
 
 .search-button.is-firing:not(:disabled)::before {
-  animation: rotate-neon 900ms linear infinite;
-  opacity: 0.92;
+  animation-duration: 900ms;
 }
 
 .search-button.is-firing:not(:disabled)::after {
-  animation: shimmer-sweep 700ms linear infinite;
+  animation-duration: 900ms;
   opacity: 0.78;
 }
 
@@ -894,6 +887,15 @@ button:focus-visible,
   }
   to {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes cta-neon-pulse {
+  from {
+    filter: brightness(1) drop-shadow(0 0 10px rgba(255, 87, 56, 0.4));
+  }
+  to {
+    filter: brightness(1.2) drop-shadow(0 0 20px rgba(255, 87, 56, 0.8));
   }
 }
 
