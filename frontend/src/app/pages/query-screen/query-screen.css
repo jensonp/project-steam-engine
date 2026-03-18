@@ -270,9 +270,6 @@ h1 span {
   margin-top: 0.5rem;
 }
 
-.load-profile-button {
-  /* Removed manual margin for center alignment */
-}
 
 button,
 .search-button,
@@ -368,79 +365,83 @@ button:disabled,
 
 .search-button {
   margin-top: 0;
-  min-width: 15rem;
-  min-height: 54px;
-  font-size: 0.92rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
+  min-width: 16rem;
+  min-height: 58px;
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
   position: relative;
   overflow: hidden;
-  border: 1.5px solid rgba(255, 87, 56, 0.5);
-  background: linear-gradient(135deg, rgba(255, 87, 56, 0.3), rgba(255, 40, 20, 0.15), rgba(255, 87, 56, 0.25));
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #ff5738, #ff2e1a, #ff5738);
   background-size: 200% 100%;
+  color: #fff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
   box-shadow:
-    0 0 16px rgba(255, 87, 56, 0.15),
-    0 0 40px rgba(255, 87, 56, 0.06),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  animation:
-    shimmer-btn 3s ease-in-out infinite,
-    cta-pulse 2s ease-in-out infinite alternate;
+    0 0 20px rgba(255, 87, 56, 0.3),
+    0 0 50px rgba(255, 87, 56, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+  animation: 
+    shimmer-btn 2.5s ease-in-out infinite,
+    cta-neon-pulse 2s ease-in-out infinite alternate;
 }
 
+/* Gambling-style 'Winner' animated border */
 .search-button::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: -100%;
-  width: 60%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
-  animation: shimmer-sweep 3s ease-in-out infinite;
-  pointer-events: none;
+  inset: -4px;
+  background: conic-gradient(
+    from 0deg,
+    #ff5738,
+    #ff00ff,
+    #00ffff,
+    #ff00ff,
+    #ff5738
+  );
+  z-index: -1;
+  animation: rotate-neon 3s linear infinite;
+  filter: blur(8px);
+  opacity: 0.4;
+  transition: opacity 0.3s ease;
+}
+
+.search-button:hover::before {
+  opacity: 1;
+  filter: blur(12px);
 }
 
 .search-button:hover:not(:disabled) {
-  border-color: rgba(255, 87, 56, 0.8);
-  background: linear-gradient(135deg, rgba(255, 87, 56, 0.42), rgba(255, 40, 20, 0.24), rgba(255, 87, 56, 0.38));
-  background-size: 200% 100%;
+  transform: translateY(-4px) scale(1.04);
+  background: linear-gradient(135deg, #ff6b52, #ff412e, #ff6b52);
   box-shadow:
-    0 0 24px rgba(255, 87, 56, 0.3),
-    0 0 60px rgba(255, 87, 56, 0.1),
-    0 8px 24px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  transform: translateY(-3px) scale(1.02);
+    0 0 30px rgba(255, 87, 56, 0.5),
+    0 0 70px rgba(255, 87, 56, 0.2),
+    0 12px 24px rgba(0, 0, 0, 0.3);
 }
 
 .search-button:active:not(:disabled) {
-  transform: translateY(0) scale(0.97);
+  transform: translateY(0) scale(0.96);
   box-shadow:
-    0 0 20px rgba(255, 87, 56, 0.35),
-    inset 0 2px 4px rgba(0, 0, 0, 0.3);
-  transition-duration: 0.06s;
+    0 0 15px rgba(255, 87, 56, 0.4),
+    inset 0 3px 6px rgba(0, 0, 0, 0.4);
 }
 
-@keyframes shimmer-btn {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
+@keyframes rotate-neon {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
-@keyframes shimmer-sweep {
-  0% { left: -100%; }
-  50%, 100% { left: 120%; }
-}
-
-@keyframes cta-pulse {
+@keyframes cta-neon-pulse {
   from {
-    box-shadow:
-      0 0 16px rgba(255, 87, 56, 0.15),
-      0 0 40px rgba(255, 87, 56, 0.06),
-      inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    filter: brightness(1) drop-shadow(0 0 10px rgba(255, 87, 56, 0.4));
   }
   to {
-    box-shadow:
-      0 0 22px rgba(255, 87, 56, 0.25),
-      0 0 56px rgba(255, 87, 56, 0.1),
-      inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    filter: brightness(1.2) drop-shadow(0 0 20px rgba(255, 87, 56, 0.8));
   }
 }
 
