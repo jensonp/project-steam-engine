@@ -589,7 +589,7 @@ button:focus-visible,
   animation: rotate-neon 3s linear infinite;
   filter: blur(8px);
   opacity: 0.4;
-  transition: opacity 0.3s ease;
+  transition: opacity 1.5s ease-in-out, filter 1.5s ease-in-out;
   pointer-events: none;
 }
 
@@ -600,7 +600,7 @@ button:focus-visible,
   border-radius: inherit;
   box-shadow: 0 0 30px rgba(255, 87, 56, 0.5);
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: opacity 1.5s ease-in-out;
   pointer-events: none;
   z-index: -1;
 }
@@ -625,7 +625,6 @@ button:focus-visible,
 
 .search-button:hover:not(:disabled) {
   transform: translateY(-3px) scale(1.02);
-  background: linear-gradient(135deg, #ff6b52, #ff412e, #ff6b52);
   box-shadow:
     0 0 50px rgba(255, 87, 56, 0.8),
     0 0 100px rgba(255, 87, 56, 0.5),
@@ -646,11 +645,10 @@ button:focus-visible,
 
 .search-button:not(:disabled) {
   transition:
-    transform 1.0s ease-in-out,
-    opacity 1.0s ease-in-out,
-    border-color 1.0s ease-in-out,
-    box-shadow 1.0s ease-in-out;
-  will-change: transform, opacity;
+    transform 1.5s ease-in-out,
+    border-color 1.5s ease-in-out,
+    box-shadow 1.5s ease-in-out;
+  will-change: transform;
   backface-visibility: hidden;
 }
 
