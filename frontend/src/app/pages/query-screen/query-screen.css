@@ -110,6 +110,18 @@
   display: block;
   --progress-bar-color: transparent;
   --poster-color: transparent;
+  transform-origin: 50% 52%;
+  animation: valve-gyro-wobble 8.4s ease-in-out infinite;
+}
+
+.valve-model-shell {
+  width: 100%;
+  height: 100%;
+  display: block;
+  transform-style: preserve-3d;
+  transform-origin: 50% 52%;
+  animation: valve-gyro-orbit 14s linear infinite;
+  will-change: transform;
 }
 
 .hero-icon-frame {
@@ -845,6 +857,39 @@ button:focus-visible,
   }
 }
 
+@keyframes valve-gyro-orbit {
+  0% {
+    transform: rotateX(10deg) rotateY(0deg) rotateZ(-7deg);
+  }
+  25% {
+    transform: rotateX(-8deg) rotateY(90deg) rotateZ(4deg);
+  }
+  50% {
+    transform: rotateX(12deg) rotateY(180deg) rotateZ(8deg);
+  }
+  75% {
+    transform: rotateX(-10deg) rotateY(270deg) rotateZ(-5deg);
+  }
+  100% {
+    transform: rotateX(10deg) rotateY(360deg) rotateZ(-7deg);
+  }
+}
+
+@keyframes valve-gyro-wobble {
+  0% {
+    transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg) scale(1);
+  }
+  35% {
+    transform: rotateX(8deg) rotateY(-10deg) rotateZ(3deg) scale(1.01);
+  }
+  70% {
+    transform: rotateX(-6deg) rotateY(9deg) rotateZ(-3deg) scale(0.995);
+  }
+  100% {
+    transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg) scale(1);
+  }
+}
+
 @keyframes katana-float {
   from {
     transform: translate(-14px, -42px) rotate(-16deg) scale(0.97);
@@ -1312,6 +1357,11 @@ button:focus-visible,
 
   .search-button::before,
   .search-button::after {
+    animation: none !important;
+  }
+
+  .valve-model,
+  .valve-model-shell {
     animation: none !important;
   }
 
