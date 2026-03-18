@@ -84,6 +84,7 @@ export class QueryScreen implements OnInit, OnDestroy {
   katanaCursorX = 0;
   katanaCursorY = 0;
   isSearchButtonFiring = false;
+  isProfileClearing = false;
   valveBackdropEnabled = true;
   valveOpacity = 0.84;
   private searchButtonFireTimeoutId: number | null = null;
@@ -251,9 +252,16 @@ export class QueryScreen implements OnInit, OnDestroy {
   }
 
   clearSteamProfile(): void {
-    this.steamId_input = '';
-    this.backendService.clearUserProfile();
-    this.error = null;
+    this.isProfileClearing = true;
+    setTimeout(() => {
+      this.ngZone.run(() => {
+        this.steamId_input = '';
+        this.backendService.clearUserProfile();
+        this.error = null;
+        this.isProfileClearing = false;
+        this.cdr.markForCheck();
+      });
+    }, 400);
   }
 
   onSteamIdInput(value: string): void {

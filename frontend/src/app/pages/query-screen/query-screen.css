@@ -646,10 +646,10 @@ button:focus-visible,
 
 .search-button:not(:disabled) {
   transition:
-    transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1),
-    opacity 0.4s ease,
-    border-color 0.4s ease,
-    box-shadow 0.5s ease;
+    transform 0.6s ease-in-out,
+    opacity 0.6s ease-in-out,
+    border-color 0.6s ease-in-out,
+    box-shadow 0.6s ease-in-out;
   will-change: transform, opacity;
   backface-visibility: hidden;
 }
@@ -721,7 +721,14 @@ button:focus-visible,
   max-width: none;
   animation: section-enter 640ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
   animation-delay: 100ms;
-  transition: border-color 0.2s ease, box-shadow 0.24s ease;
+  transition: border-color 0.2s ease, box-shadow 0.24s ease, opacity 0.38s ease, transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transform-origin: top center;
+}
+
+.profile-card.is-clearing {
+  opacity: 0;
+  transform: translateY(-8px) scale(0.96);
+  pointer-events: none;
 }
 
 .profile-card:hover {

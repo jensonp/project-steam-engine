@@ -101,7 +101,7 @@
             }
 
             @if (userProfile) {
-                <div class="profile-card">
+                <div class="profile-card" [class.is-clearing]="isProfileClearing">
                     @if (userProfile.avatar) {
                         <img class="profile-avatar" [src]="userProfile.avatar" [alt]="userProfile.personaName + ' avatar'">
                     }
