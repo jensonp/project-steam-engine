@@ -158,6 +158,37 @@ h1 span {
 .signal-list span:nth-child(2) { animation-delay: 420ms; }
 .signal-list span:nth-child(3) { animation-delay: 540ms; }
 
+/* Custom Genre Animations */
+.action-genre {
+  color: #ff5738 !important;
+  animation: action-glow 1.5s ease-in-out infinite alternate;
+  font-weight: 700 !important;
+}
+
+.adventure-genre {
+  color: #56ccf2 !important;
+  animation: adventure-float 3s ease-in-out infinite;
+  font-weight: 700 !important;
+}
+
+@keyframes action-glow {
+  from {
+    text-shadow: 0 0 5px rgba(255, 87, 56, 0.4);
+  }
+  to {
+    text-shadow: 0 0 15px rgba(255, 87, 56, 0.8), 0 0 25px rgba(255, 87, 56, 0.4);
+  }
+}
+
+@keyframes adventure-float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
 .subtitle {
   color: var(--neo-muted);
   margin: 0;
@@ -588,10 +619,9 @@ button:disabled,
   background: rgba(255, 255, 255, 0.02) !important;
   padding-left: 12px !important;
   transition:
-    border-color 180ms ease,
-    background-color 180ms ease,
-    transform 180ms cubic-bezier(0.34, 1.56, 0.64, 1);
-  will-change: transform, background-color;
+    transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+    background-color 0.3s ease !important;
+  will-change: transform;
   transform: translateZ(0);
 }
 
@@ -600,6 +630,7 @@ button:disabled,
 .search-container ::ng-deep .mdc-notched-outline__notch {
   border-color: rgba(244, 236, 224, 0.18) !important;
   background: transparent !important;
+  background-color: transparent !important;
 }
 
 .search-container ::ng-deep .mdc-notched-outline__leading {
@@ -640,11 +671,12 @@ button:disabled,
   color: var(--neo-muted) !important;
   font-family: 'Space Grotesk', sans-serif !important;
   letter-spacing: 0.01em !important;
+  background: transparent !important;
 }
 
 .search-container ::ng-deep .mat-mdc-form-field.mat-focused .mat-mdc-text-field-wrapper {
   background: rgba(255, 87, 56, 0.08) !important;
-  transform: translateY(-4px) scale(1.01) translateZ(0);
+  transform: translateY(-2px) scale(1.01) translateZ(0);
 }
 
 .search-container ::ng-deep .mat-mdc-form-field.mat-focused .mat-mdc-text-field-wrapper::after {
@@ -652,7 +684,7 @@ button:disabled,
 }
 
 .search-container ::ng-deep .mat-mdc-form-field .mat-mdc-text-field-wrapper {
-  transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.6s ease !important;
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), background-color 0.3s ease !important;
   transform-origin: center;
   position: relative;
 }
@@ -682,8 +714,9 @@ button:disabled,
 }
 
 .search-container ::ng-deep .mdc-floating-label {
-  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.4s ease !important;
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), color 0.3s ease !important;
   will-change: transform;
+  background-color: transparent !important;
 }
 
 .search-container ::ng-deep .mat-mdc-form-field-subscript-wrapper {

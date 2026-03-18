@@ -87,7 +87,11 @@
                 <mat-label>Genre</mat-label>
                 <mat-select multiple [(ngModel)]="selected_genre" panelClass="topunit">
                     @for (genre of genres; track genre) {
-                        <mat-option [value]="genre">{{ genre }}</mat-option>
+                        <mat-option [value]="genre" 
+                                    [class.action-genre]="genre === 'Action'"
+                                    [class.adventure-genre]="genre === 'Adventure'">
+                            {{ genre }}
+                        </mat-option>
                     }
                 </mat-select>
             </mat-form-field>
