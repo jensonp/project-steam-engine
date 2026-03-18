@@ -271,7 +271,7 @@ h1 span {
 }
 
 .load-profile-button {
-  margin-top: 0.5rem;
+  /* Removed manual margin for center alignment */
 }
 
 button,
