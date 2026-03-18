@@ -546,31 +546,36 @@ button:focus-visible,
   border-radius: 12px;
   background: linear-gradient(118deg, #ff7f5a 0%, #ff34cc 42%, #8ec5ff 72%, #ff8a4d 100%);
   background-size: 220% 220%;
+  background-position: 0% 50%;
   color: #fff;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
   box-shadow:
     0 10px 30px rgba(255, 87, 56, 0.24),
     0 0 34px rgba(255, 64, 210, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  filter: saturate(1.06) brightness(1);
   transition:
-    transform 0.16s cubic-bezier(0.2, 0.8, 0.2, 1),
+    transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
     background-color 0.16s ease,
+    background-position 0.4s ease,
     box-shadow 0.2s ease,
-    border-color 0.16s ease;
+    border-color 0.16s ease,
+    filter 0.22s ease;
 }
 
 .search-button::before {
   content: '';
   position: absolute;
-  top: -42%;
-  left: -72%;
-  width: 44%;
-  height: 184%;
+  top: -40%;
+  left: -86%;
+  width: 54%;
+  height: 188%;
   transform: skewX(-22deg);
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.58), transparent);
-  opacity: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.72), transparent);
+  opacity: 0.18;
   pointer-events: none;
-  animation: suggest-sheen 2.8s linear infinite;
+  mix-blend-mode: screen;
+  animation: suggest-sheen 2.2s linear infinite;
 }
 
 .search-button::after {
@@ -590,12 +595,13 @@ button:focus-visible,
 }
 
 .search-button:hover:not(:disabled) {
-  transform: translateY(-2px);
+  transform: translateY(-3px) scale(1.01);
   border-color: rgba(255, 170, 214, 0.86);
   box-shadow:
-    0 14px 36px rgba(255, 87, 56, 0.3),
-    0 0 42px rgba(255, 56, 201, 0.28),
+    0 16px 38px rgba(255, 87, 56, 0.32),
+    0 0 46px rgba(255, 56, 201, 0.34),
     inset 0 1px 0 rgba(255, 255, 255, 0.24);
+  filter: saturate(1.16) brightness(1.05);
 }
 
 .search-button:active:not(:disabled) {
@@ -607,11 +613,12 @@ button:focus-visible,
 
 .search-button:not(:disabled) {
   transition: transform 0.16s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.2s ease, border-color 0.16s ease;
-  will-change: transform, opacity;
+  will-change: transform, opacity, background-position, filter;
   backface-visibility: hidden;
   animation:
-    suggest-spectrum 4.8s linear infinite,
-    suggest-breathe 2.4s ease-in-out infinite;
+    suggest-spectrum 3.2s linear infinite,
+    suggest-breathe 1.9s ease-in-out infinite,
+    suggest-neon-pulse 2.8s ease-in-out infinite;
 }
 
 .search-button:hover,
@@ -621,9 +628,10 @@ button:focus-visible,
 
 .search-button.is-firing:not(:disabled) {
   animation:
-    suggest-spectrum 4.8s linear infinite,
+    suggest-spectrum 3.2s linear infinite,
     suggest-launch 460ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    suggest-breathe 2.4s ease-in-out infinite;
+    suggest-breathe 1.9s ease-in-out infinite,
+    suggest-neon-pulse 2.8s ease-in-out infinite;
 }
 
 .search-button.is-firing:not(:disabled)::before {
@@ -837,15 +845,15 @@ button:focus-visible,
 @keyframes suggest-breathe {
   0%, 100% {
     box-shadow:
-      0 10px 30px rgba(255, 87, 56, 0.24),
-      0 0 30px rgba(255, 66, 210, 0.19),
+      0 10px 30px rgba(255, 87, 56, 0.28),
+      0 0 34px rgba(255, 66, 210, 0.24),
       inset 0 1px 0 rgba(255, 255, 255, 0.2);
     border-color: rgba(255, 126, 186, 0.68);
   }
   50% {
     box-shadow:
-      0 14px 38px rgba(255, 87, 56, 0.32),
-      0 0 36px rgba(255, 56, 201, 0.32),
+      0 16px 42px rgba(255, 87, 56, 0.36),
+      0 0 44px rgba(255, 56, 201, 0.4),
       inset 0 1px 0 rgba(255, 255, 255, 0.24);
     border-color: rgba(255, 170, 214, 0.86);
   }
@@ -855,8 +863,14 @@ button:focus-visible,
   0% {
     background-position: 0% 50%;
   }
+  25% {
+    background-position: 82% 45%;
+  }
   50% {
     background-position: 100% 50%;
+  }
+  75% {
+    background-position: 18% 55%;
   }
   100% {
     background-position: 0% 50%;
@@ -865,19 +879,28 @@ button:focus-visible,
 
 @keyframes suggest-sheen {
   0% {
-    left: -72%;
-    opacity: 0;
+    left: -86%;
+    opacity: 0.06;
   }
-  12% {
-    opacity: 0.72;
+  14% {
+    opacity: 0.88;
   }
-  38% {
-    left: 136%;
-    opacity: 0;
+  42% {
+    left: 146%;
+    opacity: 0.1;
   }
   100% {
-    left: 136%;
-    opacity: 0;
+    left: 146%;
+    opacity: 0.06;
+  }
+}
+
+@keyframes suggest-neon-pulse {
+  0%, 100% {
+    filter: saturate(1.06) brightness(1);
+  }
+  50% {
+    filter: saturate(1.18) brightness(1.12);
   }
 }
 
@@ -1288,7 +1311,10 @@ button:focus-visible,
     transition: none !important;
   }
 
-  .search-button:not(:disabled),
+  .search-button:not(:disabled) {
+    animation: suggest-breathe 3.8s ease-in-out infinite !important;
+  }
+
   .search-button::before,
   .search-button::after {
     animation: none !important;
