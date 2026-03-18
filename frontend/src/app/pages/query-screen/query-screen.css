@@ -133,6 +133,17 @@
   background-color: var(--neo-primary);
   margin-left: 6px;
   animation: cursor-blink 1s step-end infinite;
+  box-shadow: 0 0 8px var(--neo-primary);
+}
+
+.hero-coordinates {
+  /* ... existing ... */
+  animation: coord-glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes coord-glow {
+  from { text-shadow: 0 0 2px rgba(255, 87, 56, 0.1); }
+  to { text-shadow: 0 0 8px rgba(255, 87, 56, 0.4); }
 }
 
 @keyframes cursor-blink {

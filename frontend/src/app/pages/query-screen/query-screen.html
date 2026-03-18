@@ -94,7 +94,7 @@
             </mat-form-field>
             <mat-form-field appearance="outline" class="search-field" data-ui-check="player-count-field">
                 <mat-label>Player count</mat-label>
-                <mat-select [(ngModel)]="selected_player_count" panelClass="topunit">
+                <mat-select [(ngModel)]="selected_player_count" panelClass="topunit" [disableOptionCentering]="true">
                     @for (player_count of player_counts; track player_count) {
                         <mat-option [value]="player_count">{{ player_count }}</mat-option>
                     }
@@ -105,7 +105,7 @@
         <div class="filter-row os-row" data-ui-check="os-row">
             <mat-form-field appearance="outline" class="search-field" data-ui-check="os-field">
                 <mat-label>Operating system</mat-label>
-                <mat-select [(ngModel)]="selected_os" panelClass="topunit">
+                <mat-select [(ngModel)]="selected_os" panelClass="topunit" [disableOptionCentering]="true">
                     <mat-option value="">Any</mat-option>
                     <mat-option value="windows">Windows</mat-option>
                     <mat-option value="mac">macOS</mat-option>

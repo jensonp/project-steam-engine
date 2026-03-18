@@ -50,11 +50,16 @@ body {
   cursor: url('/doomfist-cursor.png') 16 16, auto;
 }
 
-/* Ensure interactive elements show the 'ready' doomfist icon, no pointer finger */
+/* Ensure interactive elements show the 'ready' doomfist icon, no pointer finger or I-beam */
 a, button, [role="button"], mat-option, .mat-mdc-option, 
 input, select, mat-select, .mat-mdc-form-field, 
 .load-profile-button, .detect-os-button, .clear-os-button {
-  cursor: url('/doomfist-cursor-ready.png') 16 16, pointer !important;
+  cursor: url('/doomfist-cursor-ready.png') 16 16, auto !important;
+}
+
+/* Explicitly target the text cursor for inputs to prevent the 'I-beam' from appearing */
+input, textarea {
+  cursor: url('/doomfist-cursor-ready.png') 16 16, text !important;
 }
 
 /* Specific state for the Suggest Games button */
