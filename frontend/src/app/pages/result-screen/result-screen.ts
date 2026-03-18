@@ -45,6 +45,7 @@ export class ResultScreen implements OnInit, OnDestroy {
     this.subs.add(this.backendService.searchResults$.subscribe(results => {
       if (Array.isArray(results)) {
         if (this.shouldSkipInitialEmptyEmission(results)) return;
+        if (this.shouldIgnoreCompetingEmptyEmission(results)) return;
         if (results.length > 0) this.hydratedFromNavigationState = false;
         this.setResults(results);
       }
@@ -55,6 +56,7 @@ export class ResultScreen implements OnInit, OnDestroy {
         // The HTML template uses generic fields present in both types.
         const mapped = recs as unknown as Game[];
         if (this.shouldSkipInitialEmptyEmission(mapped)) return;
+        if (this.shouldIgnoreCompetingEmptyEmission(mapped)) return;
         if (mapped.length > 0) this.hydratedFromNavigationState = false;
         this.setResults(mapped);
       }
@@ -121,5 +123,12 @@ export class ResultScreen implements OnInit, OnDestroy {
 
   private shouldSkipInitialEmptyEmission(next: Game[]): boolean {
     return this.hydratedFromNavigationState && next.length === 0 && this.results.length > 0;
+  }
+
+  private shouldIgnoreCompetingEmptyEmission(next: Game[]): boolean {
+    // Search and recommendation streams both emit state updates.
+    // Once one stream has populated results, ignore empty emissions
+    // from the other stream so cards do not disappear unexpectedly.
+    return next.length === 0 && this.results.length > 0;
   }
 }
