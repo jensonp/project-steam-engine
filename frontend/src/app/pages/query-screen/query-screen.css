@@ -406,7 +406,6 @@ button,
 }
 
 button:hover:not(:disabled),
-.search-button:hover:not(:disabled),
 .detect-os-button:hover:not(:disabled),
 .clear-os-button:hover:not(:disabled),
 .load-profile-button:hover:not(:disabled) {
