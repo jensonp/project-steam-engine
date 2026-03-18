@@ -41,6 +41,7 @@
   content: '';
   position: absolute;
   inset: 0;
+  border-radius: inherit;
   pointer-events: none;
   background:
     linear-gradient(90deg, rgba(255, 87, 56, 0.11), rgba(255, 87, 56, 0) 45%),
@@ -103,6 +104,7 @@
   content: '';
   position: absolute;
   inset: 0;
+  border-radius: inherit;
   background: linear-gradient(125deg, rgba(255, 87, 56, 0.06), rgba(255, 87, 56, 0));
   transform: translateX(-14%);
   transition: transform 0.48s cubic-bezier(0.16, 1, 0.3, 1);
@@ -114,6 +116,7 @@
   content: '';
   position: absolute;
   inset: 0;
+  border-radius: inherit;
   background:
     linear-gradient(90deg, transparent 66%, var(--neo-surface-strong) 100%),
     linear-gradient(0deg, rgba(8, 8, 8, 0.38) 0%, rgba(8, 8, 8, 0) 40%);
