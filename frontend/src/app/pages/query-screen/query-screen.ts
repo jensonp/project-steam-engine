@@ -98,6 +98,16 @@ export class QueryScreen implements OnInit, OnDestroy {
     }
   }
 
+  get hasInput(): boolean {
+    return (
+      (this.steamId_input && this.steamId_input.length > 0) ||
+      (this.selected_genre && this.selected_genre.length > 0) ||
+      (this.keyword_input && this.keyword_input.length > 0) ||
+      (this.selected_os && this.selected_os !== '') ||
+      (this.selected_player_count && this.selected_player_count !== 'Any')
+    );
+  }
+
   ngOnInit() {
     this.subs.add(this.backendService.isLoadingSearch$.subscribe(l => this.isSearchLoading = l));
     this.subs.add(this.backendService.isLoadingRecommendations$.subscribe(l => this.isRecommendationLoading = l));

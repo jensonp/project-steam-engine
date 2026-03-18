@@ -127,8 +127,9 @@
   animation: coord-glow 2s ease-in-out infinite alternate;
 }
 
-/* When interacting with the page forms or buttons, turn green */
-body:has(input:focus, .search-container :focus, button:active, .mat-mdc-select-panel) .hero-coordinates {
+/* When interacting with the page forms or buttons, or if input is present, turn green */
+body:has(input:focus, .search-container :focus, button:active, .mat-mdc-select-panel) .hero-coordinates,
+.search-container.is-input-active .hero-coordinates {
   --coord-color: #00ff9d; /* HUD Green */
   color: #c7ffd8;
 }
