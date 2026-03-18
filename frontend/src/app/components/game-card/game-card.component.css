@@ -138,6 +138,7 @@ mat-card-content {
   overflow: hidden;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   transition: color 0.2s ease;
 }
 
@@ -183,6 +184,7 @@ mat-card-content {
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
+  line-clamp: 3;
   overflow: hidden;
 }
 
