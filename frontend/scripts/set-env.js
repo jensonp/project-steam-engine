@@ -22,11 +22,16 @@ const normalizeBackendUrl = (input) => {
 };
 
 const backendUrl = normalizeBackendUrl(process.env.BACKEND_URL);
-const updatedContent = content.replace(/apiUrl:\s*'[^']*'/, `apiUrl: '${backendUrl}'`);
-
-if (updatedContent === content) {
-  throw new Error('Failed to update environment.prod.ts apiUrl value.');
+const apiUrlPattern = /apiUrl:\s*'[^']*'/;
+if (!apiUrlPattern.test(content)) {
+  throw new Error('Failed to locate environment.prod.ts apiUrl field.');
 }
 
-fs.writeFileSync(envPath, updatedContent);
-console.log(`Updated environment.prod.ts with BACKEND_URL: ${backendUrl}`);
+const updatedContent = content.replace(apiUrlPattern, `apiUrl: '${backendUrl}'`);
+
+if (updatedContent !== content) {
+  fs.writeFileSync(envPath, updatedContent);
+  console.log(`Updated environment.prod.ts with BACKEND_URL: ${backendUrl}`);
+} else {
+  console.log(`environment.prod.ts already uses BACKEND_URL: ${backendUrl}`);
+}

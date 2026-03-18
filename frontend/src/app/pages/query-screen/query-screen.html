@@ -1,8 +1,46 @@
-<div class="search-container" [class.is-input-active]="hasInput" data-ui-check="search-container">
+<section
+    class="search-container"
+    [class.is-input-active]="hasInput"
+    [class.is-focus-active]="isFormFocused"
+    data-ui-check="search-container"
+    (focusin)="onFocusIn()"
+    (focusout)="onFocusOut($event)">
     <div class="hero-frame">
+        <div class="valve-layer" [style.opacity]="valveOpacity" inert>
+            @if (valveEnabled && valveOpacity > 0.02) {
+                <model-viewer
+                    class="valve-model"
+                    src="/models/red-valve.glb"
+                    alt=""
+                    tabindex="-1"
+                    [attr.auto-rotate]="prefersReducedMotion ? null : ''"
+                    rotation-per-second="22deg"
+                    camera-orbit="0deg 78deg 6.4m"
+                    min-camera-orbit="auto auto 6.4m"
+                    max-camera-orbit="auto auto 6.4m"
+                    field-of-view="22deg"
+                    interaction-prompt="none"
+                    reveal="auto"
+                    loading="eager"
+                    disable-pan
+                    disable-zoom
+                    disable-tap></model-viewer>
+            }
+        </div>
+
         <div class="hero-meta">
             <p class="eyebrow">Steam discovery relay</p>
-            <p class="hero-coordinates">{{ mouseCoordinates }}</p>
+            <div class="hero-controls">
+                <p class="hero-coordinates">{{ mouseCoordinates }}</p>
+                <button
+                    type="button"
+                    class="valve-toggle"
+                    data-ui-check="valve-toggle"
+                    [attr.aria-pressed]="valveEnabled"
+                    (click)="toggleValve()">
+                    {{ valveEnabled ? '[ Valve backdrop: on ]' : '[ Valve backdrop: off ]' }}
+                </button>
+            </div>
         </div>
 
         <div class="hero-main">
@@ -24,7 +62,7 @@
         </div>
     </div>
 
-    <div class="terminal-panel" data-ui-check="terminal-panel">
+    <div class="terminal-panel" data-ui-check="terminal-panel" [attr.aria-busy]="isLoading">
         <div class="panel-intro">
             <div>
                 <p class="panel-kicker">Digital Matrix</p>
@@ -33,140 +71,184 @@
             <p>Search the global Steam storefront or analyze a profile to generate recommendations based on library patterns.</p>
         </div>
 
-        <!-- Steam Profile Section -->
-        <div class="steam-section" data-ui-check="steam-section">
-            <mat-form-field appearance="outline" class="steam-field" data-ui-check="steam-field">
-                <mat-label>Steam ID</mat-label>
-                <input matInput
-                       [(ngModel)]="steamId_input"
-                       placeholder="76561198393551255"
-                       [disabled]="isLoading || isLoadingProfile"
-                       (keyup.enter)="loadSteamProfile()">
-                <mat-hint>Optional. Use your profile to personalize results.</mat-hint>
-            </mat-form-field>
-            <button class="load-profile-button"
-                    data-ui-check="load-profile-button"
-                    (click)="loadSteamProfile()"
-                    [disabled]="!steamId_input || steamId_input.length !== 17 || isLoadingProfile">
-                @if (isLoadingProfile) {
-                    <mat-spinner diameter="16"></mat-spinner>
-                } @else {
-                    [ Load profile ]
-                }
-            </button>
-        </div>
-
-        <!-- Profile Card (shown after successful profile load) -->
-        @if (userProfile) {
-            <div class="profile-card">
-                @if (userProfile.avatar) {
-                    <img class="profile-avatar" [src]="userProfile.avatar" [alt]="userProfile.personaName">
-                }
-                <div class="profile-info">
-                    <span class="profile-name">{{ userProfile.personaName }}</span>
-                    <span class="profile-stats">
-                        {{ userProfile.librarySize }} games &nbsp;·&nbsp;
-                        {{ userProfile.friendsAnalyzed }} friends analyzed &nbsp;·&nbsp;
-                        {{ userProfile.friendOverlapGames }} games overlap
-                    </span>
-                    <div class="profile-genres">
-                        @for (g of userProfile.topGenres.slice(0, 5); track g.genre) {
-                            <span class="genre-chip">{{ g.genre }} ({{ (g.weight * 100).toFixed(0) }}%)</span>
-                        }
-                    </div>
-                </div>
-            </div>
-        }
-
-        <!-- Genre / Keyword Filters -->
-        <div class="filter-row" data-ui-check="genre-player-row">
-            <mat-form-field appearance="outline" class="search-field" data-ui-check="genre-field">
-                <mat-label>Genre</mat-label>
-                <mat-select multiple [(ngModel)]="selected_genre" panelClass="topunit" [disableOptionCentering]="true">
-                    @for (genre of genres; track genre) {
-                        <mat-option [value]="genre" 
-                                    [class.action-genre]="genre === 'Action'"
-                                    [class.adventure-genre]="genre === 'Adventure'">
-                            {{ genre }}
-                        </mat-option>
-                    }
-                </mat-select>
-            </mat-form-field>
-            <mat-form-field appearance="outline" class="search-field" data-ui-check="player-count-field">
-                <mat-label>Player count</mat-label>
-                <mat-select [(ngModel)]="selected_player_count" panelClass="topunit" [disableOptionCentering]="true">
-                    @for (player_count of player_counts; track player_count) {
-                        <mat-option [value]="player_count">{{ player_count }}</mat-option>
-                    }
-                </mat-select>
-            </mat-form-field>
-        </div>
-
-        <div class="filter-row os-row" data-ui-check="os-row">
-            <mat-form-field appearance="outline" class="search-field" data-ui-check="os-field">
-                <mat-label>Operating system</mat-label>
-                <mat-select [(ngModel)]="selected_os" panelClass="topunit" [disableOptionCentering]="true">
-                    <mat-option value="">Any</mat-option>
-                    <mat-option value="windows">Windows</mat-option>
-                    <mat-option value="mac">macOS</mat-option>
-                    <mat-option value="linux">Linux</mat-option>
-                </mat-select>
-            </mat-form-field>
-            <div class="os-actions">
+        <form class="query-form" (ngSubmit)="onQuery()" novalidate>
+            <div class="steam-section" data-ui-check="steam-section">
+                <mat-form-field appearance="outline" class="steam-field" data-ui-check="steam-field">
+                    <mat-label>Steam ID</mat-label>
+                    <input
+                        matInput
+                        name="steamId"
+                        [ngModel]="steamId_input"
+                        (ngModelChange)="onSteamIdInput($event)"
+                        type="text"
+                        inputmode="numeric"
+                        autocomplete="off"
+                        maxlength="17"
+                        placeholder="76561198393551255"
+                        [disabled]="isLoading || isLoadingProfile"
+                        [attr.aria-invalid]="steamId_input.length > 0 && !isSteamIdValid ? 'true' : 'false'"
+                        aria-describedby="steam-id-hint steam-id-error"
+                        (keydown.enter)="$event.preventDefault(); loadSteamProfile()">
+                    <mat-hint id="steam-id-hint">Optional. Use your profile to personalize results.</mat-hint>
+                </mat-form-field>
                 <button
                     type="button"
-                    class="detect-os-button"
-                    data-ui-check="detect-os-button"
-                    (click)="detectAndApplyOs()"
-                    [disabled]="isLoading || isLoadingProfile">
-                    [ Use my OS ]
+                    class="load-profile-button"
+                    data-ui-check="load-profile-button"
+                    (click)="loadSteamProfile()"
+                    [disabled]="!isSteamIdValid || isLoadingProfile || isLoading">
+                    @if (isLoadingProfile) {
+                        <mat-spinner diameter="16"></mat-spinner>
+                    } @else {
+                        [ Load profile ]
+                    }
                 </button>
-                @if (selected_os) {
-                    <button type="button" class="clear-os-button" data-ui-check="clear-os-button" (click)="clearOsFilter()">
-                        [ Clear ]
-                    </button>
-                }
             </div>
-        </div>
 
-        @if (selected_os) {
-            <p class="os-status">OS filter active: {{ selectedOsLabel }}</p>
-        }
-        @if (osDetectionError) {
-            <div class="error-message">{{ osDetectionError }}</div>
-        }
-        @if (error) {
-            <div class="error-message">{{ error }}</div>
-        }
+            @if (steamId_input.length > 0 && !isSteamIdValid) {
+                <p id="steam-id-error" class="validation-message" aria-live="polite">
+                    Steam ID must be exactly 17 digits.
+                </p>
+            }
 
-        <div class="keyword-row">
-            <mat-form-field appearance="outline" class="search-form" data-ui-check="keyword-field">
-                <mat-label>Keywords</mat-label>
-                <input matInput [(ngModel)]="keyword_input" placeholder="" [disabled]="isLoading">
-            </mat-form-field>
-        </div>
+            @if (userProfile) {
+                <div class="profile-card">
+                    @if (userProfile.avatar) {
+                        <img class="profile-avatar" [src]="userProfile.avatar" [alt]="userProfile.personaName + ' avatar'">
+                    }
+                    <div class="profile-info">
+                        <span class="profile-name">{{ userProfile.personaName }}</span>
+                        <span class="profile-stats">
+                            {{ userProfile.librarySize }} games &nbsp;·&nbsp;
+                            {{ userProfile.friendsAnalyzed }} friends analyzed &nbsp;·&nbsp;
+                            {{ userProfile.friendOverlapGames }} games overlap
+                        </span>
+                        <div class="profile-genres">
+                            @for (g of userProfile.topGenres.slice(0, 5); track g.genre) {
+                                <span class="genre-chip">{{ g.genre }} ({{ (g.weight * 100).toFixed(0) }}%)</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
 
-        <div class="form-actions">
-            <button (click)="onQuery()" [disabled]="isLoading" class="search-button" data-ui-check="search-button">
-                @if (isLoading) {
-                <mat-spinner class="custom-color-spinner" diameter="20"></mat-spinner>
-                }
-                @else {
-                <ng-container>{{ userProfile ? '[ Suggest for me ]' : '[ Suggest games ]' }}</ng-container>
-                }
-            </button>
-        </div>
+            <div class="filter-row" data-ui-check="genre-player-row">
+                <mat-form-field appearance="outline" class="search-field" data-ui-check="genre-field">
+                    <mat-label>Genre</mat-label>
+                    <mat-select
+                        name="genres"
+                        multiple
+                        [(ngModel)]="selected_genre"
+                        panelClass="topunit"
+                        [disableOptionCentering]="true">
+                        @for (genre of genres; track genre) {
+                            <mat-option [value]="genre"
+                                        [class.action-genre]="genre === 'Action'"
+                                        [class.adventure-genre]="genre === 'Adventure'">
+                                {{ genre }}
+                            </mat-option>
+                        }
+                    </mat-select>
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="search-field" data-ui-check="player-count-field">
+                    <mat-label>Player count</mat-label>
+                    <mat-select
+                        name="playerCount"
+                        [(ngModel)]="selected_player_count"
+                        panelClass="topunit"
+                        [disableOptionCentering]="true">
+                        @for (player_count of player_counts; track player_count) {
+                            <mat-option [value]="player_count">{{ player_count }}</mat-option>
+                        }
+                    </mat-select>
+                </mat-form-field>
+            </div>
+
+            <div class="filter-row os-row" data-ui-check="os-row">
+                <mat-form-field appearance="outline" class="search-field" data-ui-check="os-field">
+                    <mat-label>Operating system</mat-label>
+                    <mat-select
+                        name="os"
+                        [(ngModel)]="selected_os"
+                        panelClass="topunit"
+                        [disableOptionCentering]="true">
+                        <mat-option value="">Any</mat-option>
+                        <mat-option value="windows">Windows</mat-option>
+                        <mat-option value="mac">macOS</mat-option>
+                        <mat-option value="linux">Linux</mat-option>
+                    </mat-select>
+                </mat-form-field>
+                <div class="os-actions">
+                    <button
+                        type="button"
+                        class="detect-os-button"
+                        data-ui-check="detect-os-button"
+                        (click)="detectAndApplyOs()"
+                        [disabled]="isLoading || isLoadingProfile">
+                        [ Use my OS ]
+                    </button>
+                    @if (selected_os) {
+                        <button type="button" class="clear-os-button" data-ui-check="clear-os-button" (click)="clearOsFilter()">
+                            [ Clear ]
+                        </button>
+                    }
+                </div>
+            </div>
+
+            @if (selected_os) {
+                <p class="os-status" role="status" aria-live="polite">OS filter active: {{ selectedOsLabel }}</p>
+            }
+            @if (osDetectionError) {
+                <div class="error-message" role="alert" aria-live="assertive">{{ osDetectionError }}</div>
+            }
+            @if (error) {
+                <div class="error-message" role="alert" aria-live="assertive">{{ error }}</div>
+            }
+
+            <div class="keyword-row">
+                <mat-form-field appearance="outline" class="search-form" data-ui-check="keyword-field">
+                    <mat-label>Keywords</mat-label>
+                    <input
+                        matInput
+                        name="keywords"
+                        [(ngModel)]="keyword_input"
+                        placeholder="e.g. portal co-op"
+                        [disabled]="isLoading">
+                </mat-form-field>
+            </div>
+
+            <div class="form-actions">
+                <button
+                    type="submit"
+                    [disabled]="isLoading"
+                    class="search-button"
+                    data-ui-check="search-button"
+                    (mouseenter)="onSearchButtonHoverEnter($event)"
+                    (mousemove)="onSearchButtonHoverMove($event)"
+                    (mouseleave)="onSearchButtonHoverLeave()">
+                    @if (isLoading) {
+                    <mat-spinner class="custom-color-spinner" diameter="20"></mat-spinner>
+                    }
+                    @else {
+                    <ng-container>{{ userProfile ? '[ Suggest for me ]' : '[ Suggest games ]' }}</ng-container>
+                    }
+                </button>
+            </div>
+        </form>
     </div>
 
     @if (isLoading) {
-        <div class="reward-overlay">
-            <div class="data-burst"></div>
-            <div class="data-stream" style="left: 20%; animation-delay: 0.1s"></div>
-            <div class="data-stream" style="left: 40%; animation-delay: 0.3s"></div>
-            <div class="data-stream" style="left: 50%; animation-delay: 0s"></div>
-            <div class="data-stream" style="left: 60%; animation-delay: 0.2s"></div>
-            <div class="data-stream" style="left: 80%; animation-delay: 0.4s"></div>
+        <div class="reward-overlay" role="status" aria-live="polite" aria-label="Loading recommendations">
+            <mat-spinner class="custom-color-spinner" diameter="46"></mat-spinner>
+            <p class="loading-text">Running discovery query...</p>
         </div>
     }
 
-</div>
+    @if (isKatanaCursorVisible) {
+        <div
+            class="katana-cursor"
+            [style.left.px]="katanaCursorX"
+            [style.top.px]="katanaCursorY"
+            aria-hidden="true"></div>
+    }
+</section>

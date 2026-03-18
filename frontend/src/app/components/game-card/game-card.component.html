@@ -1,44 +1,56 @@
-@if (game) {
-    <a [href]="'https://store.steampowered.com/app/' + game.appId + '/'" 
-       target="_blank" 
+@if (game; as currentGame) {
+    <a [href]="'https://store.steampowered.com/app/' + currentGame.appId + '/'"
+       target="_blank"
+       rel="noopener noreferrer"
        class="card-link"
-       aria-label="View on Steam">
+       [attr.aria-label]="'View ' + (currentGame.name || 'game') + ' on Steam'">
         <mat-card class="game-card">
-            <div class="game-image">
-                @if (game.headerImage) {
-                    <img [src]="game!.headerImage"
-                         [alt]="game.name || 'Unknown Game'"
-                         loading="lazy"
+            <div class="game-image" [class.prioritized]="prioritizeImage" aria-hidden="true">
+                @if (currentGame.headerImage) {
+                    <img [src]="currentGame.headerImage"
+                         [alt]="currentGame.name || 'Unknown Game'"
+                         [loading]="prioritizeImage ? 'eager' : 'lazy'"
+                         [attr.fetchpriority]="prioritizeImage ? 'high' : 'low'"
                          decoding="async"
+                         width="460"
+                         height="215"
                          class="game-img"
                          (load)="onImageLoad($event)"
                          (error)="onImageError($event)" />
                 } @else {
                     <div class="placeholder-image">
-                        <img src="steam.png" alt="Placeholder Image" />
+                        <img src="steam.png" alt="" />
                     </div>
                 }
             </div>
             <mat-card-content class="card-content">
-                <h3 class="game-title">
-                    {{ game.name || 'Unknown Game' }}
-                </h3>
+                <div class="title-row">
+                    <h3 class="game-title">
+                        {{ currentGame.name || 'Unknown Game' }}
+                    </h3>
+                    <span class="steam-link-hint" aria-hidden="true">Open on Steam →</span>
+                </div>
                 <div class="game-details">
-                    @if (game.genres && game.genres.length > 0) {
+                    @if (currentGame.genres && currentGame.genres.length > 0) {
                         <div class="genres">
-                            @for (genre of game.genres.slice(0, 3); track genre) {
+                            @for (genre of currentGame.genres.slice(0, 4); track genre) {
                                 <mat-chip>{{ genre }}</mat-chip>
                             }
                         </div>
                     }
-                    @if (game.description) {
-                        <p class="description">{{ truncateDescription(game.description) }}</p>
+                    @if (currentGame.description) {
+                        <p class="description">{{ truncateDescription(currentGame.description) }}</p>
                     }
+                    <div class="meta-row">
+                        <span class="app-id">App {{ currentGame.appId }}</span>
+                    </div>
                     <div class="price-info">
-                        @if (game.isFree) {
+                        @if (currentGame.isFree) {
                             <span class="free-badge">Free to play</span>
-                        } @else if (game.price) {
-                            <span class="price">${{ game.price.toFixed(2) }}</span>
+                        } @else if (currentGame.price) {
+                            <span class="price">${{ currentGame.price.toFixed(2) }}</span>
+                        } @else {
+                            <span class="price">Price unavailable</span>
                         }
                     </div>
                 </div>

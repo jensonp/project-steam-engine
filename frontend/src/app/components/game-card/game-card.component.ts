@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
@@ -14,14 +14,16 @@ import { Game } from '../../types/steam.types';
   ],
   templateUrl:"./game-card.component.html",
   styleUrl: "./game-card.component.css",
-  host: { 'class': 'game-card-host' }
+  host: { 'class': 'game-card-host' },
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GameCardComponent {
   @Input() game?: Game;
+  @Input() prioritizeImage = false;
 
   truncateDescription(description: string): string {
-    if (description.length > 100) {
-      return description.substring(0, 100) + '...';
+    if (description.length > 210) {
+      return description.substring(0, 210) + '...';
     }
     return description;
   }
