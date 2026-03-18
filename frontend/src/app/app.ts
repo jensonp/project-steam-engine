@@ -35,6 +35,10 @@ export class App {
     window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true;
   private readonly valveStorageKey = 'ui.query.valveEnabled';
   private modelViewerImportPromise: Promise<unknown> | null = null;
+  private valvePointerDownX = 0;
+  private valvePointerDownY = 0;
+  private suppressNextValveToggle = false;
+  private readonly valveDragThresholdPx = 6;
 
   constructor(private steamApi: SteamApiService) {
     if (typeof window !== 'undefined') {
@@ -50,12 +54,34 @@ export class App {
   }
 
   toggleValveBackdrop(): void {
+    if (this.suppressNextValveToggle) {
+      this.suppressNextValveToggle = false;
+      return;
+    }
+
     this.valveEnabled = !this.valveEnabled;
     if (typeof window !== 'undefined') {
       window.localStorage.setItem(this.valveStorageKey, this.valveEnabled ? '1' : '0');
     }
     if (this.valveEnabled) {
       this.ensureModelViewerLoaded();
+    }
+  }
+
+  onValvePointerDown(event: PointerEvent): void {
+    if (!this.valveEnabled) return;
+    this.valvePointerDownX = event.clientX;
+    this.valvePointerDownY = event.clientY;
+    this.suppressNextValveToggle = false;
+  }
+
+  onValvePointerMove(event: PointerEvent): void {
+    if (!this.valveEnabled || this.suppressNextValveToggle) return;
+
+    const deltaX = event.clientX - this.valvePointerDownX;
+    const deltaY = event.clientY - this.valvePointerDownY;
+    if (Math.hypot(deltaX, deltaY) >= this.valveDragThresholdPx) {
+      this.suppressNextValveToggle = true;
     }
   }
 
