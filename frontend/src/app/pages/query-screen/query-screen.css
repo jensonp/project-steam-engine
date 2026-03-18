@@ -123,6 +123,19 @@
   /* Animatic appearance: smooth transition for position and value shifts */
   transition: all 0.15s ease-out;
   min-width: 200px; /* Prevent jitter */
+
+  /* Reactive color variables */
+  --coord-color: var(--neo-primary);
+  --coord-glow-alpha-min: 0.1;
+  --coord-glow-alpha-max: 0.4;
+  
+  animation: coord-glow 2s ease-in-out infinite alternate;
+}
+
+/* When interacting with the page forms or buttons, turn green */
+body:has(input:focus, .search-container :focus, button:active, .mat-mdc-select-panel) .hero-coordinates {
+  --coord-color: #00ff9d; /* HUD Green */
+  color: #c7ffd8;
 }
 
 .hero-coordinates::after {
@@ -130,20 +143,16 @@
   display: inline-block;
   width: 8px;
   height: 14px;
-  background-color: var(--neo-primary);
+  background-color: var(--coord-color);
   margin-left: 6px;
   animation: cursor-blink 1s step-end infinite;
-  box-shadow: 0 0 8px var(--neo-primary);
-}
-
-.hero-coordinates {
-  /* ... existing ... */
-  animation: coord-glow 2s ease-in-out infinite alternate;
+  box-shadow: 0 0 8px var(--coord-color);
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 @keyframes coord-glow {
-  from { text-shadow: 0 0 2px rgba(255, 87, 56, 0.1); }
-  to { text-shadow: 0 0 8px rgba(255, 87, 56, 0.4); }
+  from { text-shadow: 0 0 2px var(--coord-color); opacity: 0.8; }
+  to { text-shadow: 0 0 8px var(--coord-color); opacity: 1; }
 }
 
 @keyframes cursor-blink {
