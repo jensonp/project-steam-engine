@@ -581,6 +581,7 @@ button:disabled,
 .search-container ::ng-deep .mdc-notched-outline__trailing,
 .search-container ::ng-deep .mdc-notched-outline__notch {
   border-color: rgba(244, 236, 224, 0.18) !important;
+  background: transparent !important;
 }
 
 .search-container ::ng-deep .mdc-notched-outline__leading {
@@ -599,6 +600,7 @@ button:disabled,
 .search-container ::ng-deep .mdc-floating-label {
   color: var(--neo-text) !important;
   font-family: 'Space Grotesk', sans-serif !important;
+  background: transparent !important;
 }
 
 .search-container ::ng-deep .steam-field .mat-mdc-input-element {
