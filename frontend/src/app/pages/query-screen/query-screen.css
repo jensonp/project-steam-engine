@@ -126,16 +126,13 @@
 h1 {
   margin: 0;
   font-family: 'Space Grotesk', sans-serif;
-  font-size: clamp(2.8rem, 8vw, 6.8rem);
-  line-height: 1.05;
+  font-size: clamp(2.4rem, 6vw, 4.8rem);
+  line-height: 1.1;
   font-weight: 700;
   letter-spacing: -0.04em;
   color: var(--neo-primary-strong);
   animation: cyber-glow 4s ease-in-out infinite alternate;
-}
-
-h1 span {
-  display: block;
+  white-space: nowrap;
 }
 
 .signal-list {
@@ -158,7 +155,47 @@ h1 span {
 .signal-list span:nth-child(2) { animation-delay: 420ms; }
 .signal-list span:nth-child(3) { animation-delay: 540ms; }
 
-/* Custom Genre Animations */
+/* Reward / Loading Animation Overlay */
+.reward-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+.data-burst {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  background: radial-gradient(circle, rgba(255, 87, 56, 0.15), transparent 70%);
+  animation: burst-fade 1s ease-out forwards;
+}
+
+.data-stream {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 2px;
+  height: 100vh;
+  background: linear-gradient(to bottom, transparent, var(--neo-primary), transparent);
+  animation: stream-run 0.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  box-shadow: 0 0 15px var(--neo-primary);
+}
+
+@keyframes burst-fade {
+  0% { transform: scale(0.6); opacity: 0; }
+  50% { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(1.2); opacity: 0; }
+}
+
+@keyframes stream-run {
+  0% { transform: translate(-50%, -100vh) scaleY(0); opacity: 0; }
+  50% { transform: translate(-50%, -50%) scaleY(1); opacity: 1; }
+  100% { transform: translate(-50%, 100vh) scaleY(0); opacity: 0; }
+}
 .action-genre {
   color: #ff5738 !important;
   animation: action-glow 1.5s ease-in-out infinite alternate;
@@ -205,9 +242,8 @@ h1 span {
   padding: 1.5rem;
   border: 1px solid var(--neo-border);
   background:
-    linear-gradient(180deg, rgba(255, 87, 56, 0.05), transparent 22%),
+    linear-gradient(180deg, rgba(255, 87, 56, 0.08), rgba(255, 87, 56, 0.02) 22%),
     var(--neo-surface-strong);
-  backdrop-filter: blur(10px);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.03),
     var(--shadow-2);
@@ -631,6 +667,16 @@ button:disabled,
   border-color: rgba(244, 236, 224, 0.18) !important;
   background: transparent !important;
   background-color: transparent !important;
+  box-shadow: none !important;
+}
+
+.search-container ::ng-deep .mdc-notched-outline__notch {
+  border-left: none !important;
+  border-right: none !important;
+}
+
+.search-container ::ng-deep .mat-mdc-form-field-label-wrapper {
+  overflow: visible !important;
 }
 
 .search-container ::ng-deep .mdc-notched-outline__leading {
@@ -650,6 +696,7 @@ button:disabled,
   color: var(--neo-text) !important;
   font-family: 'Space Grotesk', sans-serif !important;
   background: transparent !important;
+  background-color: transparent !important;
 }
 
 .search-container ::ng-deep .steam-field .mat-mdc-input-element {
@@ -666,11 +713,12 @@ button:disabled,
   font-family: 'Space Grotesk', sans-serif !important;
 }
 
-.search-container ::ng-deep .mat-mdc-form-field-hint,
-.search-container ::ng-deep .mat-mdc-form-field-error {
+.search-container ::ng-deep .mat-mdc-form-field-hint {
+  margin-top: 8px !important;
   color: var(--neo-muted) !important;
   font-family: 'Space Grotesk', sans-serif !important;
-  letter-spacing: 0.01em !important;
+  letter-spacing: 0.02em !important;
+  line-height: 1.4 !important;
   background: transparent !important;
 }
 

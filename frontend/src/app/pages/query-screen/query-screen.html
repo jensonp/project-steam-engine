@@ -11,10 +11,7 @@
             </div>
 
             <div class="hero-copy">
-                <h1>
-                    <span>Steam</span>
-                    <span>Engine</span>
-                </h1>
+                <h1>Steam Engine</h1>
 
                 <div class="signal-list" aria-hidden="true">
                     <span>Search.</span>
@@ -30,10 +27,10 @@
     <div class="terminal-panel" data-ui-check="terminal-panel">
         <div class="panel-intro">
             <div>
-                <p class="panel-kicker">Query matrix</p>
-                <h2>Build a storefront query</h2>
+                <p class="panel-kicker">Digital Matrix</p>
+                <h2>Deploy discovery engine</h2>
             </div>
-            <p>Start with a direct search, or load a profile to switch to recommendation mode without leaving the same surface.</p>
+            <p>Deploy a global storefront query or analyze a Steam profile to bias results toward your library DNA.</p>
         </div>
 
         <!-- Steam Profile Section -->
@@ -85,7 +82,7 @@
         <div class="filter-row" data-ui-check="genre-player-row">
             <mat-form-field appearance="outline" class="search-field" data-ui-check="genre-field">
                 <mat-label>Genre</mat-label>
-                <mat-select multiple [(ngModel)]="selected_genre" panelClass="topunit">
+                <mat-select multiple [(ngModel)]="selected_genre" panelClass="topunit" [disableOptionCentering]="true">
                     @for (genre of genres; track genre) {
                         <mat-option [value]="genre" 
                                     [class.action-genre]="genre === 'Action'"
@@ -158,10 +155,14 @@
         </div>
     </div>
 
-    @if (error) {
-        <div class="error-message">
-            <mat-icon>error</mat-icon>
-            {{ error }}
+    @if (isLoading) {
+        <div class="reward-overlay">
+            <div class="data-burst"></div>
+            <div class="data-stream" style="left: 20%; animation-delay: 0.1s"></div>
+            <div class="data-stream" style="left: 40%; animation-delay: 0.3s"></div>
+            <div class="data-stream" style="left: 50%; animation-delay: 0s"></div>
+            <div class="data-stream" style="left: 60%; animation-delay: 0.2s"></div>
+            <div class="data-stream" style="left: 80%; animation-delay: 0.4s"></div>
         </div>
     }
 
