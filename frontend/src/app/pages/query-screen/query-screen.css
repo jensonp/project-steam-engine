@@ -1218,23 +1218,27 @@ button:focus-visible,
 @keyframes cyber-glow {
   0% {
     text-shadow:
+      0 4px 34px rgba(0, 0, 0, 0.95),
       0 0 8px rgba(255, 87, 56, 0.3),
       0 0 20px rgba(255, 87, 56, 0.1);
   }
   33% {
     text-shadow:
+      0 4px 34px rgba(0, 0, 0, 0.95),
       0 0 12px rgba(255, 87, 56, 0.5),
       0 0 30px rgba(255, 87, 56, 0.2),
       0 0 60px rgba(255, 87, 56, 0.08);
   }
   66% {
     text-shadow:
+      0 4px 34px rgba(0, 0, 0, 0.95),
       0 0 8px rgba(255, 140, 56, 0.4),
       0 0 24px rgba(255, 140, 56, 0.15),
       0 0 48px rgba(255, 87, 56, 0.06);
   }
   100% {
     text-shadow:
+      0 4px 34px rgba(0, 0, 0, 0.95),
       0 0 14px rgba(255, 87, 56, 0.55),
       0 0 36px rgba(255, 87, 56, 0.22),
       0 0 72px rgba(255, 87, 56, 0.1);
