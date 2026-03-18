@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, CUSTOM_ELEMENTS_SCHEMA, NgZone } from '@angular/core';
+import { Component, OnDestroy, OnInit, CUSTOM_ELEMENTS_SCHEMA, NgZone, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -103,7 +103,8 @@ export class QueryScreen implements OnInit, OnDestroy {
   constructor(
     private backendService: BackendService,
     private router: Router,
-    private ngZone: NgZone
+    private ngZone: NgZone,
+    private cdr: ChangeDetectorRef
   ) {}
 
   get isLoading(): boolean {
@@ -181,7 +182,6 @@ export class QueryScreen implements OnInit, OnDestroy {
   }
 
   private onPointerMove(e: MouseEvent | PointerEvent): void {
-    if ('pointerType' in e && e.pointerType === 'touch') return;
     if (typeof window === 'undefined') return;
 
     const now =
@@ -202,6 +202,7 @@ export class QueryScreen implements OnInit, OnDestroy {
 
     this.ngZone.run(() => {
       this.mouseCoordinates = nextCoordinates;
+      this.cdr.detectChanges();
     });
   }
 
