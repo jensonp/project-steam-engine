@@ -21,6 +21,11 @@ import rateLimit from 'express-rate-limit';
 app.use(cors());
 app.use(express.json());
 
+// Railway (and most managed platforms) sit behind a reverse proxy.
+// Express must trust the first proxy hop so middleware relying on client IP
+// (like express-rate-limit) behaves correctly.
+app.set('trust proxy', 1);
+
 // Apply rate limiting to all requests
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
