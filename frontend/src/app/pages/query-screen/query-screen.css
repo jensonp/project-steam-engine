@@ -571,14 +571,10 @@ button:focus-visible,
 .search-button::before {
   content: '';
   position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 250%;
-  aspect-ratio: 1;
-  transform: translate(-50%, -50%);
-  transform-origin: center center;
+  inset: -4px;
+  border-radius: inherit;
   background: conic-gradient(
-    from 0deg,
+    from var(--neon-angle),
     #ff5738,
     #ff00ff,
     #00ffff,
@@ -928,9 +924,15 @@ button:focus-visible,
   }
 }
 
+@property --neon-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
 @keyframes rotate-neon {
-  from { transform: translate(-50%, -50%) rotate(0deg); }
-  to { transform: translate(-50%, -50%) rotate(360deg); }
+  from { --neon-angle: 0deg; }
+  to { --neon-angle: 360deg; }
 }
 
 @keyframes cta-neon-pulse {
