@@ -117,6 +117,24 @@
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--neo-muted);
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.hero-coordinates::after {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 14px;
+  background-color: var(--neo-primary);
+  margin-left: 6px;
+  animation: cursor-blink 1s step-end infinite;
+}
+
+@keyframes cursor-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
 }
 
 .hero-copy {

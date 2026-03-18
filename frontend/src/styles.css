@@ -150,6 +150,12 @@ a:hover {
   padding: 0.2rem 0 !important;
   opacity: 1 !important;
   isolation: isolate;
+  margin-top: 8px !important;
+}
+
+/* Force overlay pane to stay below the trigger */
+.cdk-overlay-pane:has(> .topunit) {
+  transform: translateY(0) !important;
   margin-top: 4px !important;
 }
 
