@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, HostListener } from '@angular/core';
+import { Component, OnDestroy, OnInit, HostListener, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -37,6 +37,7 @@ type SearchOs = '' | 'windows' | 'mac' | 'linux';
       useFactory: (overlay: Overlay) => () => overlay.scrollStrategies.reposition(),
     },
   ],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class QueryScreen implements OnInit, OnDestroy {
   genres: string[] = [
@@ -83,8 +84,13 @@ export class QueryScreen implements OnInit, OnDestroy {
   katanaCursorX = 0;
   katanaCursorY = 0;
   isSearchButtonFiring = false;
+  valveBackdropEnabled = true;
+  valveOpacity = 0.84;
   private searchButtonFireTimeoutId: number | null = null;
   private focusUpdateTimeoutId: number | null = null;
+  private valveScrollRafId: number | null = null;
+  private readonly valveStorageKey = 'ui.query.valveEnabled';
+  private readonly valveBackdropEventName = 'pse:valveBackdropChanged';
 
   private readonly subs = new Subscription();
 
@@ -125,6 +131,16 @@ export class QueryScreen implements OnInit, OnDestroy {
     this.prefersReducedMotion =
       typeof window !== 'undefined' &&
       window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true;
+
+    if (typeof window !== 'undefined') {
+      const savedValveState = window.localStorage.getItem(this.valveStorageKey);
+      if (savedValveState !== null) {
+        this.valveBackdropEnabled = savedValveState === '1';
+      }
+      window.addEventListener(this.valveBackdropEventName, this.onValveBackdropChanged as EventListener);
+    }
+
+    this.updateValveOpacity();
     this.prefetchResultsScreen();
 
     this.subs.add(this.backendService.isLoadingSearch$.subscribe(l => this.isSearchLoading = l));
@@ -173,7 +189,24 @@ export class QueryScreen implements OnInit, OnDestroy {
     this.mouseCoordinates = `${targetLat} N / ${targetLng} E`;
   }
 
+  @HostListener('window:scroll')
+  onWindowScroll(): void {
+    if (typeof window === 'undefined' || this.valveScrollRafId !== null) return;
+
+    this.valveScrollRafId = window.requestAnimationFrame(() => {
+      this.valveScrollRafId = null;
+      this.updateValveOpacity();
+    });
+  }
+
   ngOnDestroy() {
+    if (typeof window !== 'undefined') {
+      window.removeEventListener(this.valveBackdropEventName, this.onValveBackdropChanged as EventListener);
+    }
+    if (this.valveScrollRafId !== null && typeof window !== 'undefined') {
+      window.cancelAnimationFrame(this.valveScrollRafId);
+      this.valveScrollRafId = null;
+    }
     this.subs.unsubscribe();
     this.clearSearchButtonFireTimeout();
     this.clearFocusUpdateTimeout();
@@ -318,6 +351,30 @@ export class QueryScreen implements OnInit, OnDestroy {
       window.clearTimeout(this.focusUpdateTimeoutId);
       this.focusUpdateTimeoutId = null;
     }
+  }
+
+  private onValveBackdropChanged = (event: Event): void => {
+    if (!(event instanceof CustomEvent)) return;
+    this.valveBackdropEnabled = Boolean(event.detail);
+    this.updateValveOpacity();
+  };
+
+  private updateValveOpacity(): void {
+    if (!this.valveBackdropEnabled) {
+      this.valveOpacity = 0;
+      return;
+    }
+
+    if (typeof window === 'undefined') {
+      this.valveOpacity = 0.84;
+      return;
+    }
+
+    const scrollY = window.scrollY || 0;
+    const fadeStart = 12;
+    const fadeEnd = 300;
+    const progress = Math.min(Math.max((scrollY - fadeStart) / (fadeEnd - fadeStart), 0), 1);
+    this.valveOpacity = 0.84 * (1 - progress);
   }
 
   private isPointerEvent(event: Event): event is PointerEvent {

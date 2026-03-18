@@ -39,6 +39,7 @@ export class App {
   private valvePointerDownY = 0;
   private suppressNextValveToggle = false;
   private readonly valveDragThresholdPx = 6;
+  private readonly valveBackdropEventName = 'pse:valveBackdropChanged';
 
   constructor(private steamApi: SteamApiService) {
     if (typeof window !== 'undefined') {
@@ -51,6 +52,8 @@ export class App {
     if (this.valveEnabled) {
       this.ensureModelViewerLoaded();
     }
+
+    this.publishValveBackdropState();
   }
 
   toggleValveBackdrop(): void {
@@ -66,6 +69,7 @@ export class App {
     if (this.valveEnabled) {
       this.ensureModelViewerLoaded();
     }
+    this.publishValveBackdropState();
   }
 
   onValvePointerDown(event: PointerEvent): void {
@@ -92,6 +96,15 @@ export class App {
       console.warn('Failed to load model-viewer module for valve button.', error);
       this.modelViewerImportPromise = null;
     });
+  }
+
+  private publishValveBackdropState(): void {
+    if (typeof window === 'undefined') return;
+    window.dispatchEvent(
+      new CustomEvent<boolean>(this.valveBackdropEventName, {
+        detail: this.valveEnabled,
+      })
+    );
   }
 
   onSearch(steamId: string): void {

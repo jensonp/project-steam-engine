@@ -28,7 +28,10 @@
   animation: panel-enter 560ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
-.hero-frame,
+.hero-frame {
+  overflow: hidden;
+}
+
 .terminal-panel {
   overflow: visible;
 }
@@ -81,6 +84,32 @@
   align-items: start;
   position: relative;
   z-index: 1;
+}
+
+.valve-layer {
+  position: absolute;
+  top: -34%;
+  left: 55%;
+  width: min(36vw, 400px);
+  aspect-ratio: 1 / 1;
+  transform: translateX(-50%);
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0;
+  transition: opacity 0.24s linear;
+  filter:
+    drop-shadow(0 0 20px rgba(255, 52, 24, 0.24))
+    saturate(1.05);
+  -webkit-mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.98) 0 72%, transparent 100%);
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.98) 0 72%, transparent 100%);
+}
+
+.valve-model {
+  width: 100%;
+  height: 100%;
+  display: block;
+  --progress-bar-color: transparent;
+  --poster-color: transparent;
 }
 
 .hero-icon-frame {
@@ -1058,6 +1087,12 @@ button:focus-visible,
     padding: 1rem;
   }
 
+  .valve-layer {
+    top: -26%;
+    left: 54%;
+    width: min(62vw, 290px);
+  }
+
   .hero-main {
     display: flex;
     flex-direction: column;
@@ -1133,5 +1168,9 @@ button:focus-visible,
 
   .katana-cursor {
     animation: none !important;
+  }
+
+  .valve-layer {
+    transition: none !important;
   }
 }
