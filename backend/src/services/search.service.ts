@@ -10,6 +10,11 @@ export interface GameSearchResult {
 }
 
 export class SearchService {
+  private static readonly FULL_TEXT_VECTOR_SQL = [
+    "setweight(to_tsvector('english', coalesce(game_name, '')), 'A')",
+    "setweight(to_tsvector('english', coalesce(short_description, '')), 'B')",
+  ].join(' || ');
+
   /**
    * Search for top games matching the given filters, ordered by positive votes.
    */
@@ -19,6 +24,34 @@ export class SearchService {
     playerCount?: string,
     os?: string
   ): Promise<GameSearchResult[]> {
+    const repo = new PostgresGameMetadataRepository();
+    const primaryQuery = this.buildSearchQuery(genres, keyword, playerCount, os, true);
+
+    try {
+      const rows = await repo.searchGames(primaryQuery.sqlQuery, primaryQuery.params);
+      return this.mapRows(rows);
+    } catch (error: any) {
+      if (os && this.isMissingOsSupportColumnError(error)) {
+        console.warn(
+          '[SearchService] OS support columns missing in games table. Retrying search without OS filter.'
+        );
+
+        const fallbackQuery = this.buildSearchQuery(genres, keyword, playerCount, os, false);
+        const rows = await repo.searchGames(fallbackQuery.sqlQuery, fallbackQuery.params);
+        return this.mapRows(rows);
+      }
+
+      throw error;
+    }
+  }
+
+  private buildSearchQuery(
+    genres: string[],
+    keyword?: string,
+    playerCount?: string,
+    os?: string,
+    includeOsFilter = true
+  ): { sqlQuery: string; params: any[] } {
     const whereClauses: string[] = [];
     const params: any[] = [];
     let paramIndex = 1;
@@ -40,7 +73,9 @@ export class SearchService {
       params.push(keyword);
       keywordParamIndex = paramIndex;
       // Plainto_tsquery automatically handles spaces and word stemming
-      whereClauses.push(`search_vector @@ plainto_tsquery('english', $${paramIndex})`);
+      whereClauses.push(
+        `(${SearchService.FULL_TEXT_VECTOR_SQL}) @@ plainto_tsquery('english', $${paramIndex})`
+      );
       paramIndex++;
     }
 
@@ -55,7 +90,7 @@ export class SearchService {
     }
 
     // 4. Native OS Support Filter
-    if (os) {
+    if (os && includeOsFilter) {
       const normalizedOs = os.toLowerCase();
       if (normalizedOs === 'windows') {
         whereClauses.push('windows_support = TRUE');
@@ -74,14 +109,22 @@ export class SearchService {
       FROM games
       ${whereString}
       ${keyword 
-        ? `ORDER BY ts_rank_cd(search_vector, plainto_tsquery('english', $${keywordParamIndex})) DESC, positive_votes DESC` 
+        ? `ORDER BY ts_rank_cd((${SearchService.FULL_TEXT_VECTOR_SQL}), plainto_tsquery('english', $${keywordParamIndex})) DESC, positive_votes DESC` 
         : `ORDER BY positive_votes DESC`}
       LIMIT 10
     `;
 
-    const repo = new PostgresGameMetadataRepository();
-    const rows = await repo.searchGames(sqlQuery, params);
-    return this.mapRows(rows);
+    return { sqlQuery, params };
+  }
+
+  private isMissingOsSupportColumnError(error: any): boolean {
+    const message = String(error?.message || '').toLowerCase();
+    return (
+      error?.code === '42703' &&
+      (message.includes('windows_support') ||
+        message.includes('mac_support') ||
+        message.includes('linux_support'))
+    );
   }
 
   /**

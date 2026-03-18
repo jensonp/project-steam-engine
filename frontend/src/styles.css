@@ -134,14 +134,13 @@ a:hover {
   padding: 0.2rem 0 !important;
   opacity: 1 !important;
   isolation: isolate;
-  backdrop-filter: blur(8px);
 }
 
 .cdk-overlay-pane .topunit .mat-mdc-option {
   min-height: 44px !important;
   padding: 0 14px !important;
   align-items: center !important;
-  transition: background-color 140ms ease;
+  transition: background-color 120ms ease;
 }
 
 .cdk-overlay-pane .topunit .mdc-list-item__primary-text {
@@ -183,43 +182,18 @@ a:hover {
 /* ── Dropdown panel entrance animation ── */
 .mat-mdc-select-panel.topunit,
 .cdk-overlay-pane .topunit.mat-mdc-select-panel {
-  animation: panel-slide-in 220ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
-  transform-origin: top center;
+  animation: panel-fade-in 120ms ease-out both;
 }
 
 .cdk-overlay-pane .topunit .mat-mdc-option {
-  animation: option-enter 200ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation: none;
 }
 
-.cdk-overlay-pane .topunit .mat-mdc-option:nth-child(1) { animation-delay: 30ms; }
-.cdk-overlay-pane .topunit .mat-mdc-option:nth-child(2) { animation-delay: 55ms; }
-.cdk-overlay-pane .topunit .mat-mdc-option:nth-child(3) { animation-delay: 80ms; }
-.cdk-overlay-pane .topunit .mat-mdc-option:nth-child(4) { animation-delay: 105ms; }
-.cdk-overlay-pane .topunit .mat-mdc-option:nth-child(5) { animation-delay: 130ms; }
-.cdk-overlay-pane .topunit .mat-mdc-option:nth-child(6) { animation-delay: 155ms; }
-.cdk-overlay-pane .topunit .mat-mdc-option:nth-child(7) { animation-delay: 180ms; }
-.cdk-overlay-pane .topunit .mat-mdc-option:nth-child(8) { animation-delay: 205ms; }
-.cdk-overlay-pane .topunit .mat-mdc-option:nth-child(9) { animation-delay: 230ms; }
-.cdk-overlay-pane .topunit .mat-mdc-option:nth-child(10) { animation-delay: 255ms; }
-
-@keyframes panel-slide-in {
+@keyframes panel-fade-in {
   from {
     opacity: 0;
-    transform: scaleY(0.92) translateY(-6px);
   }
   to {
     opacity: 1;
-    transform: scaleY(1) translateY(0);
-  }
-}
-
-@keyframes option-enter {
-  from {
-    opacity: 0;
-    transform: translateX(-6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
   }
 }
