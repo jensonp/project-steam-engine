@@ -229,7 +229,7 @@ h1 span {
 .filter-row {
   display: grid;
   gap: var(--space-4);
-  align-items: center;
+  align-items: start;
 }
 
 .steam-section {
@@ -267,6 +267,11 @@ h1 span {
   gap: 0.6rem;
   align-items: center;
   justify-content: flex-end;
+  margin-top: 0.5rem;
+}
+
+.load-profile-button {
+  margin-top: 0.5rem;
 }
 
 button,
@@ -363,20 +368,80 @@ button:disabled,
 
 .search-button {
   margin-top: 0;
-  min-width: 13rem;
-  background: linear-gradient(135deg, rgba(255, 87, 56, 0.28), rgba(255, 60, 40, 0.14), rgba(255, 87, 56, 0.24));
+  min-width: 15rem;
+  min-height: 54px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  position: relative;
+  overflow: hidden;
+  border: 1.5px solid rgba(255, 87, 56, 0.5);
+  background: linear-gradient(135deg, rgba(255, 87, 56, 0.3), rgba(255, 40, 20, 0.15), rgba(255, 87, 56, 0.25));
   background-size: 200% 100%;
-  animation: shimmer-btn 3s ease-in-out infinite;
+  box-shadow:
+    0 0 16px rgba(255, 87, 56, 0.15),
+    0 0 40px rgba(255, 87, 56, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  animation:
+    shimmer-btn 3s ease-in-out infinite,
+    cta-pulse 2s ease-in-out infinite alternate;
+}
+
+.search-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+  animation: shimmer-sweep 3s ease-in-out infinite;
+  pointer-events: none;
 }
 
 .search-button:hover:not(:disabled) {
-  background: linear-gradient(135deg, rgba(255, 87, 56, 0.36), rgba(255, 60, 40, 0.2), rgba(255, 87, 56, 0.32));
+  border-color: rgba(255, 87, 56, 0.8);
+  background: linear-gradient(135deg, rgba(255, 87, 56, 0.42), rgba(255, 40, 20, 0.24), rgba(255, 87, 56, 0.38));
   background-size: 200% 100%;
+  box-shadow:
+    0 0 24px rgba(255, 87, 56, 0.3),
+    0 0 60px rgba(255, 87, 56, 0.1),
+    0 8px 24px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transform: translateY(-3px) scale(1.02);
+}
+
+.search-button:active:not(:disabled) {
+  transform: translateY(0) scale(0.97);
+  box-shadow:
+    0 0 20px rgba(255, 87, 56, 0.35),
+    inset 0 2px 4px rgba(0, 0, 0, 0.3);
+  transition-duration: 0.06s;
 }
 
 @keyframes shimmer-btn {
   0%, 100% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
+}
+
+@keyframes shimmer-sweep {
+  0% { left: -100%; }
+  50%, 100% { left: 120%; }
+}
+
+@keyframes cta-pulse {
+  from {
+    box-shadow:
+      0 0 16px rgba(255, 87, 56, 0.15),
+      0 0 40px rgba(255, 87, 56, 0.06),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  }
+  to {
+    box-shadow:
+      0 0 22px rgba(255, 87, 56, 0.25),
+      0 0 56px rgba(255, 87, 56, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  }
 }
 
 .os-status {
