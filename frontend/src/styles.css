@@ -30,6 +30,11 @@
 html,
 body {
   height: 100%;
+  background-color: var(--neo-bg);
+}
+
+html {
+  overscroll-behavior-y: none;
 }
 
 body {
@@ -41,6 +46,7 @@ body {
     radial-gradient(circle at 85% 0%, rgba(255, 87, 56, 0.2), transparent 24%),
     linear-gradient(180deg, #0d0d0d 0%, #080808 42%, #050505 100%);
   overflow-x: hidden;
+  overscroll-behavior-y: none;
 }
 
 body::before {

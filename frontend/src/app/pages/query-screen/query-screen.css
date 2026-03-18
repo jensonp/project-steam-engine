@@ -364,13 +364,33 @@ button:disabled,
 .search-button {
   margin-top: 0;
   min-width: 13rem;
-  background: linear-gradient(180deg, rgba(255, 87, 56, 0.24), rgba(255, 87, 56, 0.1));
+  background: linear-gradient(135deg, rgba(255, 87, 56, 0.28), rgba(255, 60, 40, 0.14), rgba(255, 87, 56, 0.24));
+  background-size: 200% 100%;
+  animation: shimmer-btn 3s ease-in-out infinite;
+}
+
+.search-button:hover:not(:disabled) {
+  background: linear-gradient(135deg, rgba(255, 87, 56, 0.36), rgba(255, 60, 40, 0.2), rgba(255, 87, 56, 0.32));
+  background-size: 200% 100%;
+}
+
+@keyframes shimmer-btn {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
 }
 
 .os-status {
   margin: 0.7rem 0 0;
   color: var(--neo-primary-soft);
-  font-size: 0.88rem;
+  font-size: 0.82rem;
+  font-family: 'IBM Plex Mono', monospace;
+  letter-spacing: 0.06em;
+  padding: 0.4rem 0.8rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid rgba(255, 87, 56, 0.2);
+  background: rgba(255, 87, 56, 0.06);
+  display: inline-block;
+  animation: section-enter 400ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
 .profile-card {
@@ -401,6 +421,12 @@ button:disabled,
   height: 64px;
   border-radius: 12px;
   border: 1px solid var(--neo-border);
+  transition: border-color 0.2s ease, box-shadow 0.24s ease;
+}
+
+.profile-card:hover .profile-avatar {
+  border-color: var(--neo-border-strong);
+  box-shadow: 0 0 16px rgba(255, 87, 56, 0.12);
 }
 
 .profile-info {
@@ -436,6 +462,12 @@ button:disabled,
   font-size: 0.78rem;
   color: var(--neo-primary-strong);
   background: rgba(255, 87, 56, 0.08);
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.genre-chip:hover {
+  border-color: rgba(255, 87, 56, 0.3);
+  background: rgba(255, 87, 56, 0.14);
 }
 
 .error-message {
@@ -450,6 +482,8 @@ button:disabled,
   background: rgba(61, 17, 17, 0.44);
   color: #ffc0c0;
   line-height: 1.5;
+  animation: error-slide-in 400ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  box-shadow: 0 0 16px rgba(255, 100, 100, 0.08);
 }
 
 .search-container ::ng-deep .mat-mdc-form-field {
@@ -534,6 +568,17 @@ button:disabled,
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes error-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
   }
 }
 
