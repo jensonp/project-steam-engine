@@ -54,7 +54,7 @@ export class SteamApiService {
    * Check API health
    */
   checkHealth(): Observable<{ status: string; apiKeyConfigured: boolean }> {
-    return this.http.get<{ status: string; apiKeyConfigured: boolean }>(
+    return this.http.get<{ status: string; apiKeyConfigured: boolean; }>(
       `${this.apiUrl}/health`
     );
   }

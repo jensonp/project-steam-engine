@@ -27,7 +27,7 @@ export class SearchService {
     if (genres.length > 0) {
       const genreConditions = genres.map(g => {
         params.push(g);
-        const clause = `(genres %% $${paramIndex} OR tags %% $${paramIndex})`;
+        const clause = `(genres % $${paramIndex} OR tags % $${paramIndex})`;
         paramIndex++;
         return clause;
       });
@@ -50,7 +50,7 @@ export class SearchService {
       if (playerCount === 'Online') mappedTerm = 'Online PvP';
       
       params.push(mappedTerm);
-      whereClauses.push(`categories %% $${paramIndex}`);
+      whereClauses.push(`categories % $${paramIndex}`);
       paramIndex++;
     }
 
