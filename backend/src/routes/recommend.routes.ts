@@ -3,8 +3,60 @@ import { getRecommenderService } from '../services/recommender.service';
 import { buildUserProfile, scoreWithUserContext } from '../services/user-profile.service';
 import { z } from 'zod';
 import { validate } from '../middleware/validate.middleware';
+import { query } from '../config/db';
+import { ScoredRecommendation, UserProfile } from '../types/steam.types';
 
 const router = Router();
+
+interface FallbackRow {
+  app_id: number;
+  game_name: string;
+  genres: string | null;
+  tags: string | null;
+  header_image: string | null;
+  short_description: string | null;
+  price: string | null;
+}
+
+async function getFallbackPopularRecommendations(
+  profile: UserProfile,
+  limit: number
+): Promise<ScoredRecommendation[]> {
+  const ownedAppIds = profile.library.map((g) => g.appId);
+  const sql = `
+    SELECT app_id, game_name, genres, tags, header_image, short_description, price
+    FROM games
+    WHERE NOT (app_id = ANY($1::int[]))
+    ORDER BY positive_votes DESC
+    LIMIT $2
+  `;
+
+  const result = await query<FallbackRow>(sql, [ownedAppIds, limit]);
+
+  return result.rows.map((row) => {
+    const priceValue = row.price === null ? null : Number(row.price);
+    const isFree = priceValue !== null ? priceValue === 0 : false;
+
+    return {
+      appId: row.app_id,
+      name: row.game_name,
+      score: 0,
+      jaccardScore: 0,
+      genreAlignmentScore: 0,
+      socialScore: 0,
+      reason: 'Popular on Steam (fallback while personalized engine is initializing)',
+      headerImage: row.header_image,
+      genres: row.genres ? row.genres.split(',').map((g) => g.trim()).filter(Boolean) : [],
+      tags: row.tags ? row.tags.split(',').map((t) => t.trim()).filter(Boolean) : [],
+      description: row.short_description,
+      price: priceValue,
+      isFree,
+      developers: [],
+      publishers: [],
+      releaseDate: null,
+    };
+  });
+}
 
 // --- Zod Validation Schemas ---
 
@@ -106,10 +158,6 @@ router.get(
   async (req: Request, res: Response): Promise<void> => {
     try {
       const recommender = getRecommenderService();
-      if (!recommender.isReady()) {
-        res.status(503).json({ error: 'Recommendation engine not ready' });
-        return;
-      }
 
       const steamId = req.params.steamId;
       const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 20;
@@ -121,6 +169,12 @@ router.get(
         res.status(404).json({
           error: 'Could not load Steam library. Profile may be private.',
         });
+        return;
+      }
+
+      if (!recommender.isReady()) {
+        const fallbackRecommendations = await getFallbackPopularRecommendations(profile, limit);
+        res.json(fallbackRecommendations);
         return;
       }
 
