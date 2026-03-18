@@ -477,6 +477,22 @@ button:focus-visible,
   animation: suggest-sheen 2.8s linear infinite;
 }
 
+.search-button::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transform: translateX(-160%);
+  pointer-events: none;
+  background: linear-gradient(
+    116deg,
+    rgba(255, 255, 255, 0) 42%,
+    rgba(255, 255, 255, 0.9) 50%,
+    rgba(255, 255, 255, 0) 58%
+  );
+  filter: blur(0.8px);
+}
+
 .search-button:hover:not(:disabled) {
   transform: translateY(-2px);
   background: linear-gradient(135deg, #ff6b52, #ff412e);
@@ -503,6 +519,20 @@ button:focus-visible,
 .search-button:hover,
 .search-button:hover * {
   cursor: none !important;
+}
+
+.search-button.is-firing:not(:disabled) {
+  animation:
+    suggest-launch 460ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    suggest-breathe 2.4s ease-in-out infinite;
+}
+
+.search-button.is-firing:not(:disabled)::before {
+  animation-duration: 900ms;
+}
+
+.search-button.is-firing:not(:disabled)::after {
+  animation: suggest-slash 460ms ease-out;
 }
 
 .os-status {
@@ -622,11 +652,12 @@ button:focus-visible,
 
 .katana-cursor {
   position: fixed;
-  width: 56px;
-  height: 56px;
+  width: 70px;
+  height: 70px;
   transform: translate(-14px, -42px) rotate(-16deg);
   pointer-events: none;
-  z-index: 2400;
+  z-index: 99999;
+  mix-blend-mode: screen;
   background: url('/katana-cursor.png') center center / contain no-repeat;
   filter:
     drop-shadow(0 0 8px rgba(255, 74, 74, 0.8))
@@ -711,6 +742,40 @@ button:focus-visible,
   }
   100% {
     left: 136%;
+    opacity: 0;
+  }
+}
+
+@keyframes suggest-launch {
+  0% {
+    transform: translateY(-2px) scale(1);
+  }
+  35% {
+    transform: translateY(-4px) scale(1.03);
+    box-shadow:
+      0 16px 36px rgba(255, 87, 56, 0.36),
+      0 0 26px rgba(255, 87, 56, 0.26),
+      inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes suggest-slash {
+  0% {
+    transform: translateX(-160%);
+    opacity: 0;
+  }
+  18% {
+    opacity: 0.86;
+  }
+  72% {
+    transform: translateX(160%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(160%);
     opacity: 0;
   }
 }
@@ -1061,7 +1126,8 @@ button:focus-visible,
   }
 
   .search-button:not(:disabled),
-  .search-button::before {
+  .search-button::before,
+  .search-button::after {
     animation: none !important;
   }
 
