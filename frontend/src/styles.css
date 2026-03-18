@@ -47,6 +47,14 @@ body {
     linear-gradient(180deg, #0d0d0d 0%, #080808 42%, #050505 100%);
   overflow-x: hidden;
   overscroll-behavior-y: none;
+  cursor: url('/katana-cursor.png') 0 0, auto;
+}
+
+/* Ensure interactive elements still show pointer but with katana if desired, 
+   or just the standard pointer. Most 'premium' sites use the custom cursor 
+   for everything but links/buttons. */
+a, button, [role="button"], mat-option, .mat-mdc-option {
+  cursor: url('/katana-cursor.png') 0 0, pointer;
 }
 
 body::before {
