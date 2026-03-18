@@ -37,7 +37,6 @@
 }
 
 #config-button {
-  margin-left: auto;
   width: 40px;
   height: 40px;
   border-radius: 12px;
@@ -54,10 +53,60 @@
     background-color 0.18s ease;
 }
 
+#valve-button {
+  margin-left: auto;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  padding: 0;
+  border: 1px solid rgba(255, 87, 56, 0.35);
+  background: rgba(255, 87, 56, 0.07);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    box-shadow 0.2s ease;
+}
+
+#valve-button:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255, 87, 56, 0.58);
+  background: rgba(255, 87, 56, 0.16);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 0 12px rgba(255, 87, 56, 0.24);
+}
+
 #config-button:hover {
   transform: translateY(-1px);
   background: rgba(255, 87, 56, 0.14);
   border-color: var(--neo-border-strong);
+}
+
+#valve-button:focus-visible,
+#config-button:focus-visible {
+  outline: 2px solid rgba(255, 87, 56, 0.66);
+  outline-offset: 2px;
+}
+
+.toolbar-valve-model {
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+}
+
+#valve-off-icon {
+  color: var(--neo-primary-soft);
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
 }
 
 .main-content {
@@ -199,6 +248,7 @@
   .app-toolbar,
   .main-content,
   .app-footer,
+  #valve-button,
   #config-button,
   #header-icon,
   .brand-block {
