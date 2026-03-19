@@ -103,6 +103,7 @@ export class ResultScreen implements OnInit, AfterViewInit, OnDestroy {
   private readonly maxLiquidRetries = 8;
   private scrollRenderListener: (() => void) | null = null;
   private mouseRenderListener: (() => void) | null = null;
+  private readonly primaryCardClass = 'liquidgl-primary-card';
 
   constructor(
     private router: Router,
@@ -282,7 +283,8 @@ export class ResultScreen implements OnInit, AfterViewInit, OnDestroy {
 
     try {
       await this.ensureLiquidScripts();
-      const lensCount = this.rebuildLiquidRenderer(cards.length);
+      const primaryCard = this.markPrimaryLiquidCard(cards);
+      const lensCount = this.rebuildLiquidRenderer(Boolean(primaryCard));
       this.attachLiquidRenderListeners();
       this.liquidBootstrapped = lensCount > 0;
       if (lensCount > 0) {
@@ -365,7 +367,7 @@ export class ResultScreen implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  private rebuildLiquidRenderer(cardCount: number): number {
+  private rebuildLiquidRenderer(hasPrimaryCard: boolean): number {
     const w = window as Window & {
       liquidGL?: ((options: Record<string, unknown>) => LiquidLens | LiquidLens[] | undefined) & {
         syncWith?: (config?: Record<string, unknown>) => unknown;
@@ -381,7 +383,7 @@ export class ResultScreen implements OnInit, AfterViewInit, OnDestroy {
 
     // Demo-4 profile for cards.
     const createdCards = w.liquidGL({
-      target: '.results-container .game-card',
+      target: `.results-container .game-card.${this.primaryCardClass}`,
       refraction: DEMO4_CARD_DEFAULTS.refraction,
       bevelDepth: DEMO4_CARD_DEFAULTS.bevelDepth,
       bevelWidth: DEMO4_CARD_DEFAULTS.bevelWidth,
@@ -442,7 +444,9 @@ export class ResultScreen implements OnInit, AfterViewInit, OnDestroy {
       this.setLiquidActiveClass(false);
     }
 
-    const totalTargetCount = cardCount + (document.querySelector('.liquid-shape-trigger') ? 1 : 0);
+    const totalTargetCount =
+      (hasPrimaryCard ? 1 : 0) +
+      (document.querySelector('.liquid-shape-trigger') ? 1 : 0);
     this.verifyLiquidChecks(totalTargetCount, lensList.length);
 
     w.liquidGL.syncWith?.({
@@ -618,9 +622,25 @@ export class ResultScreen implements OnInit, AfterViewInit, OnDestroy {
     this.detachLiquidRenderListeners();
     this.destroyLiquidGui();
     this.destroyLiquidRenderer();
+    this.clearPrimaryLiquidCardSelection();
     this.setLiquidActiveClass(false);
     this.setLiquidDiagnostics(null);
     this.liquidBootstrapped = false;
+  }
+
+  private markPrimaryLiquidCard(cards: HTMLElement[]): HTMLElement | null {
+    cards.forEach(card => card.classList.remove(this.primaryCardClass));
+    const primary = cards[0] ?? null;
+    if (primary) {
+      primary.classList.add(this.primaryCardClass);
+    }
+    return primary;
+  }
+
+  private clearPrimaryLiquidCardSelection(): void {
+    document
+      .querySelectorAll<HTMLElement>(`.results-container .game-card.${this.primaryCardClass}`)
+      .forEach(card => card.classList.remove(this.primaryCardClass));
   }
 
   private setLiquidActiveClass(active: boolean): void {

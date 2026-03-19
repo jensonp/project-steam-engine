@@ -48,6 +48,8 @@ test('results route mounts liquidGL controls and runtime checks', async ({ page 
 
   await expect(page).toHaveURL(/\/results$/);
   await expect(page.locator('.game-card')).toHaveCount(mockSearchResults.length);
+  await expect(page.locator('.game-card.liquidgl-primary-card')).toHaveCount(1);
+  await expect(page.locator('.results-container .game-card').first()).toHaveClass(/liquidgl-primary-card/);
   const magnifierButton = page.locator('[data-ui-check="liquid-magnifier-button"]');
   await expect(magnifierButton).toBeVisible();
 

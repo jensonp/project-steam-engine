@@ -21,6 +21,8 @@ This resource list is the exact baseline for LiquidGL behavior replication work 
   - `./scripts/liquidgl/fetch-demos.sh`
 - Extract parsed liquidGL init objects for diffing:
   - `node ./scripts/liquidgl/extract-demo-configs.mjs`
+- Verify result-screen parity against extracted demo configs:
+  - `node ./scripts/liquidgl/verify-parity.mjs`
 - Serve local demos for direct visual inspection:
   - `./scripts/liquidgl/run-demo-server.sh`
 
