@@ -96,6 +96,15 @@
   animation-delay: 160ms;
 }
 
+.liquid-diagnostics {
+  max-width: 22rem;
+  text-align: right;
+  color: rgba(255, 144, 134, 0.95);
+  letter-spacing: 0.06em;
+  font-size: 0.68rem;
+  text-transform: none;
+}
+
 .back-button {
   position: relative;
   z-index: 100;
