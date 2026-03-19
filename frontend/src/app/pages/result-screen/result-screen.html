@@ -38,6 +38,7 @@
             <div class="cards-wrapper results-container">
                 @for (game of visibleResults; track trackByAppId($index, game)) {
                     <article class="marquee-card result-card" [attr.data-app-id]="game.appId">
+                        <div class="result-card-lens" aria-hidden="true"></div>
                         <div class="marquee" aria-hidden="true">
                             <div class="marquee-content">
                                 <span>{{ game.name || 'Steam title' }} · Steam Engine relay</span>

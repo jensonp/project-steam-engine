@@ -363,7 +363,7 @@ export class ResultScreen implements OnInit, AfterViewInit, OnDestroy {
     }
 
     const cards = Array.from(
-      document.querySelectorAll<HTMLElement>('.results-container .marquee-card')
+      document.querySelectorAll<HTMLElement>('.results-container .result-card-lens')
     );
 
     if (!cards.length) {
@@ -470,32 +470,42 @@ export class ResultScreen implements OnInit, AfterViewInit, OnDestroy {
     this.destroyLiquidRenderer();
     delete (window as { __liquidGLNoWebGL__?: boolean }).__liquidGLNoWebGL__;
 
-    // Demo-4 profile for cards.
-    const createdCards = w.liquidGL({
-      target: '.results-container .marquee-card',
-      refraction: DEMO4_CARD_DEFAULTS.refraction,
-      bevelDepth: DEMO4_CARD_DEFAULTS.bevelDepth,
-      bevelWidth: DEMO4_CARD_DEFAULTS.bevelWidth,
-      frost: DEMO4_CARD_DEFAULTS.frost,
-      shadow: DEMO4_CARD_DEFAULTS.shadow,
-      specular: DEMO4_CARD_DEFAULTS.specular,
-      tilt: DEMO4_CARD_DEFAULTS.tilt,
-      tiltFactor: DEMO4_CARD_DEFAULTS.tiltFactor,
-      reveal: DEMO4_CARD_DEFAULTS.reveal,
-    });
+    // Keep card and shape lens rendering on separate passes.
+    // liquidGL uses one shared canvas tied to highest target z-index, so running
+    // both target groups together can obscure card content under the shape layer.
+    const shouldRenderCardLens = !this.magnifierExpanded;
+    const shouldRenderShapeLens = this.magnifierExpanded;
+
+    // Demo-4 profile for cards (bound to inert overlay targets).
+    const createdCards = shouldRenderCardLens
+      ? w.liquidGL({
+          target: '.results-container .result-card-lens',
+          refraction: DEMO4_CARD_DEFAULTS.refraction,
+          bevelDepth: DEMO4_CARD_DEFAULTS.bevelDepth,
+          bevelWidth: DEMO4_CARD_DEFAULTS.bevelWidth,
+          frost: DEMO4_CARD_DEFAULTS.frost,
+          shadow: DEMO4_CARD_DEFAULTS.shadow,
+          specular: DEMO4_CARD_DEFAULTS.specular,
+          tilt: DEMO4_CARD_DEFAULTS.tilt,
+          tiltFactor: DEMO4_CARD_DEFAULTS.tiltFactor,
+          reveal: DEMO4_CARD_DEFAULTS.reveal,
+        })
+      : undefined;
 
     // Demo-5 profile for the large .shape lens.
-    const createdShape = w.liquidGL({
-      target: '.shape.liquid-shape-trigger',
-      snapshot: '.main-content',
-      refraction: DEMO5_SHAPE_DEFAULTS.refraction,
-      bevelDepth: DEMO5_SHAPE_DEFAULTS.bevelDepth,
-      bevelWidth: DEMO5_SHAPE_DEFAULTS.bevelWidth,
-      frost: DEMO5_SHAPE_DEFAULTS.frost,
-      specular: DEMO5_SHAPE_DEFAULTS.specular,
-      shadow: DEMO5_SHAPE_DEFAULTS.shadow,
-      reveal: DEMO5_SHAPE_DEFAULTS.reveal,
-    });
+    const createdShape = shouldRenderShapeLens
+      ? w.liquidGL({
+          target: '.shape.liquid-shape-trigger',
+          snapshot: '.main-content',
+          refraction: DEMO5_SHAPE_DEFAULTS.refraction,
+          bevelDepth: DEMO5_SHAPE_DEFAULTS.bevelDepth,
+          bevelWidth: DEMO5_SHAPE_DEFAULTS.bevelWidth,
+          frost: DEMO5_SHAPE_DEFAULTS.frost,
+          specular: DEMO5_SHAPE_DEFAULTS.specular,
+          shadow: DEMO5_SHAPE_DEFAULTS.shadow,
+          reveal: DEMO5_SHAPE_DEFAULTS.reveal,
+        })
+      : undefined;
 
     const cardLensList = this.normalizeLensList(createdCards);
     const shapeLensList = this.normalizeLensList(createdShape);
@@ -516,7 +526,7 @@ export class ResultScreen implements OnInit, AfterViewInit, OnDestroy {
         },
       });
       this.setLiquidDiagnostics(null);
-      this.setLiquidActiveClass(true);
+      this.setLiquidActiveClass(cardLensList.length > 0);
     } else {
       // Menu still appears even in fallback mode, but effect is disabled without WebGL.
       this.mountLiquidControls({
@@ -534,9 +544,9 @@ export class ResultScreen implements OnInit, AfterViewInit, OnDestroy {
     }
 
     const totalTargetCount =
-      cardCount +
-      (document.querySelector('.liquid-shape-trigger') ? 1 : 0);
-    this.verifyLiquidChecks(totalTargetCount, lensList.length);
+      (shouldRenderCardLens ? cardCount : 0) +
+      (shouldRenderShapeLens && document.querySelector('.liquid-shape-trigger') ? 1 : 0);
+    this.verifyLiquidChecks(totalTargetCount, lensList.length, shouldRenderCardLens);
 
     w.liquidGL.syncWith?.({
       gsap: false,
@@ -736,9 +746,15 @@ export class ResultScreen implements OnInit, AfterViewInit, OnDestroy {
     container.classList.toggle('liquidgl-active', active);
   }
 
-  private verifyLiquidChecks(targetCount: number, lensCount: number): void {
+  private verifyLiquidChecks(targetCount: number, lensCount: number, cardModeActive: boolean): void {
     const hasGui = !!document.querySelector('.lil-gui');
     const hasRenderer = !!(window as { __liquidGLRenderer__?: LiquidRenderer }).__liquidGLRenderer__;
+    const canvas = document.querySelector('canvas[data-liquid-ignore]') as HTMLElement | null;
+    const container = document.querySelector('.results-container') as HTMLElement | null;
+    const parseZ = (z: string): number => {
+      const value = Number.parseInt(z, 10);
+      return Number.isFinite(value) ? value : 0;
+    };
     if (targetCount === 0) {
       console.warn('[liquidGL-check] No target cards found.');
     }
@@ -747,6 +763,15 @@ export class ResultScreen implements OnInit, AfterViewInit, OnDestroy {
     }
     if (lensCount === 0 || !hasRenderer) {
       console.warn('[liquidGL-check] WebGL lens not active (fallback mode).');
+    }
+    if (cardModeActive && hasRenderer && canvas && container) {
+      const canvasZ = parseZ(getComputedStyle(canvas).zIndex);
+      const containerZ = parseZ(getComputedStyle(container).zIndex);
+      if (canvasZ >= containerZ) {
+        console.warn(
+          `[liquidGL-check] Card occlusion risk detected (canvas z=${canvasZ}, container z=${containerZ}).`
+        );
+      }
     }
   }
 

@@ -57,6 +57,7 @@ test('liquidGL applies demo-4 cards and maintains layer ordering', async ({ page
 
   await expect(page).toHaveURL(/\/results$/);
   await expect(page.locator('.marquee-card')).toHaveCount(mockSearchResults.length);
+  await expect(page.locator('.result-card-lens')).toHaveCount(mockSearchResults.length);
   await expect(page.locator('.marquee-content')).toHaveCount(mockSearchResults.length);
   await expect(page.locator('.liquid-shell')).toHaveCount(0);
   await expect(page.locator('.liquid-rim')).toHaveCount(0);
@@ -87,13 +88,25 @@ test('liquidGL applies demo-4 cards and maintains layer ordering', async ({ page
     const firstOpacity = Number.parseFloat(getComputedStyle(first).opacity);
     const secondOpacity = Number.parseFloat(getComputedStyle(second).opacity);
     const cardCount = document.querySelectorAll('.results-container .marquee-card').length;
+    const lensCount = document.querySelectorAll('.results-container .result-card-lens').length;
     const hasDiagnostics = !!document.querySelector('.liquid-diagnostics');
+    const titleNodes = Array.from(document.querySelectorAll<HTMLElement>('.result-card-title'));
+    const visibleTitleCount = titleNodes.filter(title => {
+      const style = getComputedStyle(title);
+      const rect = title.getBoundingClientRect();
+      return (
+        style.display !== 'none' &&
+        style.visibility !== 'hidden' &&
+        Number.parseFloat(style.opacity || '1') > 0.2 &&
+        rect.width > 10 &&
+        rect.height > 10
+      );
+    }).length;
 
     const validStack =
-      shapeZ > containerZ &&
       backButtonZ > containerZ &&
       headerZ >= containerZ;
-    const allCardsPresent = cardCount >= 3;
+    const allCardsPresent = cardCount >= 3 && lensCount >= 3;
     const visibleCards = firstOpacity > 0.85 && secondOpacity > 0.85;
     const cardSizingStable =
       first.getBoundingClientRect().width > 200 &&
@@ -101,12 +114,14 @@ test('liquidGL applies demo-4 cards and maintains layer ordering', async ({ page
     const hasRenderer = !!(
       window as unknown as { __liquidGLRenderer__?: unknown }
     ).__liquidGLRenderer__;
+    const collapsedMode = !shape.classList.contains('is-expanded');
     const webglLayeringValid = canvas
-      ? asNum(getComputedStyle(canvas).zIndex) > containerZ &&
-        shapeZ > asNum(getComputedStyle(canvas).zIndex) &&
-        getComputedStyle(canvas).pointerEvents === 'none'
+      ? asNum(getComputedStyle(canvas).zIndex) < containerZ &&
+        getComputedStyle(canvas).pointerEvents === 'none' &&
+        collapsedMode
       : hasDiagnostics && !hasRenderer;
+    const textReadable = visibleTitleCount >= Math.min(3, titleNodes.length);
 
-    return validStack && allCardsPresent && visibleCards && cardSizingStable && webglLayeringValid;
+    return validStack && allCardsPresent && visibleCards && cardSizingStable && webglLayeringValid && textReadable;
   }, { timeout: 12000 });
 });

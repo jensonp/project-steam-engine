@@ -48,6 +48,7 @@ test('results route mounts liquidGL controls and runtime checks', async ({ page 
 
   await expect(page).toHaveURL(/\/results$/);
   await expect(page.locator('.marquee-card')).toHaveCount(mockSearchResults.length);
+  await expect(page.locator('.result-card-lens')).toHaveCount(mockSearchResults.length);
   await expect(page.locator('.marquee-content')).toHaveCount(mockSearchResults.length);
   await expect(page.locator('.main-content.result-screen')).toHaveCount(1);
   const magnifierButton = page.locator('[data-ui-check="liquid-magnifier-button"]');

@@ -11,6 +11,7 @@ Commands:
   smoke        Run local frontend/backend smoke checks.
   demo         Validate demo-4 card visibility baseline.
   fallback     Validate app card visibility in forced no-WebGL mode.
+  occlusion    Validate card readability + z-layer occlusion guard.
   test         Run full liquidGL validation pipeline.
   drag         Run drag-visibility UI test.
   debug        Run headed UI debug tests with trace.
@@ -30,6 +31,9 @@ case "$cmd" in
     ;;
   fallback)
     "$ROOT_DIR/scripts/liquidgl/run-fallback-visibility.sh"
+    ;;
+  occlusion)
+    "$ROOT_DIR/scripts/liquidgl/run-occlusion-check.sh"
     ;;
   test)
     "$ROOT_DIR/scripts/liquidgl/test-all.sh"

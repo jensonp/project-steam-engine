@@ -241,6 +241,19 @@
   contain-intrinsic-size: 300px;
 }
 
+.result-card {
+  position: relative;
+  isolation: isolate;
+}
+
+.result-card-lens {
+  position: absolute;
+  inset: 5px;
+  border-radius: calc(1rem - 5px);
+  z-index: 1;
+  pointer-events: none;
+}
+
 .results-container .marquee-card:nth-child(-n+12) {
   opacity: 0;
   transform: translateY(16px);
@@ -264,6 +277,8 @@
   width: 100%;
   overflow: hidden;
   pointer-events: none;
+  position: relative;
+  z-index: 2;
   text-transform: uppercase;
   font-weight: 800;
   font-size: clamp(1.25rem, 2.2vw, 2.4rem);
@@ -289,6 +304,7 @@
   min-height: 250px;
   gap: 0;
   position: relative;
+  z-index: 3;
 }
 
 .result-card-media {
@@ -335,7 +351,7 @@
 /* Demo-4 kept this exact layering rule so text sits above WebGL lens */
 .card-content {
   position: relative;
-  z-index: 3;
+  z-index: 4;
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -634,6 +650,10 @@
 
   .marquee-card {
     border-radius: 5vw;
+  }
+
+  .result-card-lens {
+    border-radius: calc(5vw - 5px);
   }
 }
 

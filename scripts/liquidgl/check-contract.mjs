@@ -15,6 +15,8 @@ const files = {
   dragScript: path.join(root, 'scripts/liquidgl/run-drag-visibility.sh'),
   demoVisibilityScript: path.join(root, 'scripts/liquidgl/run-demo-visibility.sh'),
   fallbackSpec: path.join(root, 'frontend/e2e/liquidgl.fallback-visibility.spec.ts'),
+  occlusionScript: path.join(root, 'scripts/liquidgl/run-occlusion-check.sh'),
+  occlusionSpec: path.join(root, 'frontend/e2e/liquidgl.occlusion-guard.spec.ts'),
 };
 
 const violations = [];
@@ -59,7 +61,7 @@ const cardTs = readFile(files.cardTs);
 
 requireContains(
   resultTs,
-  "target: '.results-container .marquee-card'",
+  "target: '.results-container .result-card-lens'",
   'result-screen.ts'
 );
 requireContains(
@@ -80,6 +82,11 @@ requireContains(
 requireContains(
   resultHtml,
   'class="marquee-card result-card"',
+  'result-screen.html'
+);
+requireContains(
+  resultHtml,
+  'class="result-card-lens"',
   'result-screen.html'
 );
 requireContains(
@@ -111,6 +118,12 @@ if (!fs.existsSync(files.demoVisibilityScript)) {
 }
 if (!fs.existsSync(files.fallbackSpec)) {
   violations.push(`Missing fallback visibility spec: ${files.fallbackSpec}`);
+}
+if (!fs.existsSync(files.occlusionScript)) {
+  violations.push(`Missing occlusion runner: ${files.occlusionScript}`);
+}
+if (!fs.existsSync(files.occlusionSpec)) {
+  violations.push(`Missing occlusion guard spec: ${files.occlusionSpec}`);
 }
 
 const imitationTokens = [

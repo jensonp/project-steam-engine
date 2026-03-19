@@ -84,6 +84,7 @@ test('cards remain visible when liquidGL falls back (no WebGL)', async ({ page }
   const visibility = await page.evaluate(() => {
     const firstTitle = document.querySelector('.result-card-title') as HTMLElement | null;
     const firstDescription = document.querySelector('.result-card-description') as HTMLElement | null;
+    const titles = Array.from(document.querySelectorAll('.result-card-title')) as HTMLElement[];
 
     const isVisible = (el: HTMLElement | null): boolean => {
       if (!el) return false;
@@ -101,6 +102,8 @@ test('cards remain visible when liquidGL falls back (no WebGL)', async ({ page }
     return {
       titleVisible: isVisible(firstTitle),
       descriptionVisible: isVisible(firstDescription),
+      allTitlesVisible: titles.every(title => isVisible(title)),
+      titleCount: titles.length,
       hasRenderer: !!(window as unknown as { __liquidGLRenderer__?: unknown }).__liquidGLRenderer__,
       forcedNoWebGL: !!(window as unknown as { __liquidGLNoWebGL__?: boolean }).__liquidGLNoWebGL__,
     };
@@ -108,6 +111,8 @@ test('cards remain visible when liquidGL falls back (no WebGL)', async ({ page }
 
   expect(visibility.titleVisible).toBe(true);
   expect(visibility.descriptionVisible).toBe(true);
+  expect(visibility.titleCount).toBe(mockSearchResults.length);
+  expect(visibility.allTitlesVisible).toBe(true);
   expect(visibility.hasRenderer).toBe(false);
   expect(visibility.forcedNoWebGL).toBe(true);
 });
