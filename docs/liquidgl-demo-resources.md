@@ -27,10 +27,28 @@ This resource list is the exact baseline for LiquidGL behavior replication work 
   - `node ./scripts/liquidgl/check-contract.mjs`
 - Serve local demos for direct visual inspection:
   - `./scripts/liquidgl/run-demo-server.sh`
+- Local stack smoke checks (`localhost:4200` + `localhost:3000`):
+  - `./scripts/liquidgl/local-stack-smoke.sh`
 - Drag lens and verify text visibility is preserved:
   - `./scripts/liquidgl/run-drag-visibility.sh`
+- Headed UI debug run with trace:
+  - `./scripts/liquidgl/run-debug-ui.sh`
+- Dump runtime diagnostics (JSON):
+  - `./scripts/liquidgl/run-runtime-dump.sh`
+- Capture design screenshots:
+  - `./scripts/liquidgl/run-design-capture.sh`
 - Full integration verification (fetch + extract + parity + e2e + build):
   - `./scripts/liquidgl/test-all.sh`
+- Unified command router:
+  - `./scripts/liquidgl/workbench.sh smoke|test|drag|debug|dump|design|all`
+
+## Generated Artifacts
+- Runtime dump:
+  - `artifacts/liquidgl/debug/runtime-state.json`
+- Design captures:
+  - `artifacts/liquidgl/design/results-initial.png`
+  - `artifacts/liquidgl/design/lens-expanded.png`
+  - `artifacts/liquidgl/design/lens-dragged.png`
 
 ## Expected Extracted Profiles
 - Demo 3 profile:

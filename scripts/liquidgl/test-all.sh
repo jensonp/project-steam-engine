@@ -20,6 +20,9 @@ if [ -z "$NPM_BIN" ]; then
   echo "npm not found. Install npm or set PATH." >&2
   exit 1
 fi
+if [ -z "${UI_CHECK_PORT:-}" ]; then
+  export UI_CHECK_PORT="$((4300 + RANDOM % 300))"
+fi
 
 echo "[1/6] Fetching demo-3/4/5 sources..."
 "$ROOT_DIR/scripts/liquidgl/fetch-demos.sh"

@@ -17,4 +17,4 @@ if [ -z "${UI_CHECK_PORT:-}" ]; then
 fi
 
 cd "$FRONTEND_DIR"
-npm run ui:check -- e2e/liquidgl.drag-visibility.spec.ts
+npm run ui:check -- --headed --trace on e2e/liquidgl.results.spec.ts e2e/liquidgl.layering.spec.ts e2e/liquidgl.drag-visibility.spec.ts

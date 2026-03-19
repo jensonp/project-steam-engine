@@ -17,4 +17,10 @@ if [ -z "${UI_CHECK_PORT:-}" ]; then
 fi
 
 cd "$FRONTEND_DIR"
-npm run ui:check -- e2e/liquidgl.drag-visibility.spec.ts
+npm run ui:check -- e2e/liquidgl.design-capture.spec.ts
+
+echo
+echo "Design screenshots written to:"
+echo "  $ROOT_DIR/artifacts/liquidgl/design/results-initial.png"
+echo "  $ROOT_DIR/artifacts/liquidgl/design/lens-expanded.png"
+echo "  $ROOT_DIR/artifacts/liquidgl/design/lens-dragged.png"

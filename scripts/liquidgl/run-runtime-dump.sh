@@ -17,4 +17,8 @@ if [ -z "${UI_CHECK_PORT:-}" ]; then
 fi
 
 cd "$FRONTEND_DIR"
-npm run ui:check -- e2e/liquidgl.drag-visibility.spec.ts
+npm run ui:check -- e2e/liquidgl.runtime-dump.spec.ts
+
+echo
+echo "Runtime diagnostics written to:"
+echo "  $ROOT_DIR/artifacts/liquidgl/debug/runtime-state.json"

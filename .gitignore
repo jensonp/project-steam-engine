@@ -61,3 +61,6 @@ liquidgl_local/
 liquidgl_clone/
 utopia_clone/
 steam_engine_test/
+
+# Generated diagnostics/design artifacts
+artifacts/
