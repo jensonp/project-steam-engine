@@ -158,16 +158,6 @@
   filter: brightness(1.07) saturate(1.12);
 }
 
-:host-context(.liquidgl-active) .liquid-rim,
-:host-context(.liquidgl-active) .liquid-specular,
-:host-context(.liquidgl-active) .liquid-noise {
-  opacity: 0;
-}
-
-:host-context(.liquidgl-active) .game-card::before {
-  opacity: 0.2;
-}
-
 .game-image {
   position: relative;
   width: 100%;
