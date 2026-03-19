@@ -88,7 +88,7 @@
 
 .valve-layer {
   position: absolute;
-  top: -30%;
+  top: -18%;
   left: 66%;
   width: min(27vw, 270px);
   aspect-ratio: 1 / 1;
@@ -1230,7 +1230,7 @@ button:focus-visible,
   }
 
   .valve-layer {
-    top: -19%;
+    top: -8%;
     left: 64%;
     width: min(52vw, 220px);
   }
