@@ -46,6 +46,8 @@ This resource list is the exact baseline for LiquidGL behavior replication work 
   - `./scripts/liquidgl/run-fallback-visibility.sh`
 - Verify card readability + canvas layering guard:
   - `./scripts/liquidgl/run-occlusion-check.sh`
+- Verify real WebGL renderer path:
+  - `./scripts/liquidgl/run-webgl-render-check.sh`
 - Serve local demos for direct visual inspection:
   - `./scripts/liquidgl/run-demo-server.sh`
 - Local stack smoke checks (`localhost:4200` + `localhost:3000`):
@@ -61,7 +63,7 @@ This resource list is the exact baseline for LiquidGL behavior replication work 
 - Full integration verification (fetch + extract + parity + e2e + build):
   - `./scripts/liquidgl/test-all.sh`
 - Unified command router:
-  - `./scripts/liquidgl/workbench.sh audit|smoke|demo|fallback|occlusion|test|drag|debug|dump|design|all`
+  - `./scripts/liquidgl/workbench.sh audit|smoke|demo|fallback|occlusion|webgl|test|drag|debug|dump|design|all`
 
 ## Generated Artifacts
 - Runtime dump:
@@ -72,6 +74,7 @@ This resource list is the exact baseline for LiquidGL behavior replication work 
   - `artifacts/liquidgl/design/results-initial.png`
   - `artifacts/liquidgl/design/lens-expanded.png`
   - `artifacts/liquidgl/design/lens-dragged.png`
+  - `artifacts/liquidgl/design/webgl-renderer-check.png`
 
 ## Expected Extracted Profiles
 - Demo 3 profile:

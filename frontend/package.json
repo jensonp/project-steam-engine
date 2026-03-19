@@ -10,6 +10,7 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "ui:check": "playwright test --config=playwright.visual.config.ts",
+    "ui:check:webgl": "playwright test --config=playwright.webgl.config.ts",
     "ui:check:update": "playwright test --config=playwright.visual.config.ts --update-snapshots",
     "ui:check:headed": "playwright test --config=playwright.visual.config.ts --headed",
     "ui:check:install": "playwright install chromium"

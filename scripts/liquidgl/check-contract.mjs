@@ -21,6 +21,8 @@ const files = {
   sourceCoverageScript: path.join(root, 'scripts/liquidgl/check-source-coverage.mjs'),
   sourceMirrorScript: path.join(root, 'scripts/liquidgl/fetch-site-content.mjs'),
   featureMatrixScript: path.join(root, 'scripts/liquidgl/analyze-demo-features.mjs'),
+  webglScript: path.join(root, 'scripts/liquidgl/run-webgl-render-check.sh'),
+  webglSpec: path.join(root, 'frontend/e2e/liquidgl.webgl-renderer.spec.ts'),
 };
 
 const violations = [];
@@ -140,6 +142,12 @@ if (!fs.existsSync(files.sourceMirrorScript)) {
 }
 if (!fs.existsSync(files.featureMatrixScript)) {
   violations.push(`Missing feature matrix script: ${files.featureMatrixScript}`);
+}
+if (!fs.existsSync(files.webglScript)) {
+  violations.push(`Missing WebGL render script: ${files.webglScript}`);
+}
+if (!fs.existsSync(files.webglSpec)) {
+  violations.push(`Missing WebGL render spec: ${files.webglSpec}`);
 }
 
 const imitationTokens = [

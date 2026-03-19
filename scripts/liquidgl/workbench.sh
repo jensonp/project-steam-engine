@@ -13,6 +13,7 @@ Commands:
   demo         Validate demo-4 card visibility baseline.
   fallback     Validate app card visibility in forced no-WebGL mode.
   occlusion    Validate card readability + z-layer occlusion guard.
+  webgl        Validate real WebGL renderer path and lens geometry.
   test         Run full liquidGL validation pipeline.
   drag         Run drag-visibility UI test.
   debug        Run headed UI debug tests with trace.
@@ -38,6 +39,9 @@ case "$cmd" in
     ;;
   occlusion)
     "$ROOT_DIR/scripts/liquidgl/run-occlusion-check.sh"
+    ;;
+  webgl)
+    "$ROOT_DIR/scripts/liquidgl/run-webgl-render-check.sh"
     ;;
   test)
     "$ROOT_DIR/scripts/liquidgl/test-all.sh"
