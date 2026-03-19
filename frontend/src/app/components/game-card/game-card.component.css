@@ -11,9 +11,15 @@
   height: auto;
   color: inherit;
   cursor: pointer;
+  perspective: 1600px;
+  transform-style: preserve-3d;
 }
 
 .game-card {
+  --card-tilt-x: 0deg;
+  --card-tilt-y: 0deg;
+  --liquid-x: 50%;
+  --liquid-y: 24%;
   position: relative;
   display: grid;
   grid-template-columns: minmax(220px, 34%) minmax(0, 1fr);
@@ -29,12 +35,18 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.04),
     0 8px 24px rgba(0, 0, 0, 0.26);
   transition:
-    transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1),
+    transform 0.44s cubic-bezier(0.2, 0.8, 0.2, 1),
     border-color 0.4s ease,
     box-shadow 0.5s ease,
     background-color 0.4s ease;
-  transform: translateZ(0);
+  transform:
+    translate3d(0, 0, 0)
+    rotateX(var(--card-tilt-x))
+    rotateY(var(--card-tilt-y))
+    scale(1);
+  transform-style: preserve-3d;
   backface-visibility: hidden;
+  will-change: transform;
 }
 
 .game-card::before {
@@ -44,11 +56,15 @@
   border-radius: inherit;
   pointer-events: none;
   background:
-    linear-gradient(90deg, rgba(255, 87, 56, 0.11), rgba(255, 87, 56, 0) 45%),
-    radial-gradient(circle at 84% 24%, rgba(255, 87, 56, 0.14), transparent 52%);
-  opacity: 0;
+    radial-gradient(95% 120% at var(--liquid-x) var(--liquid-y), rgba(255, 238, 218, 0.2) 0%, rgba(255, 236, 210, 0.07) 32%, rgba(255, 87, 56, 0.02) 54%, transparent 72%),
+    linear-gradient(112deg, rgba(255, 87, 56, 0.09), rgba(255, 87, 56, 0) 45%),
+    radial-gradient(circle at 84% 24%, rgba(255, 87, 56, 0.11), transparent 52%);
+  opacity: 0.75;
   z-index: 2;
-  transition: opacity 0.32s ease;
+  transition:
+    opacity 0.42s ease,
+    filter 0.42s ease;
+  filter: saturate(1);
 }
 
 .game-card::after {
@@ -59,13 +75,19 @@
   bottom: 14%;
   width: 1px;
   background: linear-gradient(180deg, rgba(255, 87, 56, 0.04), rgba(255, 87, 56, 0.4), rgba(255, 87, 56, 0.04));
-  opacity: 0.75;
+  opacity: 0.78;
   pointer-events: none;
-  transition: opacity 0.32s ease;
+  transition:
+    opacity 0.38s ease,
+    background 0.38s ease;
 }
 
 .game-card:hover {
-  transform: translate3d(0, -3px, 0) scale(1.015);
+  transform:
+    translate3d(0, -4px, 0)
+    rotateX(var(--card-tilt-x))
+    rotateY(var(--card-tilt-y))
+    scale(1.012);
   will-change: transform;
   border-color: rgba(255, 87, 56, 0.52);
   box-shadow:
@@ -76,6 +98,64 @@
 
 .game-card:hover::before {
   opacity: 1;
+  filter: saturate(1.12);
+}
+
+.game-card.is-pointer-active {
+  transition:
+    border-color 0.35s ease,
+    box-shadow 0.35s ease;
+}
+
+.liquid-shell {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.liquid-rim,
+.liquid-specular,
+.liquid-noise {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.liquid-rim {
+  border: 1px solid rgba(255, 242, 226, 0.1);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 -16px 34px rgba(0, 0, 0, 0.22);
+}
+
+.liquid-specular {
+  background:
+    radial-gradient(130% 110% at var(--liquid-x) var(--liquid-y), rgba(255, 251, 245, 0.26) 0%, rgba(255, 251, 245, 0.08) 22%, rgba(255, 251, 245, 0.03) 36%, transparent 62%),
+    linear-gradient(128deg, rgba(255, 255, 255, 0.09) 0%, rgba(255, 255, 255, 0) 42%);
+  mix-blend-mode: screen;
+  opacity: 0.78;
+  transition:
+    opacity 0.38s ease,
+    filter 0.38s ease;
+}
+
+.liquid-noise {
+  background-image:
+    radial-gradient(rgba(244, 236, 224, 0.04) 0.5px, transparent 0.5px),
+    linear-gradient(180deg, rgba(255, 87, 56, 0.03), transparent 48%);
+  background-size:
+    3px 3px,
+    100% 100%;
+  opacity: 0.22;
+}
+
+.game-card:hover .liquid-specular,
+.game-card.is-pointer-active .liquid-specular {
+  opacity: 0.98;
+  filter: brightness(1.07) saturate(1.12);
 }
 
 .game-image {
@@ -91,6 +171,7 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  z-index: 0;
   background:
     linear-gradient(90deg, #1a1210 25%, #2a1a16 50%, #1a1210 75%);
   background-size: 200% 100%;
@@ -106,8 +187,8 @@
   inset: 0;
   border-radius: inherit;
   background: linear-gradient(125deg, rgba(255, 87, 56, 0.06), rgba(255, 87, 56, 0));
-  transform: translateX(-14%);
-  transition: transform 0.48s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateX(-10%);
+  transition: transform 0.62s cubic-bezier(0.16, 1, 0.3, 1);
   pointer-events: none;
   z-index: 1;
 }
@@ -132,14 +213,14 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center left;
+  object-position: center center;
   border-top-left-radius: 20px;
   border-bottom-left-radius: 20px;
   opacity: 0;
   transition:
     opacity 0.6s ease-out,
-    transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1),
-    filter 0.5s ease;
+    transform 0.9s cubic-bezier(0.2, 0.8, 0.2, 1),
+    filter 0.64s ease;
   filter: saturate(0.94) brightness(0.94);
 }
 
@@ -148,12 +229,12 @@
 }
 
 .game-card:hover .game-img.loaded {
-  transform: scale(1.03);
-  filter: saturate(1.03) brightness(1);
+  transform: scale(1.018);
+  filter: saturate(1.04) brightness(1.01);
 }
 
 .game-card:hover .game-image::before {
-  transform: translateX(8%);
+  transform: translateX(6%);
 }
 
 @keyframes shimmer {
@@ -221,7 +302,7 @@ mat-card-content {
 
 .game-card:hover .game-title {
   color: #fff;
-  transform: translateX(4px);
+  transform: translateX(2px);
 }
 
 .steam-link-hint {
@@ -243,7 +324,7 @@ mat-card-content {
 .game-card:hover .steam-link-hint {
   opacity: 1;
   color: var(--neo-primary-strong);
-  transform: translateX(4px);
+  transform: translateX(2px);
 }
 
 .game-details {
@@ -395,12 +476,19 @@ mat-card-content {
   .game-img,
   .game-card::before,
   .game-card::after,
+  .liquid-specular,
+  .liquid-rim,
+  .liquid-noise,
   .game-image::before,
   .steam-link-hint,
   .genres mat-chip,
   .game-title {
     animation: none !important;
     transition: none !important;
+  }
+
+  .game-card {
+    transform: none !important;
   }
 }
 
