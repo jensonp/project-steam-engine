@@ -15,6 +15,7 @@
             @if (valveBackdropEnabled && valveOpacity > 0.02) {
                 <div class="valve-model-shell" [class.is-full-spin]="valveSpinMode === 'full'">
                     <model-viewer
+                        #valveModelViewer
                         class="valve-model"
                         [class.is-full-spin]="valveSpinMode === 'full'"
                         [class.is-flat-spin]="valveSpinMode !== 'full'"
@@ -23,7 +24,7 @@
                         tabindex="-1"
                         auto-rotate
                         auto-rotate-delay="0"
-                        [attr.rotation-per-second]="valveSpinMode === 'full' ? '68deg' : '22deg'"
+                        [attr.rotation-per-second]="valveSpinMode === 'full' ? '48deg' : '22deg'"
                         [attr.camera-controls]="valveSpinMode === 'full' ? '' : null"
                         interaction-prompt="none"
                         environment-image="neutral"

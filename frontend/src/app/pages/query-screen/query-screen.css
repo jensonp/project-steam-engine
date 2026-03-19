@@ -148,14 +148,14 @@
 }
 
 .valve-model-shell.is-full-spin {
-  animation: valve-gyro-precession 4.8s linear infinite;
-  will-change: transform;
+  animation: none;
+  will-change: auto;
 }
 
 .valve-model.is-full-spin {
-  transform-origin: 50% 52%;
-  animation: valve-gyro-tumble 5.4s linear infinite;
-  will-change: transform;
+  animation: none;
+  transform: none;
+  will-change: auto;
 }
 
 .valve-model.is-flat-spin {
@@ -858,45 +858,6 @@ button:focus-visible,
   }
   to {
     transform: rotate(360deg);
-  }
-}
-
-@keyframes valve-gyro-precession {
-  0% {
-    transform: rotateX(28deg) rotateY(0deg) rotateZ(-24deg) translate3d(0, 0, 0);
-  }
-  20% {
-    transform: rotateX(-24deg) rotateY(72deg) rotateZ(18deg) translate3d(6px, -2px, 14px);
-  }
-  40% {
-    transform: rotateX(34deg) rotateY(144deg) rotateZ(-17deg) translate3d(-4px, 3px, -8px);
-  }
-  60% {
-    transform: rotateX(-29deg) rotateY(216deg) rotateZ(20deg) translate3d(4px, -4px, 18px);
-  }
-  80% {
-    transform: rotateX(31deg) rotateY(288deg) rotateZ(-19deg) translate3d(-6px, 2px, -10px);
-  }
-  100% {
-    transform: rotateX(28deg) rotateY(360deg) rotateZ(-24deg) translate3d(0, 0, 0);
-  }
-}
-
-@keyframes valve-gyro-tumble {
-  0% {
-    transform: rotateX(8deg) rotateY(0deg) rotateZ(0deg) scale(1);
-  }
-  25% {
-    transform: rotateX(82deg) rotateY(240deg) rotateZ(36deg) scale(1.02);
-  }
-  50% {
-    transform: rotateX(-58deg) rotateY(480deg) rotateZ(-28deg) scale(0.99);
-  }
-  75% {
-    transform: rotateX(104deg) rotateY(720deg) rotateZ(42deg) scale(1.02);
-  }
-  100% {
-    transform: rotateX(8deg) rotateY(960deg) rotateZ(0deg) scale(1);
   }
 }
 

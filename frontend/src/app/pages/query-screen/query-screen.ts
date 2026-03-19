@@ -1,4 +1,13 @@
-import { Component, OnDestroy, OnInit, CUSTOM_ELEMENTS_SCHEMA, NgZone, ChangeDetectorRef } from '@angular/core';
+import {
+  Component,
+  OnDestroy,
+  OnInit,
+  CUSTOM_ELEMENTS_SCHEMA,
+  NgZone,
+  ChangeDetectorRef,
+  ElementRef,
+  ViewChild
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -15,6 +24,10 @@ import { Overlay } from '@angular/cdk/overlay';
 
 type SearchOs = '' | 'windows' | 'mac' | 'linux';
 type ValveSpinMode = 'flat' | 'full';
+type ValveModelViewerElement = HTMLElement & {
+  cameraOrbit?: string;
+  orientation?: string;
+};
 
 @Component({
   selector: 'app-query-screen',
@@ -87,14 +100,26 @@ export class QueryScreen implements OnInit, OnDestroy {
   valveOpacity = 0.84;
   private focusUpdateTimeoutId: number | null = null;
   private valveScrollRafId: number | null = null;
+  private valveGyroRafId: number | null = null;
+  private valveGyroStartTimeMs = 0;
+  private valveModelViewerElement: ValveModelViewerElement | null = null;
   private removePointerMoveListener: (() => void) | null = null;
   private removeScrollListener: (() => void) | null = null;
   private readonly valveStorageKey = 'ui.query.valveEnabled';
   private readonly valveBackdropEventName = 'pse:valveBackdropChanged';
   private readonly valveSpinModeStorageKey = 'ui.query.valveSpinMode';
   private readonly valveSpinModeEventName = 'pse:valveSpinModeChanged';
+  private readonly valveDefaultCameraOrbit = '0deg 78deg 3.9m';
+  private readonly valveDefaultOrientation = '0deg 0deg 0deg';
+  private readonly runValveGyroStep = (timestampMs: number) => this.stepValveGyro(timestampMs);
 
   private readonly subs = new Subscription();
+
+  @ViewChild('valveModelViewer')
+  set valveModelViewerRef(ref: ElementRef<ValveModelViewerElement> | undefined) {
+    this.valveModelViewerElement = ref?.nativeElement ?? null;
+    this.syncValveGyroAnimation();
+  }
 
   constructor(
     private backendService: BackendService,
@@ -162,6 +187,7 @@ export class QueryScreen implements OnInit, OnDestroy {
     this.updateValveOpacity();
     this.prefetchResultsScreen();
     this.setupViewportListeners();
+    this.syncValveGyroAnimation();
 
     this.subs.add(this.backendService.isLoadingSearch$.subscribe(l => this.isSearchLoading = l));
     this.subs.add(this.backendService.isLoadingRecommendations$.subscribe(l => this.isRecommendationLoading = l));
@@ -223,6 +249,7 @@ export class QueryScreen implements OnInit, OnDestroy {
       if (Math.abs(nextOpacity - this.valveOpacity) < 0.01) return;
       this.ngZone.run(() => {
         this.valveOpacity = nextOpacity;
+        this.syncValveGyroAnimation();
       });
     });
   }
@@ -236,6 +263,7 @@ export class QueryScreen implements OnInit, OnDestroy {
       window.cancelAnimationFrame(this.valveScrollRafId);
       this.valveScrollRafId = null;
     }
+    this.stopValveGyroAnimation(false);
     this.removePointerMoveListener?.();
     this.removeScrollListener?.();
     this.removePointerMoveListener = null;
@@ -346,6 +374,7 @@ export class QueryScreen implements OnInit, OnDestroy {
     this.ngZone.run(() => {
       this.valveBackdropEnabled = Boolean(event.detail);
       this.updateValveOpacity();
+      this.syncValveGyroAnimation();
       this.cdr.markForCheck();
     });
   };
@@ -356,14 +385,19 @@ export class QueryScreen implements OnInit, OnDestroy {
     if (nextMode !== 'flat' && nextMode !== 'full') return;
     this.ngZone.run(() => {
       this.valveSpinMode = nextMode;
+      this.syncValveGyroAnimation();
       this.cdr.markForCheck();
     });
   };
 
   private updateValveOpacity(): void {
     const nextOpacity = this.computeValveOpacity();
-    if (Math.abs(nextOpacity - this.valveOpacity) < 0.001) return;
+    if (Math.abs(nextOpacity - this.valveOpacity) < 0.001) {
+      this.syncValveGyroAnimation();
+      return;
+    }
     this.valveOpacity = nextOpacity;
+    this.syncValveGyroAnimation();
   }
 
   private computeValveOpacity(): number {
@@ -417,6 +451,100 @@ export class QueryScreen implements OnInit, OnDestroy {
     }
 
     setTimeout(load, 350);
+  }
+
+  private shouldRunValveGyroAnimation(): boolean {
+    return (
+      typeof window !== 'undefined' &&
+      !this.prefersReducedMotion &&
+      this.valveBackdropEnabled &&
+      this.valveOpacity > 0.02 &&
+      this.valveSpinMode === 'full'
+    );
+  }
+
+  private syncValveGyroAnimation(): void {
+    if (this.shouldRunValveGyroAnimation()) {
+      this.startValveGyroAnimation();
+      return;
+    }
+    this.stopValveGyroAnimation();
+  }
+
+  private startValveGyroAnimation(): void {
+    if (typeof window === 'undefined' || this.valveGyroRafId !== null) return;
+    this.valveGyroStartTimeMs =
+      typeof performance !== 'undefined' && typeof performance.now === 'function'
+        ? performance.now()
+        : Date.now();
+    this.ngZone.runOutsideAngular(() => {
+      this.valveGyroRafId = window.requestAnimationFrame(this.runValveGyroStep);
+    });
+  }
+
+  private stopValveGyroAnimation(resetPose = true): void {
+    if (typeof window !== 'undefined' && this.valveGyroRafId !== null) {
+      window.cancelAnimationFrame(this.valveGyroRafId);
+    }
+    this.valveGyroRafId = null;
+    if (resetPose) {
+      this.resetValveModelPose();
+    }
+  }
+
+  private stepValveGyro(timestampMs: number): void {
+    if (typeof window === 'undefined') return;
+    if (!this.shouldRunValveGyroAnimation()) {
+      this.stopValveGyroAnimation();
+      return;
+    }
+
+    const modelViewer = this.getValveModelViewer();
+    if (!modelViewer) {
+      this.valveGyroRafId = window.requestAnimationFrame(this.runValveGyroStep);
+      return;
+    }
+
+    const elapsedSeconds = Math.max((timestampMs - this.valveGyroStartTimeMs) / 1000, 0);
+    const orbitAzimuthDeg = (elapsedSeconds * 112) % 360;
+    const orbitPolarDeg = 78 + Math.sin(elapsedSeconds * 1.4) * 12 + Math.sin(elapsedSeconds * 0.58) * 4;
+    const orbitRadiusMeters = 3.9 + Math.sin(elapsedSeconds * 0.92) * 0.14;
+    const pitchDeg = Math.sin(elapsedSeconds * 1.78) * 10;
+    const yawDeg = (elapsedSeconds * 138) % 360;
+    const rollDeg = Math.cos(elapsedSeconds * 1.22) * 8;
+
+    this.setValveModelPose(
+      modelViewer,
+      `${orbitAzimuthDeg.toFixed(2)}deg ${orbitPolarDeg.toFixed(2)}deg ${orbitRadiusMeters.toFixed(2)}m`,
+      `${pitchDeg.toFixed(2)}deg ${yawDeg.toFixed(2)}deg ${rollDeg.toFixed(2)}deg`
+    );
+
+    this.valveGyroRafId = window.requestAnimationFrame(this.runValveGyroStep);
+  }
+
+  private getValveModelViewer(): ValveModelViewerElement | null {
+    if (this.valveModelViewerElement) {
+      return this.valveModelViewerElement;
+    }
+    if (typeof document === 'undefined') return null;
+    return document.querySelector('.valve-model');
+  }
+
+  private setValveModelPose(
+    modelViewer: ValveModelViewerElement,
+    cameraOrbit: string,
+    orientation: string
+  ): void {
+    modelViewer.setAttribute('camera-orbit', cameraOrbit);
+    modelViewer.setAttribute('orientation', orientation);
+    modelViewer.cameraOrbit = cameraOrbit;
+    modelViewer.orientation = orientation;
+  }
+
+  private resetValveModelPose(): void {
+    const modelViewer = this.getValveModelViewer();
+    if (!modelViewer) return;
+    this.setValveModelPose(modelViewer, this.valveDefaultCameraOrbit, this.valveDefaultOrientation);
   }
 
   private scrollToCenter(selector: string): void {
