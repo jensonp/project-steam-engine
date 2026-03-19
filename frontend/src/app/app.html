@@ -37,6 +37,21 @@
             <mat-icon id="valve-off-icon" aria-hidden="true">visibility_off</mat-icon>
         }
     </button>
+    <button
+        id="valve-spin-button"
+        type="button"
+        [class.is-full-spin]="valveSpinMode === 'full'"
+        [attr.aria-label]="
+            valveSpinMode === 'full'
+                ? 'Switch valve spin mode to flat'
+                : 'Switch valve spin mode to full'
+        "
+        [attr.aria-pressed]="valveSpinMode === 'full'"
+        (click)="toggleValveSpinMode()">
+        <mat-icon id="valve-spin-icon" aria-hidden="true">
+            {{ valveSpinMode === 'full' ? '3d_rotation' : 'rotate_right' }}
+        </mat-icon>
+    </button>
     <button id="config-button" routerLink="/config" aria-label="Open settings">
         <mat-icon id="config-icon" aria-hidden="true">settings</mat-icon>
     </button>

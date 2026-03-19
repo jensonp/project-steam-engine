@@ -14,6 +14,7 @@ import { UserProfile } from '../../types/steam.types';
 import { Overlay } from '@angular/cdk/overlay';
 
 type SearchOs = '' | 'windows' | 'mac' | 'linux';
+type ValveSpinMode = 'flat' | 'full';
 
 @Component({
   selector: 'app-query-screen',
@@ -85,6 +86,7 @@ export class QueryScreen implements OnInit, OnDestroy {
   katanaCursorY = 0;
   isProfileClearing = false;
   valveBackdropEnabled = true;
+  valveSpinMode: ValveSpinMode = 'flat';
   valveOpacity = 0.84;
   private focusUpdateTimeoutId: number | null = null;
   private valveScrollRafId: number | null = null;
@@ -96,6 +98,8 @@ export class QueryScreen implements OnInit, OnDestroy {
   private removeKatanaPointerMoveListener: (() => void) | null = null;
   private readonly valveStorageKey = 'ui.query.valveEnabled';
   private readonly valveBackdropEventName = 'pse:valveBackdropChanged';
+  private readonly valveSpinModeStorageKey = 'ui.query.valveSpinMode';
+  private readonly valveSpinModeEventName = 'pse:valveSpinModeChanged';
 
   private readonly subs = new Subscription();
 
@@ -154,7 +158,12 @@ export class QueryScreen implements OnInit, OnDestroy {
       if (savedValveState !== null) {
         this.valveBackdropEnabled = savedValveState === '1';
       }
+      const savedValveSpinMode = window.localStorage.getItem(this.valveSpinModeStorageKey);
+      if (savedValveSpinMode === 'flat' || savedValveSpinMode === 'full') {
+        this.valveSpinMode = savedValveSpinMode;
+      }
       window.addEventListener(this.valveBackdropEventName, this.onValveBackdropChanged as EventListener);
+      window.addEventListener(this.valveSpinModeEventName, this.onValveSpinModeChanged as EventListener);
     }
 
     this.updateValveOpacity();
@@ -228,6 +237,7 @@ export class QueryScreen implements OnInit, OnDestroy {
   ngOnDestroy() {
     if (typeof window !== 'undefined') {
       window.removeEventListener(this.valveBackdropEventName, this.onValveBackdropChanged as EventListener);
+      window.removeEventListener(this.valveSpinModeEventName, this.onValveSpinModeChanged as EventListener);
     }
     if (this.valveScrollRafId !== null && typeof window !== 'undefined') {
       window.cancelAnimationFrame(this.valveScrollRafId);
@@ -367,6 +377,13 @@ export class QueryScreen implements OnInit, OnDestroy {
     if (!(event instanceof CustomEvent)) return;
     this.valveBackdropEnabled = Boolean(event.detail);
     this.updateValveOpacity();
+  };
+
+  private onValveSpinModeChanged = (event: Event): void => {
+    if (!(event instanceof CustomEvent)) return;
+    const nextMode = event.detail;
+    if (nextMode !== 'flat' && nextMode !== 'full') return;
+    this.valveSpinMode = nextMode;
   };
 
   private updateValveOpacity(): void {

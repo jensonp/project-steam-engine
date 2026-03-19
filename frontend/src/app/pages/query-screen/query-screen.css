@@ -110,8 +110,8 @@
   display: block;
   --progress-bar-color: transparent;
   --poster-color: transparent;
-  transform-origin: 50% 52%;
-  animation: valve-gyro-wobble 8.4s ease-in-out infinite;
+  transform-origin: 50% 50%;
+  animation: valve-flat-spin 24s linear infinite;
 }
 
 .valve-model-shell {
@@ -120,8 +120,17 @@
   display: block;
   transform-style: preserve-3d;
   transform-origin: 50% 52%;
+  perspective: 980px;
+}
+
+.valve-model-shell.is-full-spin {
   animation: valve-gyro-orbit 14s linear infinite;
   will-change: transform;
+}
+
+.valve-model.is-full-spin {
+  transform-origin: 50% 52%;
+  animation: valve-gyro-wobble 8.4s ease-in-out infinite;
 }
 
 .hero-icon-frame {
@@ -867,6 +876,15 @@ button:focus-visible,
   }
 }
 
+@keyframes valve-flat-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 @keyframes valve-gyro-orbit {
   0% {
     transform: rotateX(10deg) rotateY(0deg) rotateZ(-7deg);
@@ -1379,4 +1397,3 @@ button:focus-visible,
     transition: none !important;
   }
 }
-

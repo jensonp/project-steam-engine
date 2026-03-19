@@ -8,15 +8,18 @@
     <div class="hero-frame">
         <div class="valve-layer" [style.opacity]="valveOpacity" aria-hidden="true" inert>
             @if (valveBackdropEnabled && valveOpacity > 0.02) {
-                <div class="valve-model-shell">
+                <div class="valve-model-shell" [class.is-full-spin]="valveSpinMode === 'full'">
                     <model-viewer
                         class="valve-model"
+                        [class.is-full-spin]="valveSpinMode === 'full'"
+                        [class.is-flat-spin]="valveSpinMode !== 'full'"
                         src="/models/red-valve.glb"
                         alt=""
                         tabindex="-1"
                         auto-rotate
                         auto-rotate-delay="0"
-                        rotation-per-second="22deg"
+                        [attr.rotation-per-second]="valveSpinMode === 'full' ? '34deg' : '22deg'"
+                        [attr.camera-controls]="valveSpinMode === 'full' ? '' : null"
                         interaction-prompt="none"
                         environment-image="neutral"
                         shadow-intensity="0.8"

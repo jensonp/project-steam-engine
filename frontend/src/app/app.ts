@@ -9,6 +9,8 @@ import { UserLibrary, PlayerSummary } from './types/steam.types';
 import { forkJoin } from 'rxjs';
 import { RouterOutlet, RouterLinkWithHref } from '@angular/router';
 
+type ValveSpinMode = 'flat' | 'full';
+
 @Component({
   selector: 'app-root',
   standalone: true,
@@ -30,22 +32,30 @@ export class App {
   profile: PlayerSummary | null = null;
   isLoading = false;
   valveEnabled = true;
+  valveSpinMode: ValveSpinMode = 'flat';
   readonly prefersReducedMotion =
     typeof window !== 'undefined' &&
     window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true;
   private readonly valveStorageKey = 'ui.query.valveEnabled';
+  private readonly valveSpinModeStorageKey = 'ui.query.valveSpinMode';
   private modelViewerImportPromise: Promise<unknown> | null = null;
   private valvePointerDownX = 0;
   private valvePointerDownY = 0;
   private suppressNextValveToggle = false;
   private readonly valveDragThresholdPx = 6;
   private readonly valveBackdropEventName = 'pse:valveBackdropChanged';
+  private readonly valveSpinModeEventName = 'pse:valveSpinModeChanged';
 
   constructor(private steamApi: SteamApiService) {
     if (typeof window !== 'undefined') {
       const savedValveState = window.localStorage.getItem(this.valveStorageKey);
       if (savedValveState !== null) {
         this.valveEnabled = savedValveState === '1';
+      }
+
+      const savedValveSpinMode = window.localStorage.getItem(this.valveSpinModeStorageKey);
+      if (savedValveSpinMode === 'flat' || savedValveSpinMode === 'full') {
+        this.valveSpinMode = savedValveSpinMode;
       }
     }
 
@@ -54,6 +64,7 @@ export class App {
     }
 
     this.publishValveBackdropState();
+    this.publishValveSpinMode();
   }
 
   toggleValveBackdrop(): void {
@@ -70,6 +81,14 @@ export class App {
       this.ensureModelViewerLoaded();
     }
     this.publishValveBackdropState();
+  }
+
+  toggleValveSpinMode(): void {
+    this.valveSpinMode = this.valveSpinMode === 'full' ? 'flat' : 'full';
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(this.valveSpinModeStorageKey, this.valveSpinMode);
+    }
+    this.publishValveSpinMode();
   }
 
   onValvePointerDown(event: PointerEvent): void {
@@ -103,6 +122,15 @@ export class App {
     window.dispatchEvent(
       new CustomEvent<boolean>(this.valveBackdropEventName, {
         detail: this.valveEnabled,
+      })
+    );
+  }
+
+  private publishValveSpinMode(): void {
+    if (typeof window === 'undefined') return;
+    window.dispatchEvent(
+      new CustomEvent<ValveSpinMode>(this.valveSpinModeEventName, {
+        detail: this.valveSpinMode,
       })
     );
   }

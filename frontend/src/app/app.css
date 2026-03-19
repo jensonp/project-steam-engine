@@ -55,6 +55,25 @@
     box-shadow 0.2s ease;
 }
 
+#valve-spin-button {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 87, 56, 0.08);
+  border: 1px solid var(--neo-border);
+  box-shadow: none;
+  cursor: pointer;
+  will-change: transform;
+  transition:
+    transform 0.16s cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
 #valve-button {
   margin-left: auto;
   width: 44px;
@@ -92,7 +111,20 @@
   border-color: var(--neo-border-strong);
 }
 
+#valve-spin-button:hover {
+  transform: translateY(-1px) scale(1.006);
+  background: rgba(255, 87, 56, 0.14);
+  border-color: var(--neo-border-strong);
+}
+
+#valve-spin-button.is-full-spin {
+  border-color: rgba(255, 87, 56, 0.58);
+  background: rgba(255, 87, 56, 0.16);
+  box-shadow: 0 0 12px rgba(255, 87, 56, 0.24);
+}
+
 #valve-button:focus-visible,
+#valve-spin-button:focus-visible,
 #config-button:focus-visible {
   outline: 2px solid rgba(255, 87, 56, 0.66);
   outline-offset: 2px;
@@ -117,6 +149,22 @@
   font-size: 18px;
   width: 18px;
   height: 18px;
+}
+
+#valve-spin-icon {
+  color: var(--neo-primary-strong);
+  font-size: 19px;
+  width: 19px;
+  height: 19px;
+  transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+#valve-spin-button:hover #valve-spin-icon {
+  transform: rotate(36deg);
+}
+
+#valve-spin-button.is-full-spin #valve-spin-icon {
+  color: var(--neo-primary);
 }
 
 .main-content {
