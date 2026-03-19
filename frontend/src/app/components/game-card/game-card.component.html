@@ -4,17 +4,7 @@
        rel="noopener noreferrer"
        class="card-link"
        [attr.aria-label]="'View ' + (currentGame.name || 'game') + ' on Steam'">
-        <mat-card
-            class="game-card"
-            (pointermove)="onCardPointerMove($event)"
-            (pointerleave)="onCardPointerLeave($event)"
-            (focusin)="onCardFocus($event)"
-            (focusout)="onCardBlur($event)">
-            <div class="liquid-shell" aria-hidden="true">
-                <span class="liquid-rim"></span>
-                <span class="liquid-specular"></span>
-                <span class="liquid-noise"></span>
-            </div>
+        <mat-card class="game-card">
             <div class="game-image" [class.prioritized]="prioritizeImage" aria-hidden="true">
                 @if (currentGame.headerImage) {
                     <img [src]="currentGame.headerImage"

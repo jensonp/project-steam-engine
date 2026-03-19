@@ -141,14 +141,11 @@
 .results-container {
   display: flex;
   flex-direction: column;
-  gap: 1.05rem;
+  gap: 1rem;
   width: min(1040px, 100%);
   margin-inline: auto;
   position: relative;
   z-index: 1;
-  perspective: 1800px;
-  transform-style: preserve-3d;
-  isolation: isolate;
 }
 
 .results-container app-game-card {
@@ -156,7 +153,6 @@
   transform: none;
   content-visibility: auto;
   contain-intrinsic-size: 252px;
-  transform-style: preserve-3d;
 }
 
 .results-container app-game-card:nth-child(-n+12) {
