@@ -1,4 +1,4 @@
-<div class="result-screen">
+<div class="main-content result-screen">
     <div class="result-header">
         <div class="result-copy">
             <p class="result-kicker">Recommendation archive</p>
@@ -28,10 +28,76 @@
             <span class="shape-label" aria-hidden="true">{{ magnifierExpanded ? 'close lens' : 'open lens' }}</span>
         </button>
 
-        <div class="results-container">
-            @for (game of visibleResults; track trackByAppId($index, game); let i = $index) {
-                <app-game-card [game]="game" [prioritizeImage]="i < 8"></app-game-card>
-            }
+        <div class="marquee-anchor">
+            <div class="cards-wrapper results-container">
+                @for (game of visibleResults; track trackByAppId($index, game)) {
+                    <article class="marquee-card result-card" [attr.data-app-id]="game.appId">
+                        <div class="marquee" aria-hidden="true">
+                            <div class="marquee-content">
+                                <span>{{ game.name || 'Steam title' }} · Steam Engine relay</span>
+                                <span>{{ game.name || 'Steam title' }} · Steam Engine relay</span>
+                            </div>
+                        </div>
+
+                        <div class="result-card-body">
+                            <div class="result-card-media">
+                                @if (game.headerImage) {
+                                    <img
+                                        class="result-card-image"
+                                        [src]="game.headerImage"
+                                        [alt]="game.name || 'Steam game'"
+                                        loading="lazy"
+                                        decoding="async"
+                                        width="460"
+                                        height="215"
+                                        (error)="onResultImageError($event)" />
+                                } @else {
+                                    <div class="result-card-fallback" aria-hidden="true">
+                                        <img src="steam.png" alt="" />
+                                    </div>
+                                }
+                            </div>
+
+                            <div class="card-content result-card-content">
+                                <div class="result-card-headline">
+                                    <h3 class="result-card-title">{{ game.name || 'Unknown Game' }}</h3>
+                                    <a
+                                        class="result-card-link"
+                                        [href]="steamUrl(game)"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        [attr.aria-label]="'View ' + (game.name || 'game') + ' on Steam'">
+                                        Open on Steam →
+                                    </a>
+                                </div>
+
+                                @if (game.genres && game.genres.length > 0) {
+                                    <div class="result-card-genres">
+                                        @for (genre of game.genres.slice(0, 4); track genre) {
+                                            <span class="result-card-chip">{{ genre }}</span>
+                                        }
+                                    </div>
+                                }
+
+                                @if (game.description) {
+                                    <p class="result-card-description">{{ truncateDescription(game.description) }}</p>
+                                }
+
+                                <div class="result-card-meta">
+                                    <span class="result-card-appid">App {{ game.appId }}</span>
+                                    @if (game.isFree) {
+                                        <span class="result-card-price free">Free to play</span>
+                                    } @else if (game.price !== null && game.price !== undefined) {
+                                        <span class="result-card-price">${{ game.price.toFixed(2) }}</span>
+                                    } @else {
+                                        <span class="result-card-price">Price unavailable</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                }
+            </div>
         </div>
     } @else {
         <p class="empty-state">No results found. Adjust your filters and run another scan.</p>

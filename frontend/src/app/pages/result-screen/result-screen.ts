@@ -8,7 +8,6 @@ import {
   OnInit,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { GameCardComponent } from '../../components/game-card/game-card.component';
 import { Game } from '../../types/steam.types';
 import { Router, RouterLink } from '@angular/router';
 import { BackendService } from '../../services/backend-service';
@@ -79,7 +78,7 @@ const DEMO5_SHAPE_DEFAULTS: LiquidControlState = {
   standalone: true,
   templateUrl: './result-screen.html',
   styleUrl: './result-screen.css',
-  imports: [CommonModule, GameCardComponent, RouterLink, MatButtonModule],
+  imports: [CommonModule, RouterLink, MatButtonModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ResultScreen implements OnInit, AfterViewInit, OnDestroy {
@@ -103,7 +102,6 @@ export class ResultScreen implements OnInit, AfterViewInit, OnDestroy {
   private readonly maxLiquidRetries = 8;
   private scrollRenderListener: (() => void) | null = null;
   private mouseRenderListener: (() => void) | null = null;
-  private readonly primaryCardClass = 'liquidgl-primary-card';
 
   constructor(
     private router: Router,
@@ -163,6 +161,19 @@ export class ResultScreen implements OnInit, AfterViewInit, OnDestroy {
 
   trackByAppId(index: number, game: Game): number | string {
     return game.appId ?? `${game.name ?? 'game'}-${index}`;
+  }
+
+  steamUrl(game: Game): string {
+    return `https://store.steampowered.com/app/${game.appId}/`;
+  }
+
+  truncateDescription(description: string): string {
+    return description.length > 210 ? `${description.slice(0, 210)}...` : description;
+  }
+
+  onResultImageError(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    img.src = 'steam.png';
   }
 
   ngOnDestroy(): void {
@@ -273,7 +284,7 @@ export class ResultScreen implements OnInit, AfterViewInit, OnDestroy {
     }
 
     const cards = Array.from(
-      document.querySelectorAll<HTMLElement>('.results-container .game-card')
+      document.querySelectorAll<HTMLElement>('.results-container .marquee-card')
     );
 
     if (!cards.length) {
@@ -283,8 +294,7 @@ export class ResultScreen implements OnInit, AfterViewInit, OnDestroy {
 
     try {
       await this.ensureLiquidScripts();
-      const primaryCard = this.markPrimaryLiquidCard(cards);
-      const lensCount = this.rebuildLiquidRenderer(Boolean(primaryCard));
+      const lensCount = this.rebuildLiquidRenderer(cards.length);
       this.attachLiquidRenderListeners();
       this.liquidBootstrapped = lensCount > 0;
       if (lensCount > 0) {
@@ -367,7 +377,7 @@ export class ResultScreen implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  private rebuildLiquidRenderer(hasPrimaryCard: boolean): number {
+  private rebuildLiquidRenderer(cardCount: number): number {
     const w = window as Window & {
       liquidGL?: ((options: Record<string, unknown>) => LiquidLens | LiquidLens[] | undefined) & {
         syncWith?: (config?: Record<string, unknown>) => unknown;
@@ -383,7 +393,7 @@ export class ResultScreen implements OnInit, AfterViewInit, OnDestroy {
 
     // Demo-4 profile for cards.
     const createdCards = w.liquidGL({
-      target: `.results-container .game-card.${this.primaryCardClass}`,
+      target: '.results-container .marquee-card',
       refraction: DEMO4_CARD_DEFAULTS.refraction,
       bevelDepth: DEMO4_CARD_DEFAULTS.bevelDepth,
       bevelWidth: DEMO4_CARD_DEFAULTS.bevelWidth,
@@ -445,7 +455,7 @@ export class ResultScreen implements OnInit, AfterViewInit, OnDestroy {
     }
 
     const totalTargetCount =
-      (hasPrimaryCard ? 1 : 0) +
+      cardCount +
       (document.querySelector('.liquid-shape-trigger') ? 1 : 0);
     this.verifyLiquidChecks(totalTargetCount, lensList.length);
 
@@ -622,25 +632,9 @@ export class ResultScreen implements OnInit, AfterViewInit, OnDestroy {
     this.detachLiquidRenderListeners();
     this.destroyLiquidGui();
     this.destroyLiquidRenderer();
-    this.clearPrimaryLiquidCardSelection();
     this.setLiquidActiveClass(false);
     this.setLiquidDiagnostics(null);
     this.liquidBootstrapped = false;
-  }
-
-  private markPrimaryLiquidCard(cards: HTMLElement[]): HTMLElement | null {
-    cards.forEach(card => card.classList.remove(this.primaryCardClass));
-    const primary = cards[0] ?? null;
-    if (primary) {
-      primary.classList.add(this.primaryCardClass);
-    }
-    return primary;
-  }
-
-  private clearPrimaryLiquidCardSelection(): void {
-    document
-      .querySelectorAll<HTMLElement>(`.results-container .game-card.${this.primaryCardClass}`)
-      .forEach(card => card.classList.remove(this.primaryCardClass));
   }
 
   private setLiquidActiveClass(active: boolean): void {

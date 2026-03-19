@@ -47,9 +47,9 @@ test('results route mounts liquidGL controls and runtime checks', async ({ page 
   await page.click('[data-ui-check="search-button"]');
 
   await expect(page).toHaveURL(/\/results$/);
-  await expect(page.locator('.game-card')).toHaveCount(mockSearchResults.length);
-  await expect(page.locator('.game-card.liquidgl-primary-card')).toHaveCount(1);
-  await expect(page.locator('.results-container .game-card').first()).toHaveClass(/liquidgl-primary-card/);
+  await expect(page.locator('.marquee-card')).toHaveCount(mockSearchResults.length);
+  await expect(page.locator('.marquee-content')).toHaveCount(mockSearchResults.length);
+  await expect(page.locator('.main-content.result-screen')).toHaveCount(1);
   const magnifierButton = page.locator('[data-ui-check="liquid-magnifier-button"]');
   await expect(magnifierButton).toBeVisible();
 

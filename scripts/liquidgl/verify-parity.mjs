@@ -78,8 +78,8 @@ if (!failures.length) {
   failures.push(...compareProfile('demo-5 shape profile', demo5, currentDemo5));
 }
 
-if (!resultSource.includes(".results-container .game-card.${this.primaryCardClass}")) {
-  failures.push('Top-card selector not found (.results-container .game-card.liquidgl-primary-card template string)');
+if (!resultSource.includes("target: '.results-container .marquee-card'")) {
+  failures.push("Demo-4 card selector missing (target: '.results-container .marquee-card')");
 }
 if (!resultSource.includes("target: '.shape.liquid-shape-trigger'")) {
   failures.push("Shape target selector missing (target: '.shape.liquid-shape-trigger')");
@@ -99,4 +99,4 @@ if (failures.length) {
 console.log('LiquidGL parity check passed.');
 console.log('- demo-4 card profile matches extracted source');
 console.log('- demo-5 shape profile matches extracted source');
-console.log('- top-card target and shape target wiring present');
+console.log('- demo-4 card target and demo-5 shape target wiring present');

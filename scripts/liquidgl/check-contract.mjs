@@ -7,6 +7,7 @@ const root = process.cwd();
 
 const files = {
   resultTs: path.join(root, 'frontend/src/app/pages/result-screen/result-screen.ts'),
+  resultHtml: path.join(root, 'frontend/src/app/pages/result-screen/result-screen.html'),
   resultCss: path.join(root, 'frontend/src/app/pages/result-screen/result-screen.css'),
   cardHtml: path.join(root, 'frontend/src/app/components/game-card/game-card.component.html'),
   cardCss: path.join(root, 'frontend/src/app/components/game-card/game-card.component.css'),
@@ -47,6 +48,7 @@ function extractZIndex(css, selector) {
 }
 
 const resultTs = readFile(files.resultTs);
+const resultHtml = readFile(files.resultHtml);
 const resultCss = readFile(files.resultCss);
 const cardHtml = readFile(files.cardHtml);
 const cardCss = readFile(files.cardCss);
@@ -54,18 +56,33 @@ const cardTs = readFile(files.cardTs);
 
 requireContains(
   resultTs,
-  "private readonly primaryCardClass = 'liquidgl-primary-card';",
-  'result-screen.ts'
-);
-requireContains(
-  resultTs,
-  'target: `.results-container .game-card.${this.primaryCardClass}`',
+  "target: '.results-container .marquee-card'",
   'result-screen.ts'
 );
 requireContains(
   resultTs,
   "target: '.shape.liquid-shape-trigger'",
   'result-screen.ts'
+);
+requireContains(
+  resultHtml,
+  'class="main-content result-screen"',
+  'result-screen.html'
+);
+requireContains(
+  resultHtml,
+  'class="marquee-card result-card"',
+  'result-screen.html'
+);
+requireContains(
+  resultCss,
+  '.marquee-card',
+  'result-screen.css'
+);
+requireContains(
+  resultCss,
+  '.marquee-content',
+  'result-screen.css'
 );
 
 const imitationTokens = [
@@ -101,10 +118,10 @@ if (
   headerZ !== null &&
   containerZ !== null &&
   backButtonZ !== null &&
-  !(backButtonZ > containerZ && containerZ > headerZ)
+  !(shapeZ !== null && shapeZ > containerZ && backButtonZ > containerZ && headerZ >= containerZ)
 ) {
   violations.push(
-    `Expected back-button > results-container > result-header z-order, found ${backButtonZ} > ${containerZ} > ${headerZ}`
+    `Expected shape/back-button above results-container and header >= results-container, found shape=${shapeZ}, back=${backButtonZ}, container=${containerZ}, header=${headerZ}`
   );
 }
 

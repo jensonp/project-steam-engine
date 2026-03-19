@@ -6,7 +6,7 @@
   animation: results-fade 360ms ease-out both;
 }
 
-/* Directly aligned with liquidGL demo-5 source .shape lens block. */
+/* Demo-5 lens block (ported) */
 .shape {
   position: fixed;
   top: 10vw;
@@ -19,7 +19,7 @@
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   will-change: transform;
   pointer-events: auto;
-  z-index: 64;
+  z-index: 96;
 }
 
 .liquid-shape-trigger {
@@ -53,7 +53,7 @@
   width: 68px;
   height: 68px;
   border-radius: 999px;
-  z-index: 64;
+  z-index: 96;
   transform: none;
 }
 
@@ -75,7 +75,7 @@
 }
 
 .liquid-shape-trigger.is-expanded {
-  z-index: 64;
+  z-index: 96;
 }
 
 .liquid-shape-trigger.is-expanded .shape-label {
@@ -88,7 +88,7 @@
 
 .result-header {
   position: relative;
-  z-index: 20;
+  z-index: 40;
   overflow: visible;
   display: flex;
   align-items: flex-end;
@@ -107,7 +107,6 @@
   animation: panel-rise 460ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
-/* Tactical HUD Corners */
 .result-header::before,
 .result-header::after {
   content: '';
@@ -186,9 +185,251 @@
   text-transform: none;
 }
 
-.back-button {
+/* Demo-4 card wrapper classes (ported/adapted for results flow) */
+.marquee-anchor {
+  position: relative;
+  inset: auto;
+  display: block;
+  z-index: 32;
+  pointer-events: auto;
+}
+
+.cards-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1.05rem;
+  width: min(1120px, 100%);
+  margin-inline: auto;
+}
+
+.results-container {
   position: relative;
   z-index: 32;
+  perspective: 1800px;
+  transform-style: preserve-3d;
+  isolation: isolate;
+}
+
+.marquee-card {
+  width: 100%;
+  min-height: 280px;
+  border-radius: 1rem;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: clip;
+  color: #b7b7b7;
+  justify-content: center;
+  padding: 5px;
+  border: 1px solid rgba(244, 236, 224, 0.18);
+  background: rgba(11, 11, 14, 0.24);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+  opacity: 1;
+  transform: none;
+  content-visibility: auto;
+  contain-intrinsic-size: 300px;
+}
+
+.results-container .marquee-card:nth-child(-n+12) {
+  opacity: 0;
+  transform: translateY(16px);
+  animation: card-rise 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+.results-container .marquee-card:nth-child(1)  { animation-delay: 60ms; }
+.results-container .marquee-card:nth-child(2)  { animation-delay: 110ms; }
+.results-container .marquee-card:nth-child(3)  { animation-delay: 160ms; }
+.results-container .marquee-card:nth-child(4)  { animation-delay: 210ms; }
+.results-container .marquee-card:nth-child(5)  { animation-delay: 260ms; }
+.results-container .marquee-card:nth-child(6)  { animation-delay: 310ms; }
+.results-container .marquee-card:nth-child(7)  { animation-delay: 360ms; }
+.results-container .marquee-card:nth-child(8)  { animation-delay: 410ms; }
+.results-container .marquee-card:nth-child(9)  { animation-delay: 460ms; }
+.results-container .marquee-card:nth-child(10) { animation-delay: 510ms; }
+.results-container .marquee-card:nth-child(11) { animation-delay: 560ms; }
+.results-container .marquee-card:nth-child(12) { animation-delay: 600ms; }
+
+.marquee {
+  width: 100%;
+  overflow: hidden;
+  pointer-events: none;
+  text-transform: uppercase;
+  font-weight: 800;
+  font-size: clamp(1.25rem, 2.2vw, 2.4rem);
+  line-height: 1;
+  opacity: 0.13;
+  letter-spacing: 0.06em;
+}
+
+.marquee-content {
+  display: flex;
+  width: fit-content;
+  animation: marquee 12s linear infinite;
+}
+
+.marquee-content span {
+  white-space: nowrap;
+  padding: 0 1rem;
+}
+
+.result-card-body {
+  display: grid;
+  grid-template-columns: minmax(220px, 34%) minmax(0, 1fr);
+  min-height: 250px;
+  gap: 0;
+  position: relative;
+}
+
+.result-card-media {
+  position: relative;
+  min-height: 250px;
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+.result-card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+  display: block;
+  filter: saturate(0.95) brightness(0.92);
+}
+
+.result-card-media::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, transparent 62%, rgba(10, 10, 12, 0.88) 100%),
+    linear-gradient(0deg, rgba(8, 8, 8, 0.42), rgba(8, 8, 8, 0));
+  pointer-events: none;
+}
+
+.result-card-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at center, rgba(255, 87, 56, 0.16), rgba(15, 15, 18, 0.9));
+}
+
+.result-card-fallback img {
+  width: 56px;
+  height: 56px;
+  opacity: 0.7;
+}
+
+/* Demo-4 kept this exact layering rule so text sits above WebGL lens */
+.card-content {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.card-content * {
+  color: inherit;
+}
+
+.result-card-content {
+  padding: 1rem 1.2rem 1.1rem;
+  color: var(--neo-primary-strong);
+}
+
+.result-card-headline {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.result-card-title {
+  margin: 0;
+  font-size: clamp(1.1rem, 1.4vw, 1.56rem);
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.result-card-link {
+  flex-shrink: 0;
+  text-decoration: none;
+  color: var(--neo-primary-soft);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.74rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition: color 0.26s ease, transform 0.26s ease;
+}
+
+.result-card-link:hover {
+  color: #fff;
+  transform: translateX(2px);
+}
+
+.result-card-genres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.38rem;
+}
+
+.result-card-chip {
+  border: 1px solid rgba(244, 236, 224, 0.38);
+  border-radius: 999px;
+  padding: 0.24rem 0.62rem;
+  font-size: 0.76rem;
+  font-family: 'IBM Plex Mono', monospace;
+  color: rgba(244, 236, 224, 0.9);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.result-card-description {
+  margin: 0;
+  font-size: 0.94rem;
+  line-height: 1.56;
+  color: var(--neo-muted);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
+  overflow: hidden;
+}
+
+.result-card-meta {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.result-card-appid {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.72rem;
+  color: rgba(244, 236, 224, 0.74);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.result-card-price {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.76rem;
+  letter-spacing: 0.08em;
+  color: rgba(244, 236, 224, 0.95);
+  text-transform: uppercase;
+}
+
+.result-card-price.free {
+  color: #6cffa0;
+}
+
+.back-button {
+  position: relative;
+  z-index: 38;
   border-radius: 12px;
   padding: 0.8rem 1.12rem;
   margin: 1.1rem 0 0;
@@ -228,48 +469,6 @@
   transition-duration: 0.06s;
 }
 
-.results-container {
-  display: flex;
-  flex-direction: column;
-  gap: 1.05rem;
-  width: min(1040px, 100%);
-  margin-inline: auto;
-  position: relative;
-  z-index: 30;
-  perspective: 1800px;
-  transform-style: preserve-3d;
-  isolation: isolate;
-}
-
-.results-container app-game-card {
-  position: relative;
-  z-index: 1;
-  opacity: 1;
-  transform: none;
-  content-visibility: auto;
-  contain-intrinsic-size: 252px;
-  transform-style: preserve-3d;
-}
-
-.results-container app-game-card:nth-child(-n+12) {
-  opacity: 0;
-  transform: translateY(16px);
-  animation: card-rise 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-}
-
-.results-container app-game-card:nth-child(1)  { animation-delay: 60ms; }
-.results-container app-game-card:nth-child(2)  { animation-delay: 110ms; }
-.results-container app-game-card:nth-child(3)  { animation-delay: 160ms; }
-.results-container app-game-card:nth-child(4)  { animation-delay: 210ms; }
-.results-container app-game-card:nth-child(5)  { animation-delay: 260ms; }
-.results-container app-game-card:nth-child(6)  { animation-delay: 310ms; }
-.results-container app-game-card:nth-child(7)  { animation-delay: 360ms; }
-.results-container app-game-card:nth-child(8)  { animation-delay: 410ms; }
-.results-container app-game-card:nth-child(9)  { animation-delay: 460ms; }
-.results-container app-game-card:nth-child(10) { animation-delay: 510ms; }
-.results-container app-game-card:nth-child(11) { animation-delay: 560ms; }
-.results-container app-game-card:nth-child(12) { animation-delay: 600ms; }
-
 .result-screen p {
   color: var(--neo-muted);
   letter-spacing: 0.01em;
@@ -280,7 +479,7 @@
   padding: 2.5rem 2rem;
   text-align: center;
   border: 1px solid rgba(255, 87, 56, 0.2);
-  background: 
+  background:
     radial-gradient(circle at center, rgba(255, 87, 56, 0.08), transparent 70%),
     rgba(15, 15, 15, 0.8);
   border-radius: 4px;
@@ -308,6 +507,15 @@
   font-family: 'Space Grotesk', sans-serif;
   font-size: 1.1rem;
   opacity: 0.9;
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
 }
 
 @keyframes card-rise {
@@ -361,6 +569,25 @@
   }
 }
 
+@media (max-width: 900px) {
+  .result-card-body {
+    grid-template-columns: 1fr;
+  }
+
+  .result-card-media {
+    min-height: 180px;
+  }
+
+  .result-card-content {
+    padding-top: 0.8rem;
+  }
+
+  .result-card-meta {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
 @media (max-width: 700px) {
   .shape {
     top: 50%;
@@ -394,8 +621,8 @@
     width: 100%;
   }
 
-  .results-container {
-    gap: 0.85rem;
+  .marquee-card {
+    border-radius: 5vw;
   }
 }
 
@@ -403,10 +630,11 @@
   .result-screen,
   .result-header,
   .result-meta,
-  .results-container app-game-card,
+  .marquee-card,
   .liquid-shape-trigger,
   .back-button,
-  .empty-state {
+  .empty-state,
+  .marquee-content {
     animation: none !important;
     transition: none !important;
     opacity: 1 !important;

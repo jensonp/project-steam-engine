@@ -37,7 +37,7 @@ function jsonHeaders(): Record<string, string> {
   };
 }
 
-test('liquidGL applies only to top card and maintains layer ordering', async ({ page }) => {
+test('liquidGL applies demo-4 cards and maintains layer ordering', async ({ page }) => {
   await page.addInitScript(() => {
     window.localStorage.clear();
     window.sessionStorage.clear();
@@ -56,8 +56,8 @@ test('liquidGL applies only to top card and maintains layer ordering', async ({ 
   await page.click('[data-ui-check="search-button"]');
 
   await expect(page).toHaveURL(/\/results$/);
-  await expect(page.locator('.game-card')).toHaveCount(mockSearchResults.length);
-  await expect(page.locator('.game-card.liquidgl-primary-card')).toHaveCount(1);
+  await expect(page.locator('.marquee-card')).toHaveCount(mockSearchResults.length);
+  await expect(page.locator('.marquee-content')).toHaveCount(mockSearchResults.length);
   await expect(page.locator('.liquid-shell')).toHaveCount(0);
   await expect(page.locator('.liquid-rim')).toHaveCount(0);
   await expect(page.locator('.liquid-specular')).toHaveCount(0);
@@ -71,8 +71,8 @@ test('liquidGL applies only to top card and maintains layer ordering', async ({ 
     const header = document.querySelector('.result-header') as HTMLElement | null;
     const container = document.querySelector('.results-container') as HTMLElement | null;
     const backButton = document.querySelector('.back-button') as HTMLElement | null;
-    const first = document.querySelector('.game-card.liquidgl-primary-card') as HTMLElement | null;
-    const second = document.querySelectorAll('.game-card')[1] as HTMLElement | undefined;
+    const first = document.querySelector('.marquee-card') as HTMLElement | null;
+    const second = document.querySelectorAll('.marquee-card')[1] as HTMLElement | undefined;
     if (!shape || !header || !container || !backButton || !first || !second) return false;
 
     const asNum = (z: string): number => {
@@ -86,14 +86,14 @@ test('liquidGL applies only to top card and maintains layer ordering', async ({ 
     const backButtonZ = asNum(getComputedStyle(backButton).zIndex);
     const firstOpacity = Number.parseFloat(getComputedStyle(first).opacity);
     const secondOpacity = Number.parseFloat(getComputedStyle(second).opacity);
-    const primaryCount = document.querySelectorAll('.results-container .game-card.liquidgl-primary-card').length;
+    const cardCount = document.querySelectorAll('.results-container .marquee-card').length;
     const hasDiagnostics = !!document.querySelector('.liquid-diagnostics');
 
     const validStack =
       shapeZ > containerZ &&
       backButtonZ > containerZ &&
-      containerZ > headerZ;
-    const topCardOnlyLens = primaryCount === 1;
+      headerZ >= containerZ;
+    const allCardsPresent = cardCount >= 3;
     const visibleCards = firstOpacity > 0.85 && secondOpacity > 0.85;
     const cardSizingStable =
       first.getBoundingClientRect().width > 200 &&
@@ -107,6 +107,6 @@ test('liquidGL applies only to top card and maintains layer ordering', async ({ 
         getComputedStyle(canvas).pointerEvents === 'none'
       : hasDiagnostics && !hasRenderer;
 
-    return validStack && topCardOnlyLens && visibleCards && cardSizingStable && webglLayeringValid;
+    return validStack && allCardsPresent && visibleCards && cardSizingStable && webglLayeringValid;
   }, { timeout: 12000 });
 });
