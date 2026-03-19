@@ -83,11 +83,9 @@ export class QueryScreen implements OnInit, OnDestroy {
   isKatanaCursorVisible = false;
   katanaCursorX = 0;
   katanaCursorY = 0;
-  isSearchButtonFiring = false;
   isProfileClearing = false;
   valveBackdropEnabled = true;
   valveOpacity = 0.84;
-  private searchButtonFireTimeoutId: number | null = null;
   private focusUpdateTimeoutId: number | null = null;
   private valveScrollRafId: number | null = null;
   private katanaCursorRafId: number | null = null;
@@ -246,7 +244,6 @@ export class QueryScreen implements OnInit, OnDestroy {
     this.removeScrollListener = null;
     this.removeKatanaPointerMoveListener = null;
     this.subs.unsubscribe();
-    this.clearSearchButtonFireTimeout();
     this.clearFocusUpdateTimeout();
   }
 
@@ -318,8 +315,6 @@ export class QueryScreen implements OnInit, OnDestroy {
   }
 
   onQuery(): void {
-    this.triggerSearchButtonFire();
-
     const steamId = this.steamId_input || this.backendService.getSteamId();
     const usePersonalizedMode = !!(this.userProfile && steamId && !this.hasExplicitSearchFilters());
 
@@ -359,41 +354,6 @@ export class QueryScreen implements OnInit, OnDestroy {
     this.isKatanaCursorVisible = false;
     this.removeKatanaPointerMoveListener?.();
     this.removeKatanaPointerMoveListener = null;
-  }
-
-  onSearchButtonPress(event: Event): void {
-    if (this.isLoading) return;
-    this.triggerSearchButtonFire(event);
-  }
-
-  private triggerSearchButtonFire(event?: Event): void {
-    if (event && this.isPointerEvent(event) && this.isTouchLikePointer(event)) {
-      return;
-    }
-
-    if (event && this.isPointerEvent(event)) {
-      this.queueKatanaCursorUpdate(event);
-    }
-
-    this.isSearchButtonFiring = true;
-    this.clearSearchButtonFireTimeout();
-
-    if (typeof window === 'undefined') {
-      this.isSearchButtonFiring = false;
-      return;
-    }
-
-    this.searchButtonFireTimeoutId = window.setTimeout(() => {
-      this.isSearchButtonFiring = false;
-      this.searchButtonFireTimeoutId = null;
-    }, 460);
-  }
-
-  private clearSearchButtonFireTimeout(): void {
-    if (this.searchButtonFireTimeoutId !== null && typeof window !== 'undefined') {
-      window.clearTimeout(this.searchButtonFireTimeoutId);
-      this.searchButtonFireTimeoutId = null;
-    }
   }
 
   private clearFocusUpdateTimeout(): void {
