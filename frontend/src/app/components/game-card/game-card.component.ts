@@ -24,12 +24,8 @@ export class GameCardComponent implements OnDestroy {
   private activeCardElement: HTMLElement | null = null;
   private targetTiltX = 0;
   private targetTiltY = 0;
-  private targetGlowX = 50;
-  private targetGlowY = 24;
   private currentTiltX = 0;
   private currentTiltY = 0;
-  private currentGlowX = 50;
-  private currentGlowY = 24;
   private pointerActive = false;
   private readonly prefersReducedMotion =
     typeof window !== 'undefined' &&
@@ -68,8 +64,6 @@ export class GameCardComponent implements OnDestroy {
 
     this.targetTiltX = (0.5 - relativeY) * 5.8;
     this.targetTiltY = (relativeX - 0.5) * 7.2;
-    this.targetGlowX = relativeX * 100;
-    this.targetGlowY = relativeY * 100;
 
     this.ensureAnimation();
   }
@@ -83,8 +77,6 @@ export class GameCardComponent implements OnDestroy {
     this.activeCardElement = cardElement;
     this.targetTiltX = 0;
     this.targetTiltY = 0;
-    this.targetGlowX = 50;
-    this.targetGlowY = 24;
     this.ensureAnimation();
   }
 
@@ -96,8 +88,6 @@ export class GameCardComponent implements OnDestroy {
     this.pointerActive = true;
     this.activeCardElement = cardElement;
     cardElement.classList.add('is-pointer-active');
-    this.targetGlowX = 54;
-    this.targetGlowY = 28;
     this.ensureAnimation();
   }
 
@@ -127,22 +117,15 @@ export class GameCardComponent implements OnDestroy {
     const easing = this.pointerActive ? 0.2 : 0.12;
     this.currentTiltX += (this.targetTiltX - this.currentTiltX) * easing;
     this.currentTiltY += (this.targetTiltY - this.currentTiltY) * easing;
-    this.currentGlowX += (this.targetGlowX - this.currentGlowX) * easing;
-    this.currentGlowY += (this.targetGlowY - this.currentGlowY) * easing;
 
     cardElement.style.setProperty('--card-tilt-x', `${this.currentTiltX.toFixed(3)}deg`);
     cardElement.style.setProperty('--card-tilt-y', `${this.currentTiltY.toFixed(3)}deg`);
-    cardElement.style.setProperty('--liquid-x', `${this.currentGlowX.toFixed(2)}%`);
-    cardElement.style.setProperty('--liquid-y', `${this.currentGlowY.toFixed(2)}%`);
 
     const tiltSettled =
       Math.abs(this.targetTiltX - this.currentTiltX) < 0.015 &&
       Math.abs(this.targetTiltY - this.currentTiltY) < 0.015;
-    const glowSettled =
-      Math.abs(this.targetGlowX - this.currentGlowX) < 0.1 &&
-      Math.abs(this.targetGlowY - this.currentGlowY) < 0.1;
 
-    if (!this.pointerActive && tiltSettled && glowSettled) {
+    if (!this.pointerActive && tiltSettled) {
       cardElement.classList.remove('is-pointer-active');
       this.animationFrameId = null;
       return;

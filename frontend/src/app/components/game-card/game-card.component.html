@@ -10,11 +10,6 @@
             (pointerleave)="onCardPointerLeave($event)"
             (focusin)="onCardFocus($event)"
             (focusout)="onCardBlur($event)">
-            <div class="liquid-shell" aria-hidden="true">
-                <span class="liquid-rim"></span>
-                <span class="liquid-specular"></span>
-                <span class="liquid-noise"></span>
-            </div>
             <div class="game-image" [class.prioritized]="prioritizeImage" aria-hidden="true">
                 @if (currentGame.headerImage) {
                     <img [src]="currentGame.headerImage"

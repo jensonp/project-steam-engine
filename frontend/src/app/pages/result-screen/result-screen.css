@@ -19,7 +19,7 @@
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   will-change: transform;
   pointer-events: auto;
-  z-index: 9999;
+  z-index: 64;
 }
 
 .liquid-shape-trigger {
@@ -53,7 +53,7 @@
   width: 68px;
   height: 68px;
   border-radius: 999px;
-  z-index: 11200;
+  z-index: 64;
   transform: none;
 }
 
@@ -75,7 +75,7 @@
 }
 
 .liquid-shape-trigger.is-expanded {
-  z-index: 9999;
+  z-index: 64;
 }
 
 .liquid-shape-trigger.is-expanded .shape-label {
@@ -88,6 +88,7 @@
 
 .result-header {
   position: relative;
+  z-index: 20;
   overflow: visible;
   display: flex;
   align-items: flex-end;
@@ -187,7 +188,7 @@
 
 .back-button {
   position: relative;
-  z-index: 100;
+  z-index: 32;
   border-radius: 12px;
   padding: 0.8rem 1.12rem;
   margin: 1.1rem 0 0;
@@ -234,13 +235,15 @@
   width: min(1040px, 100%);
   margin-inline: auto;
   position: relative;
-  z-index: 1;
+  z-index: 30;
   perspective: 1800px;
   transform-style: preserve-3d;
   isolation: isolate;
 }
 
 .results-container app-game-card {
+  position: relative;
+  z-index: 1;
   opacity: 1;
   transform: none;
   content-visibility: auto;

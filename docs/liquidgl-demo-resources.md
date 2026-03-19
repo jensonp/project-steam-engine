@@ -23,8 +23,12 @@ This resource list is the exact baseline for LiquidGL behavior replication work 
   - `node ./scripts/liquidgl/extract-demo-configs.mjs`
 - Verify result-screen parity against extracted demo configs:
   - `node ./scripts/liquidgl/verify-parity.mjs`
+- Verify no imitation overlays and enforce layer contract:
+  - `node ./scripts/liquidgl/check-contract.mjs`
 - Serve local demos for direct visual inspection:
   - `./scripts/liquidgl/run-demo-server.sh`
+- Full integration verification (fetch + extract + parity + e2e + build):
+  - `./scripts/liquidgl/test-all.sh`
 
 ## Expected Extracted Profiles
 - Demo 3 profile:
