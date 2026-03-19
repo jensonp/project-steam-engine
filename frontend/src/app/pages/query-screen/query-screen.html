@@ -15,7 +15,6 @@
             @if (valveBackdropEnabled && valveOpacity > 0.02) {
                 <div class="valve-model-shell" [class.is-full-spin]="valveSpinMode === 'full'">
                     <model-viewer
-                        #valveModelViewer
                         class="valve-model"
                         [class.is-full-spin]="valveSpinMode === 'full'"
                         [class.is-flat-spin]="valveSpinMode !== 'full'"
