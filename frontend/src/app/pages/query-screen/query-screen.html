@@ -23,7 +23,9 @@
                         tabindex="-1"
                         auto-rotate
                         auto-rotate-delay="0"
-                        [attr.rotation-per-second]="valveSpinMode === 'full' ? '34deg' : '22deg'"
+                        [attr.rotation-per-second]="valveSpinMode === 'full' ? '58deg' : '22deg'"
+                        [attr.camera-orbit]="valveSpinMode === 'full' ? '-32deg 72deg 6.2m' : '0deg 80deg 6.2m'"
+                        [attr.orientation]="valveSpinMode === 'full' ? '14deg 0deg 10deg' : '0deg 0deg 0deg'"
                         [attr.camera-controls]="valveSpinMode === 'full' ? '' : null"
                         interaction-prompt="none"
                         environment-image="neutral"

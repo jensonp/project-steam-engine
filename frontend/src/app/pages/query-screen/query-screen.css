@@ -105,20 +105,6 @@
   overflow: visible;
 }
 
-.valve-layer::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: linear-gradient(
-    180deg,
-    rgba(8, 8, 8, 0) 0 70%,
-    rgba(8, 8, 8, 0.38) 84%,
-    rgba(8, 8, 8, 0.88) 100%
-  );
-  z-index: 1;
-}
-
 .valve-layer.is-full-spin {
   filter:
     drop-shadow(0 0 18px rgba(255, 52, 24, 0.36))
@@ -135,6 +121,15 @@
   --poster-color: transparent;
   transform-origin: 50% 50%;
   overflow: visible;
+}
+
+.valve-model::part(scene) {
+  background: transparent !important;
+}
+
+.valve-model::part(default-progress-mask),
+.valve-model::part(default-progress-bar) {
+  display: none !important;
 }
 
 .valve-model-shell {
