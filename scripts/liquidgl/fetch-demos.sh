@@ -3,36 +3,25 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 DEST_DIR="${1:-$ROOT_DIR/liquidgl_local}"
-BASE_URL="https://liquidgl.naughtyduk.com"
+NODE_BIN="$(command -v node || true)"
+if [ -z "$NODE_BIN" ] && [ -x "/opt/homebrew/bin/node" ]; then
+  NODE_BIN="/opt/homebrew/bin/node"
+fi
+if [ -z "$NODE_BIN" ]; then
+  echo "node runtime not found. Install node or set PATH." >&2
+  exit 1
+fi
+export PATH="$(dirname "$NODE_BIN"):$PATH"
 
-mkdir -p "$DEST_DIR/demos" "$DEST_DIR/scripts"
-
-fetch_demo() {
-  local n="$1"
-  local out="$DEST_DIR/demos/demo-${n}.html"
-  if curl -fsSL "$BASE_URL/demos/demo-${n}" -o "$out"; then
-    echo "Downloaded demo-${n} -> $out"
-    return 0
-  fi
-  curl -fsSL "$BASE_URL/demos/demo-${n}.html" -o "$out"
-  echo "Downloaded demo-${n}.html -> $out"
-}
-
-for demo in 3 4 5; do
-  fetch_demo "$demo"
-done
-
-curl -fsSL "$BASE_URL/scripts/liquidGL.js" -o "$DEST_DIR/scripts/liquidGL.js"
-curl -fsSL "$BASE_URL/scripts/html2canvas.min.js" -o "$DEST_DIR/scripts/html2canvas.min.js"
+"$NODE_BIN" "$ROOT_DIR/scripts/liquidgl/fetch-site-content.mjs" "$DEST_DIR"
 
 cat <<MSG
 
-LiquidGL demos fetched:
-  - $DEST_DIR/demos/demo-3.html
-  - $DEST_DIR/demos/demo-4.html
-  - $DEST_DIR/demos/demo-5.html
-  - $DEST_DIR/scripts/liquidGL.js
-  - $DEST_DIR/scripts/html2canvas.min.js
+LiquidGL site mirror fetched:
+  - index + demos 1-5
+  - local assets/scripts referenced by those pages
+  - remote JS/CSS vendor libs referenced by those pages
+  - $DEST_DIR/mirror-manifest.json
 
 Next:
   node "$ROOT_DIR/scripts/liquidgl/extract-demo-configs.mjs" "$DEST_DIR"

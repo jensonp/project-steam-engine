@@ -24,31 +24,37 @@ if [ -z "${UI_CHECK_PORT:-}" ]; then
   export UI_CHECK_PORT="$((4300 + RANDOM % 300))"
 fi
 
-echo "[1/8] Fetching demo-3/4/5 sources..."
+echo "[1/10] Fetching full liquidGL source mirror..."
 "$ROOT_DIR/scripts/liquidgl/fetch-demos.sh"
 
-echo "[2/8] Extracting demo liquidGL configs..."
+echo "[2/10] Verifying source mirror coverage..."
+"$NODE_BIN" "$ROOT_DIR/scripts/liquidgl/check-source-coverage.mjs"
+
+echo "[3/10] Extracting demo liquidGL configs..."
 "$NODE_BIN" "$ROOT_DIR/scripts/liquidgl/extract-demo-configs.mjs"
 
-echo "[3/8] Verifying parity against result-screen wiring..."
+echo "[4/10] Generating demo feature matrix..."
+"$NODE_BIN" "$ROOT_DIR/scripts/liquidgl/analyze-demo-features.mjs"
+
+echo "[5/10] Verifying parity against result-screen wiring..."
 "$NODE_BIN" "$ROOT_DIR/scripts/liquidgl/verify-parity.mjs"
 
-echo "[4/8] Verifying demo-4 card visibility baseline..."
+echo "[6/10] Verifying demo-4 card visibility baseline..."
 "$ROOT_DIR/scripts/liquidgl/run-demo-visibility.sh"
 
-echo "[5/8] Verifying layer + no-imitation contract..."
+echo "[7/10] Verifying layer + no-imitation contract..."
 "$NODE_BIN" "$ROOT_DIR/scripts/liquidgl/check-contract.mjs"
 
-echo "[6/8] Running liquidGL UI tests..."
+echo "[8/10] Running liquidGL UI tests..."
 (
   cd "$FRONTEND_DIR"
   "$NPM_BIN" run ui:check -- e2e/liquidgl.results.spec.ts e2e/liquidgl.layering.spec.ts e2e/liquidgl.drag-visibility.spec.ts e2e/liquidgl.fallback-visibility.spec.ts
 )
 
-echo "[7/8] Running dedicated occlusion guard script..."
+echo "[9/10] Running dedicated occlusion guard script..."
 "$ROOT_DIR/scripts/liquidgl/run-occlusion-check.sh"
 
-echo "[8/8] Building frontend..."
+echo "[10/10] Building frontend..."
 (
   cd "$FRONTEND_DIR"
   "$NPM_BIN" run build

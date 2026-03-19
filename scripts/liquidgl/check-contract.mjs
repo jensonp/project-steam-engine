@@ -17,6 +17,10 @@ const files = {
   fallbackSpec: path.join(root, 'frontend/e2e/liquidgl.fallback-visibility.spec.ts'),
   occlusionScript: path.join(root, 'scripts/liquidgl/run-occlusion-check.sh'),
   occlusionSpec: path.join(root, 'frontend/e2e/liquidgl.occlusion-guard.spec.ts'),
+  sourceAuditScript: path.join(root, 'scripts/liquidgl/run-source-audit.sh'),
+  sourceCoverageScript: path.join(root, 'scripts/liquidgl/check-source-coverage.mjs'),
+  sourceMirrorScript: path.join(root, 'scripts/liquidgl/fetch-site-content.mjs'),
+  featureMatrixScript: path.join(root, 'scripts/liquidgl/analyze-demo-features.mjs'),
 };
 
 const violations = [];
@@ -124,6 +128,18 @@ if (!fs.existsSync(files.occlusionScript)) {
 }
 if (!fs.existsSync(files.occlusionSpec)) {
   violations.push(`Missing occlusion guard spec: ${files.occlusionSpec}`);
+}
+if (!fs.existsSync(files.sourceAuditScript)) {
+  violations.push(`Missing source audit runner: ${files.sourceAuditScript}`);
+}
+if (!fs.existsSync(files.sourceCoverageScript)) {
+  violations.push(`Missing source coverage script: ${files.sourceCoverageScript}`);
+}
+if (!fs.existsSync(files.sourceMirrorScript)) {
+  violations.push(`Missing source mirror script: ${files.sourceMirrorScript}`);
+}
+if (!fs.existsSync(files.featureMatrixScript)) {
+  violations.push(`Missing feature matrix script: ${files.featureMatrixScript}`);
 }
 
 const imitationTokens = [

@@ -6,13 +6,9 @@ const baseDir = process.argv[2]
   ? path.resolve(process.argv[2])
   : path.resolve(process.cwd(), 'liquidgl_local');
 
-const demos = ['demo-3', 'demo-4', 'demo-5'];
+const demos = ['demo-1', 'demo-2', 'demo-3', 'demo-4', 'demo-5'];
 
-function parseLiquidObject(source) {
-  const callMatch = source.match(/liquidGL\s*\(\s*\{([\s\S]*?)\}\s*\)/m);
-  if (!callMatch) return null;
-
-  const objectBody = callMatch[1];
+function parseObjectLiteral(objectBody) {
   const lines = objectBody
     .split('\n')
     .map(line => line.trim())
@@ -45,6 +41,72 @@ function parseLiquidObject(source) {
   return result;
 }
 
+function extractLiquidCalls(source) {
+  const calls = [];
+  let idx = 0;
+  while (idx < source.length) {
+    const hit = source.indexOf('liquidGL(', idx);
+    if (hit === -1) break;
+
+    let i = hit + 'liquidGL('.length;
+    while (i < source.length && /\s/.test(source[i])) i += 1;
+    if (source[i] !== '{') {
+      idx = i;
+      continue;
+    }
+
+    const start = i;
+    let depth = 0;
+    let inString = null;
+    let escaped = false;
+    let end = -1;
+
+    for (let j = start; j < source.length; j += 1) {
+      const ch = source[j];
+      if (inString) {
+        if (escaped) {
+          escaped = false;
+          continue;
+        }
+        if (ch === '\\') {
+          escaped = true;
+          continue;
+        }
+        if (ch === inString) {
+          inString = null;
+        }
+        continue;
+      }
+
+      if (ch === '\'' || ch === '"' || ch === '`') {
+        inString = ch;
+        continue;
+      }
+      if (ch === '{') {
+        depth += 1;
+        continue;
+      }
+      if (ch === '}') {
+        depth -= 1;
+        if (depth === 0) {
+          end = j;
+          break;
+        }
+      }
+    }
+
+    if (end !== -1) {
+      const body = source.slice(start + 1, end);
+      calls.push(parseObjectLiteral(body));
+      idx = end + 1;
+    } else {
+      idx = i + 1;
+    }
+  }
+
+  return calls;
+}
+
 const report = {
   sourceDir: baseDir,
   generatedAt: new Date().toISOString(),
@@ -58,10 +120,12 @@ for (const demo of demos) {
     continue;
   }
   const html = fs.readFileSync(file, 'utf8');
-  const config = parseLiquidObject(html);
+  const liquidGLCalls = extractLiquidCalls(html);
   report.demos[demo] = {
     file,
-    liquidGL: config,
+    // Keep legacy key for existing parity scripts.
+    liquidGL: liquidGLCalls[0] ?? null,
+    liquidGLCalls,
   };
 }
 

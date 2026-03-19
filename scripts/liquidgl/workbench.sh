@@ -8,6 +8,7 @@ usage() {
 Usage: ./scripts/liquidgl/workbench.sh <command>
 
 Commands:
+  audit        Fetch and analyze full liquidGL source set.
   smoke        Run local frontend/backend smoke checks.
   demo         Validate demo-4 card visibility baseline.
   fallback     Validate app card visibility in forced no-WebGL mode.
@@ -23,6 +24,9 @@ USAGE
 
 cmd="${1:-}"
 case "$cmd" in
+  audit)
+    "$ROOT_DIR/scripts/liquidgl/run-source-audit.sh"
+    ;;
   smoke)
     "$ROOT_DIR/scripts/liquidgl/local-stack-smoke.sh"
     ;;
