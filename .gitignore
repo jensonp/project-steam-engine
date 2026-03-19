@@ -54,4 +54,5 @@ backend/api
 # Local-only reports
 refinement-bug-report.md
 system-audit-2025.md
+verify_states_algorithm.md
 project-steam-engine/

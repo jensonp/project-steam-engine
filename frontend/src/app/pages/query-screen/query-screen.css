@@ -383,7 +383,6 @@ h1 {
 
 
 button,
-.search-button,
 .detect-os-button,
 .clear-os-button,
 .load-profile-button {
@@ -421,7 +420,6 @@ button:hover:not(:disabled),
 }
 
 button:active:not(:disabled),
-.search-button:active:not(:disabled),
 .detect-os-button:active:not(:disabled),
 .clear-os-button:active:not(:disabled),
 .load-profile-button:active:not(:disabled) {
@@ -439,7 +437,6 @@ button:active:not(:disabled),
 }
 
 button:disabled,
-.search-button:disabled,
 .detect-os-button:disabled,
 .clear-os-button:disabled,
 .load-profile-button:disabled {
@@ -564,7 +561,15 @@ button:focus-visible,
     0 0 50px rgba(255, 87, 56, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition:
+    transform 0.92s cubic-bezier(0.4, 0, 0.2, 1),
+    background 0.72s ease,
+    box-shadow 0.86s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.68s ease,
+    opacity 0.42s ease,
+    filter 0.72s ease;
+  will-change: transform, box-shadow;
+  backface-visibility: hidden;
   animation:
     shimmer-btn 2.5s ease-in-out infinite,
     cta-neon-pulse 2s ease-in-out infinite alternate;
@@ -586,7 +591,7 @@ button:focus-visible,
   animation: rotate-neon 3s linear infinite;
   filter: blur(8px);
   opacity: 0.4;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.52s ease, filter 0.52s ease;
 }
 
 .search-button::after {
@@ -596,7 +601,7 @@ button:focus-visible,
   border-radius: inherit;
   box-shadow: 0 0 30px rgba(255, 87, 56, 0.5);
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.52s ease;
   pointer-events: none;
   z-index: -1;
 }
@@ -620,7 +625,7 @@ button:focus-visible,
 }
 
 .search-button:hover:not(:disabled) {
-  transform: translateY(-4px) scale(1.04);
+  transform: translateY(-3px) scale(1.038);
   background: linear-gradient(135deg, #ff6b52, #ff412e, #ff6b52);
   box-shadow:
     0 0 30px rgba(255, 87, 56, 0.5),
@@ -629,15 +634,10 @@ button:focus-visible,
 }
 
 .search-button:active:not(:disabled) {
-  transform: translateY(0) scale(0.96);
+  transform: translateY(-1px) scale(0.992);
   box-shadow:
     0 0 15px rgba(255, 87, 56, 0.4),
     inset 0 3px 6px rgba(0, 0, 0, 0.4);
-}
-
-.search-button:active:not(:disabled) {
-  transform: translateY(0) scale(0.95) translateZ(0);
-  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .search-button:active::after {
@@ -645,9 +645,17 @@ button:focus-visible,
 }
 
 .search-button:not(:disabled) {
-  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease, border-color 0.4s ease;
-  will-change: transform, opacity;
-  backface-visibility: hidden;
+  opacity: 1;
+}
+
+.search-button:disabled {
+  opacity: 0.58;
+  animation: none;
+  cursor: not-allowed;
+  filter: saturate(0.72);
+  box-shadow:
+    0 0 8px rgba(255, 87, 56, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .os-status {

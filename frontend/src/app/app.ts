@@ -1,4 +1,4 @@
-import { Component, CUSTOM_ELEMENTS_SCHEMA, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, CUSTOM_ELEMENTS_SCHEMA, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatIconModule } from '@angular/material/icon';
@@ -6,8 +6,16 @@ import { UserSearchComponent } from './components/user-search/user-search.compon
 // import { GameLibraryComponent } from './components/game-library/game-library.component';
 import { SteamApiService } from './services/steam-api.service';
 import { UserLibrary, PlayerSummary } from './types/steam.types';
-import { forkJoin } from 'rxjs';
-import { RouterOutlet, RouterLinkWithHref } from '@angular/router';
+import { forkJoin, Subscription } from 'rxjs';
+import {
+  NavigationCancel,
+  NavigationEnd,
+  NavigationError,
+  NavigationStart,
+  Router,
+  RouterOutlet,
+  RouterLinkWithHref,
+} from '@angular/router';
 
 type ValveSpinMode = 'flat' | 'full';
 
@@ -25,7 +33,7 @@ type ValveSpinMode = 'flat' | 'full';
   styleUrl:"./app.css",
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
-export class App {
+export class App implements OnInit, OnDestroy {
   @ViewChild('searchComponent') searchComponent!: UserSearchComponent;
 
   library: UserLibrary | null = null;
@@ -45,8 +53,22 @@ export class App {
   private readonly valveDragThresholdPx = 6;
   private readonly valveBackdropEventName = 'pse:valveBackdropChanged';
   private readonly valveSpinModeEventName = 'pse:valveSpinModeChanged';
+  private readonly routeTransitionHoldMs = 240;
+  private readonly routeTransitionFadeMs = 680;
+  private readonly routeTransitionAutoFinishFallbackMs = 420;
+  private routeTransitionHoldTimeout: ReturnType<typeof setTimeout> | null = null;
+  private routeTransitionCleanupTimeout: ReturnType<typeof setTimeout> | null = null;
+  private routeTransitionSafetyTimeout: ReturnType<typeof setTimeout> | null = null;
+  private hasFinishedInitialNavigation = false;
+  private readonly subs = new Subscription();
+  routeTransitionMounted = false;
+  routeTransitionVisible = false;
 
-  constructor(private steamApi: SteamApiService) {
+  constructor(
+    private steamApi: SteamApiService,
+    private router: Router,
+    private cdr: ChangeDetectorRef
+  ) {
     if (typeof window !== 'undefined') {
       const savedValveState = window.localStorage.getItem(this.valveStorageKey);
       if (savedValveState !== null) {
@@ -65,6 +87,42 @@ export class App {
 
     this.publishValveBackdropState();
     this.publishValveSpinMode();
+  }
+
+  ngOnInit(): void {
+    this.hasFinishedInitialNavigation = this.router.navigated;
+
+    this.subs.add(
+      this.router.events.subscribe((event) => {
+        if (event instanceof NavigationStart) {
+          if (!this.hasFinishedInitialNavigation) return;
+          this.startRouteTransition();
+          return;
+        }
+
+        if (event instanceof NavigationEnd) {
+          if (!this.hasFinishedInitialNavigation) {
+            this.hasFinishedInitialNavigation = true;
+            return;
+          }
+          this.finishRouteTransition();
+          return;
+        }
+
+        if (event instanceof NavigationCancel || event instanceof NavigationError) {
+          if (!this.hasFinishedInitialNavigation) {
+            this.hasFinishedInitialNavigation = true;
+            return;
+          }
+          this.finishRouteTransition();
+        }
+      })
+    );
+  }
+
+  ngOnDestroy(): void {
+    this.subs.unsubscribe();
+    this.clearRouteTransitionTimeouts();
   }
 
   toggleValveBackdrop(): void {
@@ -133,6 +191,53 @@ export class App {
         detail: this.valveSpinMode,
       })
     );
+  }
+
+  private startRouteTransition(): void {
+    this.clearRouteTransitionTimeouts();
+    this.routeTransitionMounted = true;
+    this.routeTransitionVisible = true;
+    this.cdr.detectChanges();
+
+    this.routeTransitionSafetyTimeout = setTimeout(() => {
+      this.routeTransitionSafetyTimeout = null;
+      this.finishRouteTransition();
+    }, this.routeTransitionAutoFinishFallbackMs);
+  }
+
+  private finishRouteTransition(): void {
+    if (!this.routeTransitionMounted) return;
+
+    this.clearRouteTransitionTimeouts();
+
+    this.routeTransitionHoldTimeout = setTimeout(() => {
+      this.routeTransitionHoldTimeout = null;
+      this.routeTransitionVisible = false;
+      this.cdr.detectChanges();
+
+      this.routeTransitionCleanupTimeout = setTimeout(() => {
+        this.routeTransitionCleanupTimeout = null;
+        this.routeTransitionMounted = false;
+        this.cdr.detectChanges();
+      }, this.routeTransitionFadeMs + 20);
+    }, this.routeTransitionHoldMs);
+  }
+
+  private clearRouteTransitionTimeouts(): void {
+    if (this.routeTransitionHoldTimeout) {
+      clearTimeout(this.routeTransitionHoldTimeout);
+      this.routeTransitionHoldTimeout = null;
+    }
+
+    if (this.routeTransitionCleanupTimeout) {
+      clearTimeout(this.routeTransitionCleanupTimeout);
+      this.routeTransitionCleanupTimeout = null;
+    }
+
+    if (this.routeTransitionSafetyTimeout) {
+      clearTimeout(this.routeTransitionSafetyTimeout);
+      this.routeTransitionSafetyTimeout = null;
+    }
   }
 
   onSearch(steamId: string): void {

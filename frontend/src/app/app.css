@@ -8,6 +8,44 @@
   min-height: 100vh;
 }
 
+.route-transition-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 3200;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  background:
+    radial-gradient(circle at 50% 40%, rgba(16, 16, 16, 0.18) 0%, rgba(4, 4, 4, 0.82) 54%, rgba(1, 1, 1, 0.99) 100%),
+    linear-gradient(180deg, rgba(6, 6, 6, 0.99), rgba(1, 1, 1, 1));
+  transition:
+    opacity 0.68s cubic-bezier(0.16, 1, 0.3, 1),
+    visibility 0s linear 0.68s;
+}
+
+.route-transition-overlay.is-mounted {
+  visibility: visible;
+  transition-delay: 0s;
+}
+
+.route-transition-overlay.is-visible {
+  opacity: 1;
+}
+
+.route-transition-vignette {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(255, 87, 56, 0.04), transparent 58%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.34));
+  opacity: 0;
+  transition: opacity 0.68s ease;
+}
+
+.route-transition-overlay.is-visible .route-transition-vignette {
+  opacity: 1;
+}
+
 .app-toolbar {
   gap: 0.75rem;
   display: flex;
@@ -305,6 +343,11 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .route-transition-overlay,
+  .route-transition-vignette {
+    transition: none !important;
+  }
+
   .app-toolbar,
   .main-content,
   .app-footer,

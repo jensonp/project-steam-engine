@@ -59,12 +59,20 @@
     </button>
 </mat-toolbar>
 
+<div
+    class="route-transition-overlay"
+    aria-hidden="true"
+    [class.is-mounted]="routeTransitionMounted"
+    [class.is-visible]="routeTransitionVisible">
+    <div class="route-transition-vignette"></div>
+</div>
+
 
 <main class="main-content">
     <!-- <app-user-search #searchComponent (search)="onSearch($event)"></app-user-search> -->
     <!-- <app-game-library [library]="library" [profile]="profile" [isLoading]="isLoading"></app-game-library> -->
 
-    <router-outlet/>
+    <router-outlet></router-outlet>
 </main>
 
 <footer class="app-footer">

@@ -44,7 +44,7 @@ async function resetLocalState(page: import('@playwright/test').Page): Promise<v
   });
 }
 
-test('suggest button hover uses crowbar cursor', async ({ page }) => {
+test('suggest button hover uses katana cursor', async ({ page }) => {
   await resetLocalState(page);
   await page.goto('/');
   await page.waitForSelector('[data-ui-check="search-button"]');
@@ -54,7 +54,7 @@ test('suggest button hover uses crowbar cursor', async ({ page }) => {
   const cursorValue = await page
     .locator('[data-ui-check="search-button"]')
     .evaluate(el => getComputedStyle(el).cursor);
-  expect(cursorValue).toContain('crowbar-cursor.svg');
+  expect(cursorValue).toContain('katana-cursor-cyberpunk.svg');
 });
 
 test('suggest button hover does not render legacy katana overlay', async ({ page }) => {
