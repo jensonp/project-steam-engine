@@ -372,10 +372,8 @@ h1 {
 
 .os-actions {
   display: flex;
-  gap: 0.6rem;
   align-items: center;
   justify-content: flex-end;
-  margin-top: 0.5rem;
 }
 
 
@@ -395,7 +393,7 @@ button,
   letter-spacing: 0.08em;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   cursor: pointer;
-  min-height: 48px;
+  min-height: 56px;
   padding: 0.75rem 1.2rem;
   will-change: transform;
   transition:
@@ -458,7 +456,7 @@ button:focus-visible,
 .detect-os-button,
 .clear-os-button {
   flex: 0 0 auto;
-  min-width: 11rem;
+  min-width: 11.6rem;
   white-space: nowrap;
 }
 
@@ -1381,3 +1379,4 @@ button:focus-visible,
     transition: none !important;
   }
 }
+

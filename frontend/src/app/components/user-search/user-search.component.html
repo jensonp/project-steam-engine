@@ -1,6 +1,6 @@
 
 <div class="search-form">
-    <mat-form-field appearance="outline" class="search-field">
+    <mat-form-field appearance="outline" class="mat-mdc-text-field-wrapper mdc-text-field mdc-text-field--outlined">
         <mat-label>{{credential_type}}</mat-label>
     <input 
         matInput [(ngModel)]="entered_text" placeholder="" (keyup.enter)="onEnter()" [disabled]="isLoading"
@@ -8,12 +8,12 @@
     </mat-form-field>
 </div>
 
-<button (click)="onEnter()" [disabled]="isLoading" class="search-button">
+<button (click)="onEnter()" [disabled]="isLoading">
     @if (isLoading) {
         <mat-spinner class="custom-color-spinner" diameter="20" color="primary"></mat-spinner>
     }
     @else {
-        <ng-container>Confirm</ng-container>
+        <ng-container>[ Confirm ]</ng-container>
     }
 </button>
 
