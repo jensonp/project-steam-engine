@@ -628,7 +628,7 @@ button:focus-visible,
 
 .search-button:not(:disabled),
 .search-button:not(:disabled) * {
-  cursor: url('/crowbar-cursor.svg') 48 18, pointer !important;
+  cursor: url('/katana-cursor-cyberpunk.svg') 12 52, pointer !important;
 }
 
 .search-button:hover::before {
