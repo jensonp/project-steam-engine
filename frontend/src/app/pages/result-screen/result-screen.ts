@@ -16,8 +16,21 @@ import { MatButtonModule } from '@angular/material/button';
 import { Subscription } from 'rxjs';
 
 type ResultSource = 'search' | 'recommendations';
+type LiquidReveal = 'none' | 'fade';
+type LiquidControlState = {
+  refraction: number;
+  bevelDepth: number;
+  bevelWidth: number;
+  frost: number;
+  magnify: number;
+  shadow: boolean;
+  specular: boolean;
+  tilt: boolean;
+  tiltFactor: number;
+  reveal: LiquidReveal;
+};
 type LiquidLens = {
-  options: Record<string, unknown>;
+  options: LiquidControlState;
   setShadow?: (enabled: boolean) => void;
   setTilt?: (enabled: boolean) => void;
 };
@@ -35,6 +48,19 @@ type LiquidGuiInstance = {
   destroy: () => void;
 };
 
+const DEMO_LIQUID_DEFAULTS: LiquidControlState = {
+  refraction: 0.026,
+  bevelDepth: 0.119,
+  bevelWidth: 0.057,
+  frost: 0,
+  magnify: 1.06,
+  shadow: true,
+  specular: true,
+  tilt: false,
+  tiltFactor: 5,
+  reveal: 'fade',
+};
+
 @Component({
   selector: 'app-result-screen',
   standalone: true,
@@ -46,6 +72,7 @@ type LiquidGuiInstance = {
 export class ResultScreen implements OnInit, AfterViewInit, OnDestroy {
   results: Game[] = [];
   visibleResults: Game[] = [];
+  liquidDiagnostics: string | null = null;
   private readonly subs = new Subscription();
   private renderFrameId: number | null = null;
   private readonly renderBatchSize = 6;
@@ -193,22 +220,23 @@ export class ResultScreen implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private async bootstrapLiquidGl(): Promise<void> {
-    const shells = Array.from(
-      document.querySelectorAll<HTMLElement>('.results-container .liquid-shell')
+    const cards = Array.from(
+      document.querySelectorAll<HTMLElement>('.results-container .game-card')
     );
 
-    if (!shells.length) {
+    if (!cards.length) {
       this.teardownLiquidGl();
       return;
     }
 
     try {
       await this.ensureLiquidScripts();
-      this.rebuildLiquidRenderer(shells);
+      this.rebuildLiquidRenderer(cards.length);
       this.attachLiquidRenderListeners();
       this.liquidBootstrapped = true;
     } catch (error) {
       this.liquidBootstrapped = false;
+      this.setLiquidDiagnostics('LiquidGL init failed. Check browser WebGL support.');
       console.error('Failed to initialize liquidGL assets.', error);
     }
   }
@@ -276,7 +304,7 @@ export class ResultScreen implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  private rebuildLiquidRenderer(shells: HTMLElement[]): void {
+  private rebuildLiquidRenderer(cardCount: number): void {
     const w = window as Window & {
       liquidGL?: ((options: Record<string, unknown>) => LiquidLens | LiquidLens[] | undefined) & {
         syncWith?: (config?: Record<string, unknown>) => unknown;
@@ -289,38 +317,44 @@ export class ResultScreen implements OnInit, AfterViewInit, OnDestroy {
     this.destroyLiquidGui();
     this.destroyLiquidRenderer();
 
-    const cardCount = shells.length;
-    const selector = shells
-      .map((shell, index) => {
-        if (!shell.id) {
-          shell.id = `liquid-shell-${Date.now().toString(36)}-${index}`;
-        }
-        return `#${this.escapeSelector(shell.id)}`;
-      })
-      .join(', ');
-
     const created = w.liquidGL({
-      target: selector,
+      target: '.results-container .game-card',
       snapshot: '.result-screen',
       resolution: this.getAdaptiveLiquidResolution(cardCount),
-      refraction: 0.026,
-      bevelDepth: 0.119,
-      bevelWidth: 0.057,
-      frost: 0,
-      shadow: true,
-      specular: true,
-      reveal: 'fade',
-      tilt: false,
-      tiltFactor: 5,
-      magnify: 1.06,
+      refraction: DEMO_LIQUID_DEFAULTS.refraction,
+      bevelDepth: DEMO_LIQUID_DEFAULTS.bevelDepth,
+      bevelWidth: DEMO_LIQUID_DEFAULTS.bevelWidth,
+      frost: DEMO_LIQUID_DEFAULTS.frost,
+      shadow: DEMO_LIQUID_DEFAULTS.shadow,
+      specular: DEMO_LIQUID_DEFAULTS.specular,
+      reveal: DEMO_LIQUID_DEFAULTS.reveal,
+      tilt: DEMO_LIQUID_DEFAULTS.tilt,
+      tiltFactor: DEMO_LIQUID_DEFAULTS.tiltFactor,
+      magnify: DEMO_LIQUID_DEFAULTS.magnify,
     });
 
-    const lensList = Array.isArray(created) ? created : created ? [created] : [];
-    const firstLens = lensList[0];
-    if (firstLens) {
-      this.mountLiquidControls(firstLens, lensList);
+    const rawInstances = Array.isArray(created) ? created : created ? [created] : [];
+    const lensList = rawInstances.filter(instance => this.isLiquidLens(instance));
+
+    if (lensList.length > 0) {
+      const firstLens = lensList[0];
+      this.mountLiquidControls(firstLens.options, (key, value) => {
+        lensList.forEach(lens => {
+          lens.options[key] = value;
+          if (key === 'shadow') lens.setShadow?.(Boolean(value));
+          if (key === 'tilt') lens.setTilt?.(Boolean(value));
+        });
+      });
+      this.setLiquidDiagnostics(null);
+      this.setLiquidActiveClass(true);
+    } else {
+      // Menu still appears even in fallback mode, but effect is disabled without WebGL.
+      this.mountLiquidControls({ ...DEMO_LIQUID_DEFAULTS }, () => undefined);
+      this.setLiquidDiagnostics('LiquidGL fallback mode active (WebGL unavailable).');
+      this.setLiquidActiveClass(false);
     }
-    this.setLiquidActiveClass(true);
+
+    this.verifyLiquidChecks(cardCount, lensList.length);
 
     w.liquidGL.syncWith?.({
       gsap: false,
@@ -329,7 +363,10 @@ export class ResultScreen implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  private mountLiquidControls(firstLens: LiquidLens, lensList: LiquidLens[]): void {
+  private mountLiquidControls(
+    controlState: LiquidControlState,
+    updateAll: <K extends keyof LiquidControlState>(key: K, value: LiquidControlState[K]) => void
+  ): void {
     const w = window as Window & { lil?: { GUI: new (options?: Record<string, unknown>) => LiquidGuiInstance } };
     const LilGui = w.lil?.GUI;
     if (!LilGui) return;
@@ -346,25 +383,16 @@ export class ResultScreen implements OnInit, AfterViewInit, OnDestroy {
     gui.domElement.style.setProperty('--number-color', '#f4ece0');
 
     const folder = gui.addFolder('liquidGL Effect');
-    const updateAll = (key: string, value: unknown) => {
-      lensList.forEach(lens => {
-        if (!lens?.options) return;
-        lens.options[key] = value;
-        if (key === 'shadow') lens.setShadow?.(Boolean(value));
-        if (key === 'tilt') lens.setTilt?.(Boolean(value));
-      });
-    };
-
-    folder.add(firstLens.options, 'refraction', 0, 0.1, 0.001).onChange(v => updateAll('refraction', v));
-    folder.add(firstLens.options, 'bevelDepth', 0, 0.2, 0.001).onChange(v => updateAll('bevelDepth', v));
-    folder.add(firstLens.options, 'bevelWidth', 0, 0.5, 0.001).onChange(v => updateAll('bevelWidth', v));
-    folder.add(firstLens.options, 'frost', 0, 10, 0.1).onChange(v => updateAll('frost', v));
-    folder.add(firstLens.options, 'magnify', 1, 5, 0.1).onChange(v => updateAll('magnify', v));
-    folder.add(firstLens.options, 'shadow').onChange(v => updateAll('shadow', v));
-    folder.add(firstLens.options, 'specular').onChange(v => updateAll('specular', v));
-    folder.add(firstLens.options, 'tilt').onChange(v => updateAll('tilt', v));
-    folder.add(firstLens.options, 'tiltFactor', 0, 25, 0.1).onChange(v => updateAll('tiltFactor', v));
-    folder.add(firstLens.options, 'reveal', ['none', 'fade']).onChange(v => updateAll('reveal', v));
+    folder.add(controlState, 'refraction', 0, 0.1, 0.001).onChange(v => updateAll('refraction', v as number));
+    folder.add(controlState, 'bevelDepth', 0, 0.2, 0.001).onChange(v => updateAll('bevelDepth', v as number));
+    folder.add(controlState, 'bevelWidth', 0, 0.5, 0.001).onChange(v => updateAll('bevelWidth', v as number));
+    folder.add(controlState, 'frost', 0, 10, 0.1).onChange(v => updateAll('frost', v as number));
+    folder.add(controlState, 'magnify', 1, 5, 0.1).onChange(v => updateAll('magnify', v as number));
+    folder.add(controlState, 'shadow').onChange(v => updateAll('shadow', v as boolean));
+    folder.add(controlState, 'specular').onChange(v => updateAll('specular', v as boolean));
+    folder.add(controlState, 'tilt').onChange(v => updateAll('tilt', v as boolean));
+    folder.add(controlState, 'tiltFactor', 0, 25, 0.1).onChange(v => updateAll('tiltFactor', v as number));
+    folder.add(controlState, 'reveal', ['none', 'fade']).onChange(v => updateAll('reveal', v as LiquidReveal));
     folder.close();
 
     this.liquidGui = gui;
@@ -428,6 +456,7 @@ export class ResultScreen implements OnInit, AfterViewInit, OnDestroy {
     this.destroyLiquidGui();
     this.destroyLiquidRenderer();
     this.setLiquidActiveClass(false);
+    this.setLiquidDiagnostics(null);
     this.liquidBootstrapped = false;
   }
 
@@ -439,17 +468,36 @@ export class ResultScreen implements OnInit, AfterViewInit, OnDestroy {
     return 1.35;
   }
 
-  private escapeSelector(value: string): string {
-    if (typeof CSS !== 'undefined' && typeof CSS.escape === 'function') {
-      return CSS.escape(value);
-    }
-    return value.replace(/[^a-zA-Z0-9_-]/g, '\\$&');
-  }
-
   private setLiquidActiveClass(active: boolean): void {
     const container = document.querySelector('.results-container');
     if (!container) return;
     container.classList.toggle('liquidgl-active', active);
+  }
+
+  private verifyLiquidChecks(targetCount: number, lensCount: number): void {
+    const hasGui = !!document.querySelector('.lil-gui');
+    const hasRenderer = !!(window as { __liquidGLRenderer__?: LiquidRenderer }).__liquidGLRenderer__;
+    if (targetCount === 0) {
+      console.warn('[liquidGL-check] No target cards found.');
+    }
+    if (!hasGui) {
+      console.warn('[liquidGL-check] Controls menu did not mount.');
+    }
+    if (lensCount === 0 || !hasRenderer) {
+      console.warn('[liquidGL-check] WebGL lens not active (fallback mode).');
+    }
+  }
+
+  private isLiquidLens(value: unknown): value is LiquidLens {
+    if (!value || typeof value !== 'object') return false;
+    return 'options' in value;
+  }
+
+  private setLiquidDiagnostics(message: string | null): void {
+    this.ngZone.run(() => {
+      this.liquidDiagnostics = message;
+      this.cdr.markForCheck();
+    });
   }
 
   private shouldSkipInitialEmptyEmission(next: Game[]): boolean {

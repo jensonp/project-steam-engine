@@ -165,7 +165,21 @@
 }
 
 :host-context(.liquidgl-active) .game-card::before {
-  opacity: 0.2;
+  opacity: 0.08;
+}
+
+:host-context(.liquidgl-active) .game-card::after {
+  opacity: 0;
+}
+
+:host-context(.liquidgl-active) .game-card {
+  border-color: rgba(244, 236, 224, 0.2);
+  box-shadow: none;
+}
+
+:host-context(.liquidgl-active) .game-card:hover {
+  border-color: rgba(244, 236, 224, 0.34);
+  box-shadow: none;
 }
 
 .game-image {
