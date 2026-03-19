@@ -15,7 +15,7 @@
         (pointerdown)="onValvePointerDown($event)"
         (pointermove)="onValvePointerMove($event)"
         (click)="toggleValveBackdrop()">
-        @if (shouldRenderToolbarValveModel) {
+        @if (valveEnabled) {
             <model-viewer
                 class="toolbar-valve-model"
                 [class.is-full-spin]="valveSpinMode === 'full'"
@@ -36,9 +36,7 @@
                 exposure="1.06"
                 shadow-intensity="0.7"></model-viewer>
         } @else {
-            <mat-icon id="valve-off-icon" aria-hidden="true">
-                {{ valveEnabled ? 'blur_on' : 'visibility_off' }}
-            </mat-icon>
+            <mat-icon id="valve-off-icon" aria-hidden="true">visibility_off</mat-icon>
         }
     </button>
     <button
