@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { UserSearchComponent } from '../../components/user-search/user-search.component';
+// import { UserSearchComponent } from '../../components/user-search/user-search.component';
 import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { BackendService } from '../../services/backend-service';
@@ -9,7 +9,7 @@ import { Subscription } from 'rxjs';
 @Component({
   selector: 'app-config-screen',
   standalone: true,
-  imports: [UserSearchComponent, RouterLink, MatIconModule, MatProgressSpinner],
+  imports: [RouterLink, MatIconModule, MatProgressSpinner],
   templateUrl: './config-screen.html',
   styleUrl: './config-screen.css',
 })
