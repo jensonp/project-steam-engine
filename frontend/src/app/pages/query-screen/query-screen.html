@@ -6,7 +6,12 @@
     (focusin)="onFocusIn()"
     (focusout)="onFocusOut($event)">
     <div class="hero-frame">
-        <div class="valve-layer" [style.opacity]="valveOpacity" aria-hidden="true" inert>
+        <div
+            class="valve-layer"
+            [class.is-full-spin]="valveSpinMode === 'full'"
+            [style.opacity]="valveOpacity"
+            aria-hidden="true"
+            inert>
             @if (valveBackdropEnabled && valveOpacity > 0.02) {
                 <div class="valve-model-shell" [class.is-full-spin]="valveSpinMode === 'full'">
                     <model-viewer
@@ -18,7 +23,7 @@
                         tabindex="-1"
                         auto-rotate
                         auto-rotate-delay="0"
-                        [attr.rotation-per-second]="valveSpinMode === 'full' ? '34deg' : '22deg'"
+                        [attr.rotation-per-second]="valveSpinMode === 'full' ? '0deg' : '22deg'"
                         [attr.camera-controls]="valveSpinMode === 'full' ? '' : null"
                         interaction-prompt="none"
                         environment-image="neutral"

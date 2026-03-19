@@ -100,8 +100,16 @@
   filter:
     drop-shadow(0 0 12px rgba(255, 52, 24, 0.2))
     saturate(1.05);
+  perspective: 1200px;
+  transform-style: preserve-3d;
   -webkit-mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.98) 0 72%, transparent 100%);
   mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.98) 0 72%, transparent 100%);
+}
+
+.valve-layer.is-full-spin {
+  filter:
+    drop-shadow(0 0 18px rgba(255, 52, 24, 0.36))
+    saturate(1.12);
 }
 
 .valve-model {
@@ -124,13 +132,13 @@
 }
 
 .valve-model-shell.is-full-spin {
-  animation: valve-gyro-orbit 14s linear infinite;
+  animation: valve-gyro-orbit 6.8s linear infinite;
   will-change: transform;
 }
 
 .valve-model.is-full-spin {
   transform-origin: 50% 52%;
-  animation: valve-gyro-wobble 8.4s ease-in-out infinite;
+  animation: valve-gyro-wobble 2.8s ease-in-out infinite;
 }
 
 .hero-icon-frame {
@@ -834,19 +842,19 @@ button:focus-visible,
 
 @keyframes valve-gyro-orbit {
   0% {
-    transform: rotateX(10deg) rotateY(0deg) rotateZ(-7deg);
+    transform: rotateX(18deg) rotateY(0deg) rotateZ(-10deg) translateZ(0);
   }
   25% {
-    transform: rotateX(-8deg) rotateY(90deg) rotateZ(4deg);
+    transform: rotateX(-16deg) rotateY(90deg) rotateZ(9deg) translateZ(8px);
   }
   50% {
-    transform: rotateX(12deg) rotateY(180deg) rotateZ(8deg);
+    transform: rotateX(20deg) rotateY(180deg) rotateZ(14deg) translateZ(0);
   }
   75% {
-    transform: rotateX(-10deg) rotateY(270deg) rotateZ(-5deg);
+    transform: rotateX(-17deg) rotateY(270deg) rotateZ(-12deg) translateZ(-8px);
   }
   100% {
-    transform: rotateX(10deg) rotateY(360deg) rotateZ(-7deg);
+    transform: rotateX(18deg) rotateY(360deg) rotateZ(-10deg) translateZ(0);
   }
 }
 
@@ -855,10 +863,10 @@ button:focus-visible,
     transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg) scale(1);
   }
   35% {
-    transform: rotateX(8deg) rotateY(-10deg) rotateZ(3deg) scale(1.01);
+    transform: rotateX(16deg) rotateY(-18deg) rotateZ(7deg) scale(1.02);
   }
   70% {
-    transform: rotateX(-6deg) rotateY(9deg) rotateZ(-3deg) scale(0.995);
+    transform: rotateX(-14deg) rotateY(16deg) rotateZ(-6deg) scale(0.98);
   }
   100% {
     transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg) scale(1);

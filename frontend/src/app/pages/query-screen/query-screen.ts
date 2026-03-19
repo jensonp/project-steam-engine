@@ -343,15 +343,21 @@ export class QueryScreen implements OnInit, OnDestroy {
 
   private onValveBackdropChanged = (event: Event): void => {
     if (!(event instanceof CustomEvent)) return;
-    this.valveBackdropEnabled = Boolean(event.detail);
-    this.updateValveOpacity();
+    this.ngZone.run(() => {
+      this.valveBackdropEnabled = Boolean(event.detail);
+      this.updateValveOpacity();
+      this.cdr.markForCheck();
+    });
   };
 
   private onValveSpinModeChanged = (event: Event): void => {
     if (!(event instanceof CustomEvent)) return;
     const nextMode = event.detail;
     if (nextMode !== 'flat' && nextMode !== 'full') return;
-    this.valveSpinMode = nextMode;
+    this.ngZone.run(() => {
+      this.valveSpinMode = nextMode;
+      this.cdr.markForCheck();
+    });
   };
 
   private updateValveOpacity(): void {
