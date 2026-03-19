@@ -75,7 +75,7 @@
   gap: var(--space-4);
   margin-bottom: 1.25rem;
   position: relative;
-  z-index: 1;
+  z-index: 4;
   animation: text-reveal 500ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
   animation-delay: 100ms;
 }
@@ -86,14 +86,14 @@
   gap: 1.5rem;
   align-items: start;
   position: relative;
-  z-index: 1;
+  z-index: 4;
 }
 
 .valve-layer {
   position: absolute;
-  top: -3%;
-  left: 67%;
-  width: min(32vw, 340px);
+  top: 2%;
+  left: 77%;
+  width: min(29vw, 300px);
   aspect-ratio: 1 / 1;
   transform: translateX(-50%) scale(1);
   pointer-events: none;
@@ -1269,9 +1269,9 @@ button:focus-visible,
   }
 
   .valve-layer {
-    top: 2%;
-    left: 64%;
-    width: min(62vw, 280px);
+    top: 8%;
+    left: 73%;
+    width: min(56vw, 250px);
   }
 
   .hero-main {
