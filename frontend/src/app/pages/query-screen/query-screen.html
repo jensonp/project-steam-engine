@@ -8,7 +8,6 @@
     <div class="hero-frame">
         <div
             class="valve-layer"
-            [class.is-full-spin]="valveSpinMode === 'full'"
             [style.opacity]="valveOpacity"
             aria-hidden="true"
             inert>
@@ -20,7 +19,7 @@
                     tabindex="-1"
                     auto-rotate
                     auto-rotate-delay="0"
-                    [attr.rotation-per-second]="valveSpinMode === 'full' ? '44deg' : '34deg'"
+                    rotation-per-second="34deg"
                     camera-controls
                     interaction-prompt="none"
                     environment-image="neutral"
