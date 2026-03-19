@@ -48,7 +48,20 @@ type LiquidGuiInstance = {
   destroy: () => void;
 };
 
-const DEMO_LIQUID_DEFAULTS: LiquidControlState = {
+const DEMO4_CARD_DEFAULTS: LiquidControlState = {
+  refraction: 0,
+  bevelDepth: 0.052,
+  bevelWidth: 0.18,
+  frost: 2,
+  magnify: 1,
+  shadow: true,
+  specular: true,
+  tilt: false,
+  tiltFactor: 5,
+  reveal: 'fade',
+};
+
+const DEMO5_SHAPE_DEFAULTS: LiquidControlState = {
   refraction: 0.026,
   bevelDepth: 0.119,
   bevelWidth: 0.057,
@@ -366,43 +379,65 @@ export class ResultScreen implements OnInit, AfterViewInit, OnDestroy {
     this.destroyLiquidRenderer();
     delete (window as { __liquidGLNoWebGL__?: boolean }).__liquidGLNoWebGL__;
 
-    const target = document.querySelector('.liquid-shape-trigger')
-      ? '.results-container .game-card, .liquid-shape-trigger'
-      : '.results-container .game-card';
-
-    const created = w.liquidGL({
-      target,
-      snapshot: '.result-screen',
-      resolution: this.getAdaptiveLiquidResolution(cardCount),
-      refraction: DEMO_LIQUID_DEFAULTS.refraction,
-      bevelDepth: DEMO_LIQUID_DEFAULTS.bevelDepth,
-      bevelWidth: DEMO_LIQUID_DEFAULTS.bevelWidth,
-      frost: DEMO_LIQUID_DEFAULTS.frost,
-      shadow: DEMO_LIQUID_DEFAULTS.shadow,
-      specular: DEMO_LIQUID_DEFAULTS.specular,
-      reveal: DEMO_LIQUID_DEFAULTS.reveal,
-      tilt: DEMO_LIQUID_DEFAULTS.tilt,
-      tiltFactor: DEMO_LIQUID_DEFAULTS.tiltFactor,
-      magnify: DEMO_LIQUID_DEFAULTS.magnify,
+    // Demo-4 profile for cards.
+    const createdCards = w.liquidGL({
+      target: '.results-container .game-card',
+      refraction: DEMO4_CARD_DEFAULTS.refraction,
+      bevelDepth: DEMO4_CARD_DEFAULTS.bevelDepth,
+      bevelWidth: DEMO4_CARD_DEFAULTS.bevelWidth,
+      frost: DEMO4_CARD_DEFAULTS.frost,
+      shadow: DEMO4_CARD_DEFAULTS.shadow,
+      specular: DEMO4_CARD_DEFAULTS.specular,
+      tilt: DEMO4_CARD_DEFAULTS.tilt,
+      tiltFactor: DEMO4_CARD_DEFAULTS.tiltFactor,
+      reveal: DEMO4_CARD_DEFAULTS.reveal,
     });
 
-    const rawInstances = Array.isArray(created) ? created : created ? [created] : [];
-    const lensList = rawInstances.filter(instance => this.isLiquidLens(instance));
+    // Demo-5 profile for the large .shape lens.
+    const createdShape = w.liquidGL({
+      target: '.shape.liquid-shape-trigger',
+      snapshot: '.main-content',
+      refraction: DEMO5_SHAPE_DEFAULTS.refraction,
+      bevelDepth: DEMO5_SHAPE_DEFAULTS.bevelDepth,
+      bevelWidth: DEMO5_SHAPE_DEFAULTS.bevelWidth,
+      frost: DEMO5_SHAPE_DEFAULTS.frost,
+      specular: DEMO5_SHAPE_DEFAULTS.specular,
+      shadow: DEMO5_SHAPE_DEFAULTS.shadow,
+      reveal: DEMO5_SHAPE_DEFAULTS.reveal,
+    });
+
+    const cardLensList = this.normalizeLensList(createdCards);
+    const shapeLensList = this.normalizeLensList(createdShape);
+    const lensList = cardLensList.concat(shapeLensList);
 
     if (lensList.length > 0) {
-      const firstLens = lensList[0];
-      this.mountLiquidControls(firstLens.options, (key, value) => {
-        lensList.forEach(lens => {
-          lens.options[key] = value;
-          if (key === 'shadow') lens.setShadow?.(Boolean(value));
-          if (key === 'tilt') lens.setTilt?.(Boolean(value));
-        });
+      const cardsControls = this.resolveControlState(cardLensList[0], DEMO4_CARD_DEFAULTS);
+      const shapeControls = this.resolveControlState(shapeLensList[0], DEMO5_SHAPE_DEFAULTS);
+
+      this.mountLiquidControls({
+        cards: {
+          state: cardsControls,
+          update: (key, value) => this.updateLensGroup(cardLensList, key, value),
+        },
+        shape: {
+          state: shapeControls,
+          update: (key, value) => this.updateLensGroup(shapeLensList, key, value),
+        },
       });
       this.setLiquidDiagnostics(null);
       this.setLiquidActiveClass(true);
     } else {
       // Menu still appears even in fallback mode, but effect is disabled without WebGL.
-      this.mountLiquidControls({ ...DEMO_LIQUID_DEFAULTS }, () => undefined);
+      this.mountLiquidControls({
+        cards: {
+          state: { ...DEMO4_CARD_DEFAULTS },
+          update: () => undefined,
+        },
+        shape: {
+          state: { ...DEMO5_SHAPE_DEFAULTS },
+          update: () => undefined,
+        },
+      });
       this.setLiquidDiagnostics('LiquidGL fallback mode active (WebGL unavailable).');
       this.setLiquidActiveClass(false);
     }
@@ -419,10 +454,16 @@ export class ResultScreen implements OnInit, AfterViewInit, OnDestroy {
     return lensList.length;
   }
 
-  private mountLiquidControls(
-    controlState: LiquidControlState,
-    updateAll: <K extends keyof LiquidControlState>(key: K, value: LiquidControlState[K]) => void
-  ): void {
+  private mountLiquidControls(config: {
+    cards: {
+      state: LiquidControlState;
+      update: <K extends keyof LiquidControlState>(key: K, value: LiquidControlState[K]) => void;
+    };
+    shape: {
+      state: LiquidControlState;
+      update: <K extends keyof LiquidControlState>(key: K, value: LiquidControlState[K]) => void;
+    };
+  }): void {
     const w = window as Window & { lil?: { GUI: new (options?: Record<string, unknown>) => LiquidGuiInstance } };
     const LilGui = w.lil?.GUI;
     if (!LilGui) return;
@@ -439,7 +480,25 @@ export class ResultScreen implements OnInit, AfterViewInit, OnDestroy {
     gui.domElement.style.setProperty('--number-color', '#f4ece0');
     gui.domElement.setAttribute('data-ui-check', 'liquid-glass-menu');
 
-    const folder = gui.addFolder('liquidGL Effect');
+    const cardsFolder = gui.addFolder('liquidGL Effect (Demo 4 Cards)');
+    this.addStandardControls(cardsFolder, config.cards.state, config.cards.update);
+    cardsFolder.close();
+
+    const shapeFolder = gui.addFolder('liquidGL Effect (Demo 5 Lens)');
+    this.addStandardControls(shapeFolder, config.shape.state, config.shape.update);
+    shapeFolder.close();
+
+    this.liquidGui = gui;
+  }
+
+  private addStandardControls(
+    folder: {
+      add: (obj: Record<string, unknown>, key: string, ...rest: unknown[]) => { onChange: (cb: (value: unknown) => void) => unknown };
+      close: () => void;
+    },
+    controlState: LiquidControlState,
+    updateAll: <K extends keyof LiquidControlState>(key: K, value: LiquidControlState[K]) => void
+  ): void {
     folder.add(controlState, 'refraction', 0, 0.1, 0.001).onChange(v => updateAll('refraction', v as number));
     folder.add(controlState, 'bevelDepth', 0, 0.2, 0.001).onChange(v => updateAll('bevelDepth', v as number));
     folder.add(controlState, 'bevelWidth', 0, 0.5, 0.001).onChange(v => updateAll('bevelWidth', v as number));
@@ -450,9 +509,55 @@ export class ResultScreen implements OnInit, AfterViewInit, OnDestroy {
     folder.add(controlState, 'tilt').onChange(v => updateAll('tilt', v as boolean));
     folder.add(controlState, 'tiltFactor', 0, 25, 0.1).onChange(v => updateAll('tiltFactor', v as number));
     folder.add(controlState, 'reveal', ['none', 'fade']).onChange(v => updateAll('reveal', v as LiquidReveal));
-    folder.close();
+  }
 
-    this.liquidGui = gui;
+  private normalizeLensList(
+    created: LiquidLens | LiquidLens[] | undefined
+  ): LiquidLens[] {
+    const rawInstances = Array.isArray(created) ? created : created ? [created] : [];
+    return rawInstances.filter(instance => this.isLiquidLens(instance));
+  }
+
+  private resolveControlState(lens: LiquidLens | undefined, fallback: LiquidControlState): LiquidControlState {
+    const options = lens?.options;
+    if (!options) return { ...fallback };
+
+    return {
+      refraction: this.asNumber(options.refraction, fallback.refraction),
+      bevelDepth: this.asNumber(options.bevelDepth, fallback.bevelDepth),
+      bevelWidth: this.asNumber(options.bevelWidth, fallback.bevelWidth),
+      frost: this.asNumber(options.frost, fallback.frost),
+      magnify: this.asNumber(options.magnify, fallback.magnify),
+      shadow: this.asBoolean(options.shadow, fallback.shadow),
+      specular: this.asBoolean(options.specular, fallback.specular),
+      tilt: this.asBoolean(options.tilt, fallback.tilt),
+      tiltFactor: this.asNumber(options.tiltFactor, fallback.tiltFactor),
+      reveal: this.asReveal(options.reveal, fallback.reveal),
+    };
+  }
+
+  private updateLensGroup<K extends keyof LiquidControlState>(
+    lenses: LiquidLens[],
+    key: K,
+    value: LiquidControlState[K]
+  ): void {
+    lenses.forEach(lens => {
+      lens.options[key] = value;
+      if (key === 'shadow') lens.setShadow?.(Boolean(value));
+      if (key === 'tilt') lens.setTilt?.(Boolean(value));
+    });
+  }
+
+  private asNumber(value: unknown, fallback: number): number {
+    return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
+  }
+
+  private asBoolean(value: unknown, fallback: boolean): boolean {
+    return typeof value === 'boolean' ? value : fallback;
+  }
+
+  private asReveal(value: unknown, fallback: LiquidReveal): LiquidReveal {
+    return value === 'none' || value === 'fade' ? value : fallback;
   }
 
   private attachLiquidRenderListeners(): void {
@@ -516,14 +621,6 @@ export class ResultScreen implements OnInit, AfterViewInit, OnDestroy {
     this.setLiquidActiveClass(false);
     this.setLiquidDiagnostics(null);
     this.liquidBootstrapped = false;
-  }
-
-  private getAdaptiveLiquidResolution(cardCount: number): number {
-    const hardwareConcurrency = navigator.hardwareConcurrency ?? 8;
-    const lowPowerDevice = hardwareConcurrency <= 4;
-    if (lowPowerDevice || cardCount > 14) return 1.1;
-    if (cardCount > 8) return 1.2;
-    return 1.35;
   }
 
   private setLiquidActiveClass(active: boolean): void {
