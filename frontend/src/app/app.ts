@@ -1,4 +1,4 @@
-import { Component, CUSTOM_ELEMENTS_SCHEMA, ViewChild } from '@angular/core';
+import { Component, CUSTOM_ELEMENTS_SCHEMA, OnDestroy, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatIconModule } from '@angular/material/icon';
@@ -7,7 +7,7 @@ import { UserSearchComponent } from './components/user-search/user-search.compon
 import { SteamApiService } from './services/steam-api.service';
 import { UserLibrary, PlayerSummary } from './types/steam.types';
 import { forkJoin } from 'rxjs';
-import { RouterOutlet, RouterLinkWithHref } from '@angular/router';
+import { NavigationEnd, Router, RouterOutlet, RouterLinkWithHref } from '@angular/router';
 
 type ValveSpinMode = 'flat' | 'full';
 
@@ -25,7 +25,7 @@ type ValveSpinMode = 'flat' | 'full';
   styleUrl:"./app.css",
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
-export class App {
+export class App implements OnDestroy {
   @ViewChild('searchComponent') searchComponent!: UserSearchComponent;
 
   library: UserLibrary | null = null;
@@ -45,8 +45,12 @@ export class App {
   private readonly valveDragThresholdPx = 6;
   private readonly valveBackdropEventName = 'pse:valveBackdropChanged';
   private readonly valveSpinModeEventName = 'pse:valveSpinModeChanged';
+  private isResultsRoute = false;
 
-  constructor(private steamApi: SteamApiService) {
+  constructor(
+    private steamApi: SteamApiService,
+    private router: Router
+  ) {
     if (typeof window !== 'undefined') {
       const savedValveState = window.localStorage.getItem(this.valveStorageKey);
       if (savedValveState !== null) {
@@ -65,6 +69,21 @@ export class App {
 
     this.publishValveBackdropState();
     this.publishValveSpinMode();
+
+    this.isResultsRoute = this.router.url.startsWith('/results');
+    this.router.events.subscribe(event => {
+      if (event instanceof NavigationEnd) {
+        this.isResultsRoute = event.urlAfterRedirects.startsWith('/results');
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    // No-op for now; route event subscription is app-lifetime.
+  }
+
+  get shouldRenderToolbarValveModel(): boolean {
+    return this.valveEnabled && !this.isResultsRoute;
   }
 
   toggleValveBackdrop(): void {
