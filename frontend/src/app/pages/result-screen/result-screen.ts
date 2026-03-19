@@ -53,7 +53,7 @@ const DEMO_LIQUID_DEFAULTS: LiquidControlState = {
   bevelDepth: 0.119,
   bevelWidth: 0.057,
   frost: 0,
-  magnify: 1.06,
+  magnify: 1,
   shadow: true,
   specular: true,
   tilt: false,
@@ -73,6 +73,7 @@ export class ResultScreen implements OnInit, AfterViewInit, OnDestroy {
   results: Game[] = [];
   visibleResults: Game[] = [];
   liquidDiagnostics: string | null = null;
+  magnifierExpanded = false;
   private readonly subs = new Subscription();
   private renderFrameId: number | null = null;
   private readonly renderBatchSize = 6;
@@ -156,12 +157,38 @@ export class ResultScreen implements OnInit, AfterViewInit, OnDestroy {
     this.subs.unsubscribe();
   }
 
+  toggleLiquidMagnifier(): void {
+    this.magnifierExpanded = !this.magnifierExpanded;
+    this.cdr.markForCheck();
+
+    this.ngZone.runOutsideAngular(() => {
+      window.requestAnimationFrame(() => this.renderLiquidNow());
+      window.setTimeout(() => {
+        this.renderLiquidNow();
+        this.scheduleLiquidBootstrap();
+      }, 360);
+    });
+  }
+
+  onMagnifierTransitionEnd(event: Event): void {
+    const transitionEvent = event as TransitionEvent;
+    if (
+      transitionEvent.propertyName !== 'width' &&
+      transitionEvent.propertyName !== 'height' &&
+      transitionEvent.propertyName !== 'transform'
+    ) {
+      return;
+    }
+    this.renderLiquidNow();
+  }
+
   private setResults(nextResults: Game[]): void {
     this.cancelRenderFrame();
     this.results = Array.isArray(nextResults) ? nextResults : [];
     this.visibleResults = [];
 
     if (!this.results.length) {
+      this.magnifierExpanded = false;
       this.teardownLiquidGl();
       this.cdr.markForCheck();
       return;
@@ -339,8 +366,12 @@ export class ResultScreen implements OnInit, AfterViewInit, OnDestroy {
     this.destroyLiquidRenderer();
     delete (window as { __liquidGLNoWebGL__?: boolean }).__liquidGLNoWebGL__;
 
+    const target = document.querySelector('.liquid-magnifier-button')
+      ? '.results-container .game-card, .liquid-magnifier-button'
+      : '.results-container .game-card';
+
     const created = w.liquidGL({
-      target: '.results-container .game-card',
+      target,
       snapshot: '.result-screen',
       resolution: this.getAdaptiveLiquidResolution(cardCount),
       refraction: DEMO_LIQUID_DEFAULTS.refraction,
@@ -376,7 +407,8 @@ export class ResultScreen implements OnInit, AfterViewInit, OnDestroy {
       this.setLiquidActiveClass(false);
     }
 
-    this.verifyLiquidChecks(cardCount, lensList.length);
+    const totalTargetCount = cardCount + (document.querySelector('.liquid-magnifier-button') ? 1 : 0);
+    this.verifyLiquidChecks(totalTargetCount, lensList.length);
 
     w.liquidGL.syncWith?.({
       gsap: false,
@@ -524,6 +556,21 @@ export class ResultScreen implements OnInit, AfterViewInit, OnDestroy {
       this.liquidDiagnostics = message;
       this.cdr.markForCheck();
     });
+  }
+
+  private renderLiquidNow(): void {
+    if (typeof window === 'undefined') return;
+    const w = window as Window & {
+      __liquidGLRenderer__?: LiquidRenderer;
+      liquidGL?: { syncWith?: (config?: Record<string, unknown>) => unknown };
+    };
+
+    w.liquidGL?.syncWith?.({
+      gsap: false,
+      lenis: false,
+      locomotiveScroll: false,
+    });
+    w.__liquidGLRenderer__?.render?.();
   }
 
   private shouldSkipInitialEmptyEmission(next: Game[]): boolean {

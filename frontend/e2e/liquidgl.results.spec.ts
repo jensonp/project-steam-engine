@@ -48,6 +48,14 @@ test('results route mounts liquidGL controls and runtime checks', async ({ page 
 
   await expect(page).toHaveURL(/\/results$/);
   await expect(page.locator('.game-card')).toHaveCount(mockSearchResults.length);
+  const magnifierButton = page.locator('[data-ui-check="liquid-magnifier-button"]');
+  await expect(magnifierButton).toBeVisible();
+
+  await magnifierButton.click();
+  await expect(magnifierButton).toHaveClass(/is-expanded/);
+
+  await magnifierButton.click();
+  await expect(magnifierButton).not.toHaveClass(/is-expanded/);
 
   const menu = page.locator('[data-ui-check="liquid-glass-menu"]');
   await expect(menu).toBeVisible({ timeout: 10000 });
