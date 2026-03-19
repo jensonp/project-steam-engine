@@ -85,6 +85,8 @@ export class ResultScreen implements OnInit, AfterViewInit, OnDestroy {
   private liquidScriptPromise: Promise<void> | null = null;
   private liquidBootstrapped = false;
   private liquidInitTimer: number | null = null;
+  private liquidRetryCount = 0;
+  private readonly maxLiquidRetries = 8;
   private scrollRenderListener: (() => void) | null = null;
   private mouseRenderListener: (() => void) | null = null;
 
@@ -104,6 +106,7 @@ export class ResultScreen implements OnInit, AfterViewInit, OnDestroy {
     if (state?.results) {
       this.hydratedFromNavigationState = true;
       this.setResults(state.results);
+      this.liquidRetryCount = 0;
     }
   }
 
@@ -207,7 +210,7 @@ export class ResultScreen implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private scheduleLiquidBootstrap(): void {
-    if (this.prefersReducedMotion || typeof window === 'undefined') return;
+    if (typeof window === 'undefined') return;
     if (this.liquidInitTimer !== null) {
       window.clearTimeout(this.liquidInitTimer);
     }
@@ -220,6 +223,14 @@ export class ResultScreen implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private async bootstrapLiquidGl(): Promise<void> {
+    const toolbarValveModel = document.querySelector('.toolbar-valve-model');
+    if (toolbarValveModel) {
+      // Wait for competing WebGL model-viewer context to unmount on /results.
+      this.liquidRetryCount = Math.min(this.maxLiquidRetries, this.liquidRetryCount + 1);
+      this.scheduleLiquidBootstrap();
+      return;
+    }
+
     const cards = Array.from(
       document.querySelectorAll<HTMLElement>('.results-container .game-card')
     );
@@ -231,11 +242,21 @@ export class ResultScreen implements OnInit, AfterViewInit, OnDestroy {
 
     try {
       await this.ensureLiquidScripts();
-      this.rebuildLiquidRenderer(cards.length);
+      const lensCount = this.rebuildLiquidRenderer(cards.length);
       this.attachLiquidRenderListeners();
-      this.liquidBootstrapped = true;
+      this.liquidBootstrapped = lensCount > 0;
+      if (lensCount > 0) {
+        this.liquidRetryCount = 0;
+      } else if (this.liquidRetryCount < this.maxLiquidRetries) {
+        this.liquidRetryCount += 1;
+        this.scheduleLiquidBootstrap();
+      }
     } catch (error) {
       this.liquidBootstrapped = false;
+      this.liquidRetryCount = Math.min(this.maxLiquidRetries, this.liquidRetryCount + 1);
+      if (this.liquidRetryCount < this.maxLiquidRetries) {
+        this.scheduleLiquidBootstrap();
+      }
       this.setLiquidDiagnostics('LiquidGL init failed. Check browser WebGL support.');
       console.error('Failed to initialize liquidGL assets.', error);
     }
@@ -304,7 +325,7 @@ export class ResultScreen implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  private rebuildLiquidRenderer(cardCount: number): void {
+  private rebuildLiquidRenderer(cardCount: number): number {
     const w = window as Window & {
       liquidGL?: ((options: Record<string, unknown>) => LiquidLens | LiquidLens[] | undefined) & {
         syncWith?: (config?: Record<string, unknown>) => unknown;
@@ -312,10 +333,11 @@ export class ResultScreen implements OnInit, AfterViewInit, OnDestroy {
       __liquidGLRenderer__?: LiquidRenderer;
       lil?: { GUI: new (options?: Record<string, unknown>) => LiquidGuiInstance };
     };
-    if (!w.liquidGL) return;
+    if (!w.liquidGL) return 0;
 
     this.destroyLiquidGui();
     this.destroyLiquidRenderer();
+    delete (window as { __liquidGLNoWebGL__?: boolean }).__liquidGLNoWebGL__;
 
     const created = w.liquidGL({
       target: '.results-container .game-card',
@@ -361,6 +383,8 @@ export class ResultScreen implements OnInit, AfterViewInit, OnDestroy {
       lenis: false,
       locomotiveScroll: false,
     });
+
+    return lensList.length;
   }
 
   private mountLiquidControls(
@@ -381,6 +405,7 @@ export class ResultScreen implements OnInit, AfterViewInit, OnDestroy {
     gui.domElement.style.setProperty('--widget-color', 'rgba(255, 87, 56, 0.2)');
     gui.domElement.style.setProperty('--focus-color', '#ff5738');
     gui.domElement.style.setProperty('--number-color', '#f4ece0');
+    gui.domElement.setAttribute('data-ui-check', 'liquid-glass-menu');
 
     const folder = gui.addFolder('liquidGL Effect');
     folder.add(controlState, 'refraction', 0, 0.1, 0.001).onChange(v => updateAll('refraction', v as number));
@@ -449,6 +474,7 @@ export class ResultScreen implements OnInit, AfterViewInit, OnDestroy {
       window.clearTimeout(this.liquidInitTimer);
       this.liquidInitTimer = null;
     }
+    this.liquidRetryCount = 0;
     if (!this.liquidBootstrapped && !this.liquidGui && !(window as { __liquidGLRenderer__?: LiquidRenderer }).__liquidGLRenderer__) {
       return;
     }
