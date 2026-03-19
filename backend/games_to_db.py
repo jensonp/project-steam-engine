@@ -110,7 +110,7 @@ def load_games_batch(conn, limit=None):
     Load games using batch inserts for better memory efficiency.
     Uses execute_values for fast batch inserts.
     """
-    print(f"📂 Loading JSON from: {JSON_PATH}")
+    print(f"Loading JSON from: {JSON_PATH}")
     print(f"   Batch size: {BATCH_SIZE}, Commit every: {COMMIT_EVERY}")
     
     # Load JSON - this still loads entire file
@@ -185,7 +185,7 @@ def load_games_batch(conn, limit=None):
                     # Commit periodically
                     if loaded % COMMIT_EVERY == 0:
                         conn.commit()
-                        print(f"  💾 Committed {loaded:,} games")
+                        print(f"  Committed {loaded:,} games")
                     elif loaded % 5000 == 0:
                         print(f"  ... processing {loaded:,} games")
             else:
@@ -220,7 +220,7 @@ def load_games_streaming(conn, limit=None):
         print("   Falling back to batch method...")
         return load_games_batch(conn, limit)
     
-    print(f"📂 Streaming JSON from: {JSON_PATH}")
+    print(f"Streaming JSON from: {JSON_PATH}")
     print(f"   Batch size: {BATCH_SIZE}, Commit every: {COMMIT_EVERY}")
     
     loaded = 0
@@ -290,7 +290,7 @@ def load_games_streaming(conn, limit=None):
                         
                         if loaded % COMMIT_EVERY == 0:
                             conn.commit()
-                            print(f"  💾 Committed {loaded:,} games")
+                            print(f"  Committed {loaded:,} games")
                         elif loaded % 5000 == 0:
                             print(f"  ... processing {loaded:,} games")
                 else:
@@ -311,7 +311,7 @@ def load_games_streaming(conn, limit=None):
 
 def create_indexes(conn):
     """Create indexes for common queries."""
-    print("🔍 Creating indexes...")
+    print("Creating indexes...")
     with conn.cursor() as cur:
         cur.execute("""
             CREATE INDEX IF NOT EXISTS idx_games_price ON games (price);
@@ -350,7 +350,7 @@ def show_stats(conn):
         """)
         top_games = cur.fetchall()
         
-        print(f"\n📊 Statistics:")
+        print(f"\nStatistics:")
         print(f"   Total games: {total:,}")
         print(f"   Free games: {free:,} ({free*100//total if total > 0 else 0}%)")
         print(f"   Avg paid price: ${avg_price:.2f}" if avg_price else "   Avg paid price: N/A")

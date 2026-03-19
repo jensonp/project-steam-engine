@@ -1,4 +1,4 @@
-# 🚀 Hosting Your Steam Engine for Free (Student Guide)
+# Hosting Your Steam Engine for Free (Student Guide)
 
 As a student, you can host your full-stack application entirely for free using these industry-standard platforms. Since your project has a **Frontend (Angular)** and a **Backend (Node.js)**, the best approach is to split them up.
 

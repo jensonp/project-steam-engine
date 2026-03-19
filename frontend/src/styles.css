@@ -18,7 +18,7 @@ body {
   min-height: 100vh;
 }
 
-/* SLEEK PREMIUM SCROLLBAR */
+/* Scrollbar styling */
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -73,16 +73,12 @@ html {
   overscroll-behavior-y: none;
 }
 
-/* 
-   ENFORCE GLOBAL DOOMFIST CONSISTENCY
-   Catch-all for anything that would normally show a pointer or text cursor 
-*/
+/* Global cursor fallback */
 * {
-  /* Default fallback to standard doomfist */
   cursor: url('/doomfist-cursor.png') 16 16, auto;
 }
 
-/* Areas where we want the 'ready' pointing doomfist */
+/* Interactive controls use ready cursor */
 a, button, [role="button"], mat-option, .mat-mdc-option, 
 input, select, mat-select, .mat-mdc-form-field, 
 .load-profile-button, .detect-os-button, .clear-os-button,
@@ -92,7 +88,7 @@ label, .mdc-label, [click],
   cursor: url('/doomfist-cursor-ready.png') 16 16, pointer !important;
 }
 
-/* Explicitly target writing areas to kill the 'I-beam' */
+/* Use ready cursor for text-entry fields */
 input, textarea, [contenteditable="true"] {
   cursor: url('/doomfist-cursor-ready.png') 16 16, text !important;
 }
@@ -185,17 +181,16 @@ a:hover {
   margin-top: 8px !important;
 }
 
-/* Force overlay pane to stay below the trigger - more aggressive strategy */
+/* Keep select overlay below trigger */
 .cdk-overlay-pane:has(> .topunit) {
   transform: translateY(0) !important;
   margin-top: 4px !important;
-  /* Prevent Material from trying to center the panel over the trigger */
-  top: auto !important; 
+  top: auto !important;
   left: auto !important;
-  position: relative !important; /* This helps with some layout engines but might need adjustment */
+  position: relative !important;
 }
 
-/* Ensure the panel itself respects the flow */
+/* Panel sizing and scroll behavior */
 .mat-mdc-select-panel.topunit {
   max-height: 400px !important;
   overflow-y: auto !important;
