@@ -74,7 +74,7 @@ Update visual baselines intentionally:
 bash scripts/ui-check.sh --update
 ```
 
-### CI/CD
+## CI/CD
 
 GitHub Actions CI is configured in `.github/workflows/ci.yml`.
 
@@ -83,7 +83,9 @@ On every push/PR to `main`, it runs:
 - Frontend install + tests + build
 - `docker compose build` to validate container builds
 
-### Local development prerequisites
+## Local development
+
+### Prerequisites
 
 In order to run our web application, you need to have the following software installed on your system. All are cross-platform
 - npm
@@ -92,7 +94,7 @@ In order to run our web application, you need to have the following software ins
 - PostgreSQL Server
 - Python
 
-### Running the front-end (local)
+### Running the front-end
 
 Beforehand, run `npm install` on the front-end directory to install all dependencies automatically. To then start the front-end interface, run the following command within the front-end root directory:
 
@@ -102,7 +104,7 @@ ng serve –open
 
 This will automatically open up a browser tab showing the UI. It will be running on port 4200 on your localhost. You can also interact with the UI without the back-end, but the recommendation system won’t work.
 
-### Running the back-end & database (local)
+### Running the back-end & database
 
 Similar to the front-end, run `npm install` on the back-end directory for the dependencies. To run the core back-end code, run the following command within the back-end root directory:
 
