@@ -110,6 +110,7 @@
   filter:
     drop-shadow(0 0 18px rgba(255, 52, 24, 0.36))
     saturate(1.12);
+  perspective: 1500px;
 }
 
 .valve-model {
@@ -119,7 +120,6 @@
   --progress-bar-color: transparent;
   --poster-color: transparent;
   transform-origin: 50% 50%;
-  animation: valve-flat-spin 24s linear infinite;
 }
 
 .valve-model-shell {
@@ -132,13 +132,18 @@
 }
 
 .valve-model-shell.is-full-spin {
-  animation: valve-gyro-orbit 6.8s linear infinite;
+  animation: valve-gyro-precession 4.8s linear infinite;
   will-change: transform;
 }
 
 .valve-model.is-full-spin {
   transform-origin: 50% 52%;
-  animation: valve-gyro-wobble 2.8s ease-in-out infinite;
+  animation: valve-gyro-tumble 5.4s linear infinite;
+  will-change: transform;
+}
+
+.valve-model.is-flat-spin {
+  animation: valve-flat-spin 24s linear infinite;
 }
 
 .hero-icon-frame {
@@ -840,36 +845,42 @@ button:focus-visible,
   }
 }
 
-@keyframes valve-gyro-orbit {
+@keyframes valve-gyro-precession {
   0% {
-    transform: rotateX(18deg) rotateY(0deg) rotateZ(-10deg) translateZ(0);
+    transform: rotateX(28deg) rotateY(0deg) rotateZ(-24deg) translate3d(0, 0, 0);
   }
-  25% {
-    transform: rotateX(-16deg) rotateY(90deg) rotateZ(9deg) translateZ(8px);
+  20% {
+    transform: rotateX(-24deg) rotateY(72deg) rotateZ(18deg) translate3d(6px, -2px, 14px);
   }
-  50% {
-    transform: rotateX(20deg) rotateY(180deg) rotateZ(14deg) translateZ(0);
+  40% {
+    transform: rotateX(34deg) rotateY(144deg) rotateZ(-17deg) translate3d(-4px, 3px, -8px);
   }
-  75% {
-    transform: rotateX(-17deg) rotateY(270deg) rotateZ(-12deg) translateZ(-8px);
+  60% {
+    transform: rotateX(-29deg) rotateY(216deg) rotateZ(20deg) translate3d(4px, -4px, 18px);
+  }
+  80% {
+    transform: rotateX(31deg) rotateY(288deg) rotateZ(-19deg) translate3d(-6px, 2px, -10px);
   }
   100% {
-    transform: rotateX(18deg) rotateY(360deg) rotateZ(-10deg) translateZ(0);
+    transform: rotateX(28deg) rotateY(360deg) rotateZ(-24deg) translate3d(0, 0, 0);
   }
 }
 
-@keyframes valve-gyro-wobble {
+@keyframes valve-gyro-tumble {
   0% {
-    transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg) scale(1);
+    transform: rotateX(8deg) rotateY(0deg) rotateZ(0deg) scale(1);
   }
-  35% {
-    transform: rotateX(16deg) rotateY(-18deg) rotateZ(7deg) scale(1.02);
+  25% {
+    transform: rotateX(82deg) rotateY(240deg) rotateZ(36deg) scale(1.02);
   }
-  70% {
-    transform: rotateX(-14deg) rotateY(16deg) rotateZ(-6deg) scale(0.98);
+  50% {
+    transform: rotateX(-58deg) rotateY(480deg) rotateZ(-28deg) scale(0.99);
+  }
+  75% {
+    transform: rotateX(104deg) rotateY(720deg) rotateZ(42deg) scale(1.02);
   }
   100% {
-    transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg) scale(1);
+    transform: rotateX(8deg) rotateY(960deg) rotateZ(0deg) scale(1);
   }
 }
 

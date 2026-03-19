@@ -18,12 +18,14 @@
         @if (valveEnabled) {
             <model-viewer
                 class="toolbar-valve-model"
+                [class.is-full-spin]="valveSpinMode === 'full'"
+                [class.is-flat-spin]="valveSpinMode !== 'full'"
                 src="/models/red-valve.glb"
                 alt=""
                 tabindex="-1"
                 auto-rotate
                 auto-rotate-delay="700"
-                rotation-per-second="38deg"
+                [attr.rotation-per-second]="valveSpinMode === 'full' ? '72deg' : '38deg'"
                 camera-controls
                 disable-zoom
                 disable-pan
