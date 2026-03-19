@@ -25,6 +25,10 @@ This resource list is the exact baseline for LiquidGL behavior replication work 
   - `node ./scripts/liquidgl/verify-parity.mjs`
 - Verify no imitation overlays and enforce layer contract:
   - `node ./scripts/liquidgl/check-contract.mjs`
+- Verify demo-4 baseline card visibility:
+  - `./scripts/liquidgl/run-demo-visibility.sh`
+- Verify app card visibility in forced fallback mode:
+  - `./scripts/liquidgl/run-fallback-visibility.sh`
 - Serve local demos for direct visual inspection:
   - `./scripts/liquidgl/run-demo-server.sh`
 - Local stack smoke checks (`localhost:4200` + `localhost:3000`):
@@ -40,11 +44,13 @@ This resource list is the exact baseline for LiquidGL behavior replication work 
 - Full integration verification (fetch + extract + parity + e2e + build):
   - `./scripts/liquidgl/test-all.sh`
 - Unified command router:
-  - `./scripts/liquidgl/workbench.sh smoke|test|drag|debug|dump|design|all`
+  - `./scripts/liquidgl/workbench.sh smoke|demo|fallback|test|drag|debug|dump|design|all`
 
 ## Generated Artifacts
 - Runtime dump:
   - `artifacts/liquidgl/debug/runtime-state.json`
+- Demo visibility baseline report:
+  - `artifacts/liquidgl/debug/demo-visibility.json`
 - Design captures:
   - `artifacts/liquidgl/design/results-initial.png`
   - `artifacts/liquidgl/design/lens-expanded.png`

@@ -13,6 +13,8 @@ const files = {
   cardCss: path.join(root, 'frontend/src/app/components/game-card/game-card.component.css'),
   cardTs: path.join(root, 'frontend/src/app/components/game-card/game-card.component.ts'),
   dragScript: path.join(root, 'scripts/liquidgl/run-drag-visibility.sh'),
+  demoVisibilityScript: path.join(root, 'scripts/liquidgl/run-demo-visibility.sh'),
+  fallbackSpec: path.join(root, 'frontend/e2e/liquidgl.fallback-visibility.spec.ts'),
 };
 
 const violations = [];
@@ -103,6 +105,12 @@ requireContains(
 
 if (!fs.existsSync(files.dragScript)) {
   violations.push(`Missing drag visibility runner: ${files.dragScript}`);
+}
+if (!fs.existsSync(files.demoVisibilityScript)) {
+  violations.push(`Missing demo visibility runner: ${files.demoVisibilityScript}`);
+}
+if (!fs.existsSync(files.fallbackSpec)) {
+  violations.push(`Missing fallback visibility spec: ${files.fallbackSpec}`);
 }
 
 const imitationTokens = [
