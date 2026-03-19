@@ -117,3 +117,73 @@ test('Route transition fades in and out during query -> results navigation', asy
   expect(finalSample.classes).toBe('route-transition-overlay');
   expect(finalSample.visibility).toBe('hidden');
 });
+
+test('Result card keeps rounded corners and smooth hover transform', async ({ page }) => {
+  const responseBody = [
+    {
+      appId: 10,
+      name: 'Counter-Strike',
+      genres: ['Action'],
+      isFree: true,
+      description: 'Competitive FPS',
+      headerImage: 'https://cdn.example.com/cs.jpg',
+      price: 0,
+    },
+  ];
+
+  await page.route('**/api/search**', (route) => {
+    void route.fulfill({
+      status: 200,
+      contentType: 'application/json; charset=utf-8',
+      headers: { 'access-control-allow-origin': '*' },
+      body: JSON.stringify(responseBody),
+    });
+  });
+
+  await page.route('**/api/recommend/user/**', (route) => {
+    void route.fulfill({
+      status: 200,
+      contentType: 'application/json; charset=utf-8',
+      headers: { 'access-control-allow-origin': '*' },
+      body: JSON.stringify(responseBody),
+    });
+  });
+
+  await page.goto('/');
+  await page.fill('[data-ui-check="keyword-field"] input', 'portal');
+  await page.click('[data-ui-check="search-button"]');
+  await expect(page).toHaveURL(/\/results$/);
+  const card = page.locator('.game-card').first();
+  await card.waitFor();
+  await card.scrollIntoViewIfNeeded();
+
+  const beforeHover = await card.evaluate((el) => {
+    const s = getComputedStyle(el as HTMLElement);
+    return {
+      borderRadius: s.borderRadius,
+      transition: s.transition,
+      transform: s.transform,
+    };
+  });
+
+  await card.hover({ force: true });
+  await page.waitForTimeout(260);
+
+  const duringHover = await card.evaluate((el) => {
+    const s = getComputedStyle(el as HTMLElement);
+    return {
+      hovered: (el as HTMLElement).matches(':hover'),
+      borderRadius: s.borderRadius,
+      transform: s.transform,
+    };
+  });
+
+  const hoverScale = parseScaleFromMatrix(duringHover.transform);
+
+  expect(beforeHover.borderRadius).toBe('20px');
+  expect(beforeHover.transition).toContain('transform 0.54s');
+  expect(duringHover.hovered).toBeTruthy();
+  expect(duringHover.borderRadius).toBe('20px');
+  expect(hoverScale).toBeGreaterThan(1.004);
+  expect(hoverScale).toBeLessThan(1.02);
+});

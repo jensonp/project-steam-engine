@@ -3,6 +3,7 @@
   height: auto;
   contain: layout style;
   overflow: visible;
+  --game-card-radius: 20px;
 }
 
 .card-link {
@@ -11,16 +12,20 @@
   height: auto;
   color: inherit;
   cursor: pointer;
+  border-radius: var(--game-card-radius);
+  transform: translateZ(0);
 }
 
 .game-card {
+  --mdc-elevated-card-container-shape: var(--game-card-radius);
+  --mdc-outlined-card-container-shape: var(--game-card-radius);
   position: relative;
   display: grid;
   grid-template-columns: minmax(220px, 34%) minmax(0, 1fr);
   min-height: 232px;
-  border-radius: 20px;
+  border-radius: var(--game-card-radius) !important;
   overflow: hidden;
-  -webkit-mask-image: -webkit-radial-gradient(white, black);
+  clip-path: inset(0 round var(--game-card-radius));
   border: 1px solid var(--neo-border);
   background:
     linear-gradient(180deg, rgba(255, 87, 56, 0.08), transparent 44%),
@@ -29,12 +34,16 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.04),
     0 8px 24px rgba(0, 0, 0, 0.26);
   transition:
-    transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1),
-    border-color 0.4s ease,
-    box-shadow 0.5s ease,
-    background-color 0.4s ease;
-  transform: translateZ(0);
+    transform 0.54s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.42s ease,
+    box-shadow 0.54s ease,
+    background-color 0.42s ease,
+    border-radius 0.36s ease;
+  transform: translate3d(0, 0, 0) scale(1);
+  transform-origin: center;
   backface-visibility: hidden;
+  will-change: transform;
+  isolation: isolate;
 }
 
 .game-card::before {
@@ -65,8 +74,8 @@
 }
 
 .game-card:hover {
-  transform: translate3d(0, -3px, 0) scale(1.015);
-  will-change: transform;
+  border-radius: var(--game-card-radius) !important;
+  transform: translate3d(0, -3px, 0) scale(1.008);
   border-color: rgba(255, 87, 56, 0.52);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.04),
@@ -84,9 +93,8 @@
   height: 100%;
   min-height: 232px;
   overflow: hidden;
-  border-top-left-radius: 20px;
-  border-bottom-left-radius: 20px;
-  -webkit-mask-image: -webkit-radial-gradient(white, black);
+  border-top-left-radius: var(--game-card-radius);
+  border-bottom-left-radius: var(--game-card-radius);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -133,12 +141,12 @@
   height: 100%;
   object-fit: cover;
   object-position: center left;
-  border-top-left-radius: 20px;
-  border-bottom-left-radius: 20px;
+  border-top-left-radius: var(--game-card-radius);
+  border-bottom-left-radius: var(--game-card-radius);
   opacity: 0;
   transition:
     opacity 0.6s ease-out,
-    transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1),
+    transform 0.75s cubic-bezier(0.16, 1, 0.3, 1),
     filter 0.5s ease;
   filter: saturate(0.94) brightness(0.94);
 }
@@ -214,14 +222,15 @@ mat-card-content {
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   line-clamp: 2;
+  transform: translate3d(0, 0, 0);
   transition:
-    color 0.3s ease,
-    transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+    color 0.34s ease,
+    transform 0.56s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .game-card:hover .game-title {
   color: #fff;
-  transform: translateX(4px);
+  transform: translate3d(3px, 0, 0);
 }
 
 .steam-link-hint {
@@ -233,17 +242,17 @@ mat-card-content {
   letter-spacing: 0.1em;
   text-transform: uppercase;
   opacity: 0.86;
-  transform: translateX(0);
+  transform: translate3d(0, 0, 0);
   transition:
-    transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1),
-    opacity 0.3s ease,
-    color 0.3s ease;
+    transform 0.56s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.34s ease,
+    color 0.34s ease;
 }
 
 .game-card:hover .steam-link-hint {
   opacity: 1;
   color: var(--neo-primary-strong);
-  transform: translateX(4px);
+  transform: translate3d(3px, 0, 0);
 }
 
 .game-details {
@@ -366,11 +375,11 @@ mat-card-content {
     min-height: 172px;
     height: 172px;
     padding: 0;
-    border-radius: 20px 20px 0 0;
+    border-radius: var(--game-card-radius) var(--game-card-radius) 0 0;
   }
 
   .game-img {
-    border-radius: 20px 20px 0 0;
+    border-radius: var(--game-card-radius) var(--game-card-radius) 0 0;
   }
 
   .game-image::after {
@@ -392,15 +401,41 @@ mat-card-content {
 
 @media (prefers-reduced-motion: reduce) {
   .game-card,
-  .game-img,
   .game-card::before,
   .game-card::after,
   .game-image::before,
   .steam-link-hint,
   .genres mat-chip,
-  .game-title {
+  .game-title,
+  .game-img {
     animation: none !important;
-    transition: none !important;
+  }
+
+  .game-card {
+    transition:
+      border-color 0.28s ease,
+      box-shadow 0.28s ease,
+      background-color 0.28s ease !important;
+  }
+
+  .game-card:hover {
+    transform: none !important;
+  }
+
+  .game-title,
+  .steam-link-hint {
+    transition:
+      color 0.24s ease,
+      opacity 0.24s ease !important;
+    transform: none !important;
+  }
+
+  .game-img {
+    transition: opacity 0.28s ease, filter 0.28s ease !important;
+  }
+
+  .game-card:hover .game-img.loaded {
+    transform: none !important;
   }
 }
 
