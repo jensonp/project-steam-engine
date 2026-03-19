@@ -132,6 +132,7 @@
   --progress-bar-color: transparent;
   --poster-color: transparent;
   transform-origin: 50% 50%;
+  transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg) scale(1);
   overflow: visible;
 }
 
@@ -150,6 +151,7 @@
   display: block;
   transform-style: preserve-3d;
   transform-origin: 50% 52%;
+  transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg);
   perspective: 980px;
   overflow: visible;
 }
@@ -164,8 +166,10 @@
   will-change: transform;
 }
 
-.valve-model.is-flat-spin {
-  animation: valve-flat-spin 24s linear infinite;
+.valve-model-shell.is-returning,
+.valve-model.is-returning {
+  animation: none !important;
+  will-change: transform;
 }
 
 .hero-icon-frame {
@@ -856,15 +860,6 @@ button:focus-visible,
   color: #ffd2c8;
   font-size: 0.82rem;
   letter-spacing: 0.02em;
-}
-
-@keyframes valve-flat-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
 }
 
 @keyframes valve-gyro-orbit {

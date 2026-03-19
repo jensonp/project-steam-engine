@@ -15,6 +15,10 @@ import { Overlay } from '@angular/cdk/overlay';
 
 type SearchOs = '' | 'windows' | 'mac' | 'linux';
 type ValveSpinMode = 'flat' | 'full';
+type ValveReturnTransforms = {
+  shellTransform: string;
+  modelTransform: string;
+};
 
 @Component({
   selector: 'app-query-screen',
@@ -84,6 +88,7 @@ export class QueryScreen implements OnInit, OnDestroy {
   isProfileClearing = false;
   valveBackdropEnabled = true;
   valveSpinMode: ValveSpinMode = 'flat';
+  isValveReturningToRest = false;
   valveOpacity = 0.84;
   private focusUpdateTimeoutId: number | null = null;
   private valveScrollRafId: number | null = null;
@@ -354,11 +359,96 @@ export class QueryScreen implements OnInit, OnDestroy {
     if (!(event instanceof CustomEvent)) return;
     const nextMode = event.detail;
     if (nextMode !== 'flat' && nextMode !== 'full') return;
+
+    const shouldAnimateReturn =
+      this.valveSpinMode === 'full' &&
+      nextMode === 'flat' &&
+      !this.prefersReducedMotion;
+
+    const returnTransforms = shouldAnimateReturn ? this.captureValveTransforms() : null;
+
     this.ngZone.run(() => {
       this.valveSpinMode = nextMode;
       this.cdr.markForCheck();
     });
+
+    if (shouldAnimateReturn && returnTransforms) {
+      this.animateValveReturnToRest(returnTransforms);
+    }
   };
+
+  private captureValveTransforms(): ValveReturnTransforms | null {
+    if (typeof document === 'undefined') return null;
+
+    const shell = document.querySelector('.valve-model-shell') as HTMLElement | null;
+    const model = document.querySelector('.valve-model') as HTMLElement | null;
+    if (!shell || !model) return null;
+
+    const shellComputed = getComputedStyle(shell).transform;
+    const modelComputed = getComputedStyle(model).transform;
+
+    return {
+      shellTransform:
+        shellComputed === 'none' ? 'rotateX(0deg) rotateY(0deg) rotateZ(0deg)' : shellComputed,
+      modelTransform:
+        modelComputed === 'none'
+          ? 'rotateX(0deg) rotateY(0deg) rotateZ(0deg) scale(1)'
+          : modelComputed,
+    };
+  }
+
+  private animateValveReturnToRest(transforms: ValveReturnTransforms): void {
+    if (typeof window === 'undefined') return;
+
+    this.ngZone.run(() => {
+      this.isValveReturningToRest = true;
+      this.cdr.markForCheck();
+    });
+
+    this.ngZone.runOutsideAngular(() => {
+      window.requestAnimationFrame(() => {
+        const shell = document.querySelector('.valve-model-shell') as HTMLElement | null;
+        const model = document.querySelector('.valve-model') as HTMLElement | null;
+
+        if (!shell || !model) {
+          this.ngZone.run(() => {
+            this.isValveReturningToRest = false;
+            this.cdr.markForCheck();
+          });
+          return;
+        }
+
+        const timing: KeyframeAnimationOptions = {
+          duration: 620,
+          easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+          fill: 'forwards',
+        };
+
+        const shellAnimation = shell.animate(
+          [
+            { transform: transforms.shellTransform },
+            { transform: 'rotateX(0deg) rotateY(0deg) rotateZ(0deg)' },
+          ],
+          timing
+        );
+
+        const modelAnimation = model.animate(
+          [
+            { transform: transforms.modelTransform },
+            { transform: 'rotateX(0deg) rotateY(0deg) rotateZ(0deg) scale(1)' },
+          ],
+          timing
+        );
+
+        Promise.allSettled([shellAnimation.finished, modelAnimation.finished]).finally(() => {
+          this.ngZone.run(() => {
+            this.isValveReturningToRest = false;
+            this.cdr.markForCheck();
+          });
+        });
+      });
+    });
+  }
 
   private updateValveOpacity(): void {
     const nextOpacity = this.computeValveOpacity();
