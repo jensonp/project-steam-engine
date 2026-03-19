@@ -157,6 +157,11 @@
   will-change: transform;
 }
 
+.valve-model.is-flat-spin {
+  animation: valve-flat-spin 24s linear infinite;
+  will-change: transform;
+}
+
 .valve-model-shell.is-returning,
 .valve-model.is-returning {
   animation: none !important;
@@ -851,6 +856,15 @@ button:focus-visible,
   color: #ffd2c8;
   font-size: 0.82rem;
   letter-spacing: 0.02em;
+}
+
+@keyframes valve-flat-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes valve-gyro-orbit {

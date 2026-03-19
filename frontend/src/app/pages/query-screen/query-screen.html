@@ -20,6 +20,7 @@
                     <model-viewer
                         class="valve-model"
                         [class.is-full-spin]="valveSpinMode === 'full'"
+                        [class.is-flat-spin]="valveSpinMode !== 'full'"
                         [class.is-returning]="isValveReturningToRest"
                         src="/models/red-valve.glb"
                         alt=""
