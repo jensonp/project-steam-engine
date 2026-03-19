@@ -18,15 +18,14 @@
     @if (results && results.length > 0) {
         <button
             type="button"
-            class="liquid-magnifier-button"
+            class="shape liquid-shape-trigger"
             [class.is-expanded]="magnifierExpanded"
             [attr.aria-pressed]="magnifierExpanded"
             [attr.aria-label]="magnifierExpanded ? 'Collapse liquid magnifier lens' : 'Expand liquid magnifier lens'"
             data-ui-check="liquid-magnifier-button"
             (click)="toggleLiquidMagnifier()"
             (transitionend)="onMagnifierTransitionEnd($event)">
-            <span class="magnifier-ring" aria-hidden="true"></span>
-            <span class="magnifier-label">{{ magnifierExpanded ? 'Collapse Lens' : 'Lens' }}</span>
+            <span class="shape-label" aria-hidden="true">{{ magnifierExpanded ? 'close lens' : 'open lens' }}</span>
         </button>
 
         <div class="results-container">

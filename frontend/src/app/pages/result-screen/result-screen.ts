@@ -366,8 +366,8 @@ export class ResultScreen implements OnInit, AfterViewInit, OnDestroy {
     this.destroyLiquidRenderer();
     delete (window as { __liquidGLNoWebGL__?: boolean }).__liquidGLNoWebGL__;
 
-    const target = document.querySelector('.liquid-magnifier-button')
-      ? '.results-container .game-card, .liquid-magnifier-button'
+    const target = document.querySelector('.liquid-shape-trigger')
+      ? '.results-container .game-card, .liquid-shape-trigger'
       : '.results-container .game-card';
 
     const created = w.liquidGL({
@@ -407,7 +407,7 @@ export class ResultScreen implements OnInit, AfterViewInit, OnDestroy {
       this.setLiquidActiveClass(false);
     }
 
-    const totalTargetCount = cardCount + (document.querySelector('.liquid-magnifier-button') ? 1 : 0);
+    const totalTargetCount = cardCount + (document.querySelector('.liquid-shape-trigger') ? 1 : 0);
     this.verifyLiquidChecks(totalTargetCount, lensList.length);
 
     w.liquidGL.syncWith?.({

@@ -3,30 +3,35 @@
   z-index: 1;
   padding: 1rem 0.25rem 1.5rem;
   min-height: calc(100vh - 130px);
-  animation: results-fade 360ms ease-out;
+  animation: results-fade 360ms ease-out both;
 }
 
-.liquid-magnifier-button {
+/* Directly aligned with liquidGL demo-5 source .shape lens block. */
+.shape {
   position: fixed;
-  top: 86px;
-  right: 14px;
-  width: 68px;
-  height: 68px;
-  border-radius: 999px;
-  border: 1px solid rgba(244, 236, 224, 0.26);
+  top: 10vw;
+  left: 10vw;
+  width: calc(100vw - 20vw);
+  height: calc(100vh - 20vw);
+  border-radius: 2vw;
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
+  will-change: transform;
+  pointer-events: auto;
+  z-index: 9999;
+}
+
+.liquid-shape-trigger {
+  border: 1px solid rgba(244, 236, 224, 0.24);
   color: #f4ece0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  flex-direction: column;
-  gap: 0.2rem;
   cursor: pointer;
-  z-index: 11200;
+  overflow: hidden;
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
     0 12px 28px rgba(0, 0, 0, 0.34);
   transition:
     top 0.5s cubic-bezier(0.2, 0.8, 0.2, 1),
@@ -38,73 +43,42 @@
     transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1),
     border-color 0.3s ease,
     box-shadow 0.3s ease;
-  overflow: hidden;
 }
 
-.liquid-magnifier-button:hover {
+.liquid-shape-trigger:not(.is-expanded) {
+  position: fixed;
+  top: 86px;
+  right: 14px;
+  left: auto;
+  width: 68px;
+  height: 68px;
+  border-radius: 999px;
+  z-index: 11200;
+  transform: none;
+}
+
+.liquid-shape-trigger:hover {
   border-color: rgba(244, 236, 224, 0.44);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.28),
     0 14px 32px rgba(0, 0, 0, 0.42);
 }
 
-.magnifier-ring {
-  width: 22px;
-  height: 22px;
-  border: 2px solid rgba(244, 236, 224, 0.96);
-  border-radius: 999px;
-  position: relative;
-  pointer-events: none;
-}
-
-.magnifier-ring::after {
-  content: '';
-  position: absolute;
-  width: 10px;
-  height: 2px;
-  right: -7px;
-  bottom: -2px;
-  border-radius: 999px;
-  background: rgba(244, 236, 224, 0.96);
-  transform: rotate(40deg);
-  transform-origin: center;
-}
-
-.magnifier-label {
+.shape-label {
   font-family: 'IBM Plex Mono', monospace;
-  font-size: 0.58rem;
+  font-size: 0.56rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(244, 236, 224, 0.92);
+  color: rgba(244, 236, 224, 0.94);
   white-space: nowrap;
   pointer-events: none;
 }
 
-.liquid-magnifier-button.is-expanded {
-  top: 10vw;
-  left: 10vw;
-  right: auto;
-  width: calc(100vw - 20vw);
-  height: calc(100vh - 20vw);
-  border-radius: 2vw;
+.liquid-shape-trigger.is-expanded {
+  z-index: 9999;
 }
 
-.liquid-magnifier-button.is-expanded .magnifier-ring {
-  position: absolute;
-  top: 18px;
-  right: 16px;
-  width: 28px;
-  height: 28px;
-  border-width: 2px;
-}
-
-.liquid-magnifier-button.is-expanded .magnifier-ring::after {
-  width: 12px;
-  height: 2px;
-  right: -8px;
-}
-
-.liquid-magnifier-button.is-expanded .magnifier-label {
+.liquid-shape-trigger.is-expanded .shape-label {
   position: absolute;
   top: 20px;
   left: 18px;
@@ -385,20 +359,23 @@
 }
 
 @media (max-width: 700px) {
-  .liquid-magnifier-button {
-    top: 90px;
-    right: 8px;
-    width: 58px;
-    height: 58px;
-  }
-
-  .liquid-magnifier-button.is-expanded {
+  .shape {
     top: 50%;
     left: 50%;
-    width: 80vw;
-    height: 50vh;
-    border-radius: 4vw;
     transform: translate(-50%, -50%);
+    width: calc(80vw);
+    height: calc(50vh);
+    border-radius: 4vw;
+  }
+
+  .liquid-shape-trigger:not(.is-expanded) {
+    top: 90px;
+    right: 8px;
+    left: auto;
+    width: 58px;
+    height: 58px;
+    transform: none;
+    border-radius: 999px;
   }
 
   .result-header {
@@ -424,7 +401,7 @@
   .result-header,
   .result-meta,
   .results-container app-game-card,
-  .liquid-magnifier-button,
+  .liquid-shape-trigger,
   .back-button,
   .empty-state {
     animation: none !important;
