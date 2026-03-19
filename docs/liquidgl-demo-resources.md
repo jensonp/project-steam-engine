@@ -27,6 +27,8 @@ This resource list is the exact baseline for LiquidGL behavior replication work 
   - `node ./scripts/liquidgl/check-contract.mjs`
 - Serve local demos for direct visual inspection:
   - `./scripts/liquidgl/run-demo-server.sh`
+- Drag lens and verify text visibility is preserved:
+  - `./scripts/liquidgl/run-drag-visibility.sh`
 - Full integration verification (fetch + extract + parity + e2e + build):
   - `./scripts/liquidgl/test-all.sh`
 

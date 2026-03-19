@@ -12,6 +12,7 @@ const files = {
   cardHtml: path.join(root, 'frontend/src/app/components/game-card/game-card.component.html'),
   cardCss: path.join(root, 'frontend/src/app/components/game-card/game-card.component.css'),
   cardTs: path.join(root, 'frontend/src/app/components/game-card/game-card.component.ts'),
+  dragScript: path.join(root, 'scripts/liquidgl/run-drag-visibility.sh'),
 };
 
 const violations = [];
@@ -71,6 +72,11 @@ requireContains(
 );
 requireContains(
   resultHtml,
+  '(pointerdown)="onMagnifierPointerDown($event)"',
+  'result-screen.html'
+);
+requireContains(
+  resultHtml,
   'class="marquee-card result-card"',
   'result-screen.html'
 );
@@ -84,6 +90,20 @@ requireContains(
   '.marquee-content',
   'result-screen.css'
 );
+requireContains(
+  resultTs,
+  'onMagnifierPointerDown(event: PointerEvent): void',
+  'result-screen.ts'
+);
+requireContains(
+  resultTs,
+  'onMagnifierClick(event: MouseEvent): void',
+  'result-screen.ts'
+);
+
+if (!fs.existsSync(files.dragScript)) {
+  violations.push(`Missing drag visibility runner: ${files.dragScript}`);
+}
 
 const imitationTokens = [
   'liquid-shell',

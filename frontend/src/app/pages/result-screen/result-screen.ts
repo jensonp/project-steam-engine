@@ -86,6 +86,9 @@ export class ResultScreen implements OnInit, AfterViewInit, OnDestroy {
   visibleResults: Game[] = [];
   liquidDiagnostics: string | null = null;
   magnifierExpanded = false;
+  magnifierDragging = false;
+  magnifierTopPx: number | null = null;
+  magnifierLeftPx: number | null = null;
   private readonly subs = new Subscription();
   private renderFrameId: number | null = null;
   private readonly renderBatchSize = 6;
@@ -102,6 +105,13 @@ export class ResultScreen implements OnInit, AfterViewInit, OnDestroy {
   private readonly maxLiquidRetries = 8;
   private scrollRenderListener: (() => void) | null = null;
   private mouseRenderListener: (() => void) | null = null;
+  private dragPointerId: number | null = null;
+  private dragOffsetX = 0;
+  private dragOffsetY = 0;
+  private dragMoved = false;
+  private suppressMagnifierToggle = false;
+  private readonly boundMagnifierPointerMove = (event: PointerEvent) => this.onMagnifierPointerMove(event);
+  private readonly boundMagnifierPointerUp = (event: PointerEvent) => this.onMagnifierPointerUp(event);
 
   constructor(
     private router: Router,
@@ -178,12 +188,16 @@ export class ResultScreen implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.cancelRenderFrame();
+    this.cleanupMagnifierDrag();
     this.teardownLiquidGl();
     this.subs.unsubscribe();
   }
 
   toggleLiquidMagnifier(): void {
     this.magnifierExpanded = !this.magnifierExpanded;
+    if (!this.magnifierExpanded) {
+      this.cleanupMagnifierDrag();
+    }
     this.cdr.markForCheck();
 
     this.ngZone.runOutsideAngular(() => {
@@ -192,6 +206,70 @@ export class ResultScreen implements OnInit, AfterViewInit, OnDestroy {
         this.renderLiquidNow();
         this.scheduleLiquidBootstrap();
       }, 360);
+    });
+  }
+
+  onMagnifierClick(event: MouseEvent): void {
+    if (this.suppressMagnifierToggle) {
+      this.suppressMagnifierToggle = false;
+      event.preventDefault();
+      return;
+    }
+    this.toggleLiquidMagnifier();
+  }
+
+  onMagnifierPointerDown(event: PointerEvent): void {
+    if (!this.magnifierExpanded || event.button !== 0) return;
+    const target = event.currentTarget as HTMLElement | null;
+    if (!target) return;
+
+    const rect = target.getBoundingClientRect();
+    this.dragPointerId = event.pointerId;
+    this.dragOffsetX = event.clientX - rect.left;
+    this.dragOffsetY = event.clientY - rect.top;
+    this.dragMoved = false;
+    this.magnifierDragging = true;
+    target.setPointerCapture?.(event.pointerId);
+
+    window.addEventListener('pointermove', this.boundMagnifierPointerMove, { passive: true });
+    window.addEventListener('pointerup', this.boundMagnifierPointerUp, { passive: true });
+    window.addEventListener('pointercancel', this.boundMagnifierPointerUp, { passive: true });
+    this.cdr.markForCheck();
+  }
+
+  private onMagnifierPointerMove(event: PointerEvent): void {
+    if (!this.magnifierDragging || event.pointerId !== this.dragPointerId) return;
+
+    const shape = document.querySelector<HTMLElement>('.liquid-shape-trigger');
+    const shapeWidth = shape?.offsetWidth ?? 0;
+    const shapeHeight = shape?.offsetHeight ?? 0;
+    const maxLeft = Math.max(0, window.innerWidth - shapeWidth);
+    const maxTop = Math.max(0, window.innerHeight - shapeHeight);
+
+    const nextLeft = this.clamp(event.clientX - this.dragOffsetX, 0, maxLeft);
+    const nextTop = this.clamp(event.clientY - this.dragOffsetY, 0, maxTop);
+    const prevLeft = this.magnifierLeftPx ?? nextLeft;
+    const prevTop = this.magnifierTopPx ?? nextTop;
+
+    if (Math.hypot(nextLeft - prevLeft, nextTop - prevTop) > 2) {
+      this.dragMoved = true;
+    }
+
+    this.magnifierLeftPx = nextLeft;
+    this.magnifierTopPx = nextTop;
+    this.cdr.markForCheck();
+    this.renderLiquidNow();
+  }
+
+  private onMagnifierPointerUp(event: PointerEvent): void {
+    if (this.dragPointerId !== null && event.pointerId !== this.dragPointerId) return;
+    const moved = this.dragMoved;
+    this.cleanupMagnifierDrag();
+    if (moved) {
+      this.suppressMagnifierToggle = true;
+    }
+    this.ngZone.runOutsideAngular(() => {
+      window.requestAnimationFrame(() => this.renderLiquidNow());
     });
   }
 
@@ -214,6 +292,7 @@ export class ResultScreen implements OnInit, AfterViewInit, OnDestroy {
 
     if (!this.results.length) {
       this.magnifierExpanded = false;
+      this.cleanupMagnifierDrag();
       this.teardownLiquidGl();
       this.cdr.markForCheck();
       return;
@@ -621,6 +700,7 @@ export class ResultScreen implements OnInit, AfterViewInit, OnDestroy {
 
   private teardownLiquidGl(): void {
     if (typeof window === 'undefined') return;
+    this.cleanupMagnifierDrag();
     if (this.liquidInitTimer !== null) {
       window.clearTimeout(this.liquidInitTimer);
       this.liquidInitTimer = null;
@@ -635,6 +715,19 @@ export class ResultScreen implements OnInit, AfterViewInit, OnDestroy {
     this.setLiquidActiveClass(false);
     this.setLiquidDiagnostics(null);
     this.liquidBootstrapped = false;
+  }
+
+  private cleanupMagnifierDrag(): void {
+    const wasDragging = this.magnifierDragging;
+    this.magnifierDragging = false;
+    this.dragPointerId = null;
+    this.dragMoved = false;
+    window.removeEventListener('pointermove', this.boundMagnifierPointerMove);
+    window.removeEventListener('pointerup', this.boundMagnifierPointerUp);
+    window.removeEventListener('pointercancel', this.boundMagnifierPointerUp);
+    if (wasDragging) {
+      this.cdr.markForCheck();
+    }
   }
 
   private setLiquidActiveClass(active: boolean): void {
@@ -698,5 +791,9 @@ export class ResultScreen implements OnInit, AfterViewInit, OnDestroy {
   private shouldAcceptSource(source: ResultSource): boolean {
     if (!this.activeResultSource) return true;
     return this.activeResultSource === source;
+  }
+
+  private clamp(value: number, min: number, max: number): number {
+    return Math.min(max, Math.max(min, value));
   }
 }

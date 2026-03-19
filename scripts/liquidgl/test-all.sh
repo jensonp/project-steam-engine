@@ -36,7 +36,7 @@ echo "[4/6] Verifying layer + no-imitation contract..."
 echo "[5/6] Running liquidGL UI tests..."
 (
   cd "$FRONTEND_DIR"
-  "$NPM_BIN" run ui:check -- e2e/liquidgl.results.spec.ts e2e/liquidgl.layering.spec.ts
+  "$NPM_BIN" run ui:check -- e2e/liquidgl.results.spec.ts e2e/liquidgl.layering.spec.ts e2e/liquidgl.drag-visibility.spec.ts
 )
 
 echo "[6/6] Building frontend..."

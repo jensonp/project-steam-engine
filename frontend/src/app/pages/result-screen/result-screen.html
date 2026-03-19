@@ -20,10 +20,16 @@
             type="button"
             class="shape liquid-shape-trigger"
             [class.is-expanded]="magnifierExpanded"
+            [class.is-dragging]="magnifierDragging"
             [attr.aria-pressed]="magnifierExpanded"
             [attr.aria-label]="magnifierExpanded ? 'Collapse liquid magnifier lens' : 'Expand liquid magnifier lens'"
+            [style.top.px]="magnifierExpanded && magnifierTopPx !== null ? magnifierTopPx : null"
+            [style.left.px]="magnifierExpanded && magnifierLeftPx !== null ? magnifierLeftPx : null"
+            [style.right]="magnifierExpanded && magnifierLeftPx !== null ? 'auto' : null"
+            [style.transform]="magnifierExpanded && magnifierTopPx !== null ? 'none' : null"
             data-ui-check="liquid-magnifier-button"
-            (click)="toggleLiquidMagnifier()"
+            (pointerdown)="onMagnifierPointerDown($event)"
+            (click)="onMagnifierClick($event)"
             (transitionend)="onMagnifierTransitionEnd($event)">
             <span class="shape-label" aria-hidden="true">{{ magnifierExpanded ? 'close lens' : 'open lens' }}</span>
         </button>

@@ -76,6 +76,10 @@
 
 .liquid-shape-trigger.is-expanded {
   z-index: 96;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
 }
 
 .liquid-shape-trigger.is-expanded .shape-label {
@@ -84,6 +88,13 @@
   left: 18px;
   font-size: 0.64rem;
   letter-spacing: 0.16em;
+}
+
+.liquid-shape-trigger.is-expanded.is-dragging {
+  cursor: grabbing;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .result-header {
