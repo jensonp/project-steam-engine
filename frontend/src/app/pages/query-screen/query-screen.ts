@@ -109,7 +109,7 @@ export class QueryScreen implements OnInit, OnDestroy {
   private readonly valveBackdropEventName = 'pse:valveBackdropChanged';
   private readonly valveSpinModeStorageKey = 'ui.query.valveSpinMode';
   private readonly valveSpinModeEventName = 'pse:valveSpinModeChanged';
-  private readonly valveDefaultCameraOrbit = '0deg 78deg 3.9m';
+  private readonly valveDefaultCameraOrbit = '0deg 80deg 5.8m';
   private readonly valveDefaultOrientation = '0deg 0deg 0deg';
   private readonly runValveGyroStep = (timestampMs: number) => this.stepValveGyro(timestampMs);
 
@@ -510,12 +510,12 @@ export class QueryScreen implements OnInit, OnDestroy {
     }
 
     const elapsedSeconds = Math.max((timestampMs - this.valveGyroStartTimeMs) / 1000, 0);
-    const orbitAzimuthDeg = (elapsedSeconds * 112) % 360;
-    const orbitPolarDeg = 78 + Math.sin(elapsedSeconds * 1.4) * 12 + Math.sin(elapsedSeconds * 0.58) * 4;
-    const orbitRadiusMeters = 3.9 + Math.sin(elapsedSeconds * 0.92) * 0.14;
-    const pitchDeg = Math.sin(elapsedSeconds * 1.78) * 10;
-    const yawDeg = (elapsedSeconds * 138) % 360;
-    const rollDeg = Math.cos(elapsedSeconds * 1.22) * 8;
+    const orbitAzimuthDeg = (elapsedSeconds * 76) % 360;
+    const orbitPolarDeg = 80 + Math.sin(elapsedSeconds * 1.26) * 6 + Math.sin(elapsedSeconds * 0.51) * 2;
+    const orbitRadiusMeters = 5.8 + Math.sin(elapsedSeconds * 0.84) * 0.08;
+    const pitchDeg = Math.sin(elapsedSeconds * 1.52) * 4.2;
+    const yawDeg = (elapsedSeconds * 88) % 360;
+    const rollDeg = Math.cos(elapsedSeconds * 1.08) * 3.6;
 
     this.setValveModelPose(
       modelViewer,

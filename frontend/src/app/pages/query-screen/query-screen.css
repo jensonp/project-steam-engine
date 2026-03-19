@@ -88,11 +88,11 @@
 
 .valve-layer {
   position: absolute;
-  top: -34%;
-  left: 55%;
-  width: min(42vw, 460px);
+  top: -30%;
+  left: 60%;
+  width: min(30vw, 320px);
   aspect-ratio: 1 / 1;
-  transform: translateX(-50%) scale(0.86);
+  transform: translateX(-50%) scale(0.94);
   pointer-events: none;
   z-index: 0;
   opacity: 0;
@@ -1230,9 +1230,9 @@ button:focus-visible,
   }
 
   .valve-layer {
-    top: -26%;
-    left: 54%;
-    width: min(68vw, 340px);
+    top: -21%;
+    left: 58%;
+    width: min(56vw, 250px);
   }
 
   .hero-main {
