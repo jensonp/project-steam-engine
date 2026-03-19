@@ -504,6 +504,10 @@ export class QueryScreen implements OnInit, OnDestroy {
       this.valveGyroRafId = window.requestAnimationFrame(this.runValveGyroStep);
       return;
     }
+    if (!this.isValveModelViewerReady(modelViewer)) {
+      this.valveGyroRafId = window.requestAnimationFrame(this.runValveGyroStep);
+      return;
+    }
 
     const elapsedSeconds = Math.max((timestampMs - this.valveGyroStartTimeMs) / 1000, 0);
     const orbitAzimuthDeg = (elapsedSeconds * 112) % 360;
@@ -535,8 +539,6 @@ export class QueryScreen implements OnInit, OnDestroy {
     cameraOrbit: string,
     orientation: string
   ): void {
-    modelViewer.setAttribute('camera-orbit', cameraOrbit);
-    modelViewer.setAttribute('orientation', orientation);
     modelViewer.cameraOrbit = cameraOrbit;
     modelViewer.orientation = orientation;
   }
@@ -544,7 +546,13 @@ export class QueryScreen implements OnInit, OnDestroy {
   private resetValveModelPose(): void {
     const modelViewer = this.getValveModelViewer();
     if (!modelViewer) return;
+    if (!this.isValveModelViewerReady(modelViewer)) return;
     this.setValveModelPose(modelViewer, this.valveDefaultCameraOrbit, this.valveDefaultOrientation);
+  }
+
+  private isValveModelViewerReady(modelViewer: ValveModelViewerElement): boolean {
+    const viewer = modelViewer as ValveModelViewerElement & { loaded?: boolean; model?: unknown };
+    return Boolean(viewer.loaded && viewer.model);
   }
 
   private scrollToCenter(selector: string): void {
