@@ -327,7 +327,7 @@ h1 {
   margin: 0;
   color: var(--neo-muted);
   line-height: 1.6;
-  max-width: 42rem;
+  max-width: none;
   font-size: 0.94rem;
   animation: text-reveal 600ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
   animation-delay: 320ms;

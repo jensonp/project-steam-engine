@@ -49,7 +49,10 @@
                     <span>Filter.</span>
                 </div>
 
-                <p class="subtitle">Filter the storefront through a darker editorial interface. Run a direct search, or load a Steam profile to bias results toward your own library patterns.</p>
+                <p class="subtitle">
+                    Filter the storefront through a darker editorial interface.<br>
+                    Run a direct search, or load a Steam profile to bias results toward your own library patterns.
+                </p>
             </div>
         </div>
     </div>
@@ -65,7 +68,7 @@
 
         <form class="query-form" (ngSubmit)="onQuery()" novalidate>
             <div class="steam-section" data-ui-check="steam-section">
-                <mat-form-field appearance="outline" class="steam-field" data-ui-check="steam-field">
+                <mat-form-field appearance="outline" floatLabel="always" class="steam-field" data-ui-check="steam-field">
                     <mat-label>Steam ID</mat-label>
                     <input
                         matInput
@@ -128,7 +131,7 @@
             }
 
             <div class="filter-row" data-ui-check="genre-player-row">
-                <mat-form-field appearance="outline" class="search-field" data-ui-check="genre-field">
+                <mat-form-field appearance="outline" floatLabel="always" class="search-field" data-ui-check="genre-field">
                     <mat-label>Genre</mat-label>
                     <mat-select
                         name="genres"
@@ -214,7 +217,7 @@
             }
 
             <div class="keyword-row">
-                <mat-form-field appearance="outline" class="search-form" data-ui-check="keyword-field">
+                <mat-form-field appearance="outline" floatLabel="always" class="search-form" data-ui-check="keyword-field">
                     <mat-label>Keywords</mat-label>
                     <input
                         matInput
