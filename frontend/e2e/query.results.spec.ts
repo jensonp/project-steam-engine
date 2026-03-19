@@ -44,32 +44,26 @@ async function resetLocalState(page: import('@playwright/test').Page): Promise<v
   });
 }
 
-test('suggest button hover shows katana cursor', async ({ page }) => {
+test('suggest button hover uses crowbar cursor', async ({ page }) => {
   await resetLocalState(page);
   await page.goto('/');
   await page.waitForSelector('[data-ui-check="search-button"]');
 
   await page.hover('[data-ui-check="search-button"]');
 
-  const katana = page.locator('.katana-cursor');
-  await expect(katana).toHaveCount(1);
-
-  const backgroundImage = await katana.evaluate(el => getComputedStyle(el).backgroundImage);
-  expect(backgroundImage).toContain('katana-cursor.png');
+  const cursorValue = await page
+    .locator('[data-ui-check="search-button"]')
+    .evaluate(el => getComputedStyle(el).cursor);
+  expect(cursorValue).toContain('crowbar-cursor.svg');
 });
 
-test('suggest button press triggers launch animation class', async ({ page }) => {
+test('suggest button hover does not render legacy katana overlay', async ({ page }) => {
   await resetLocalState(page);
   await page.goto('/');
   await page.waitForSelector('[data-ui-check="search-button"]');
 
-  await page.dispatchEvent('[data-ui-check="search-button"]', 'pointerdown', {
-    pointerType: 'mouse',
-    clientX: 640,
-    clientY: 520,
-  });
-
-  await expect(page.locator('[data-ui-check="search-button"]')).toHaveClass(/is-firing/);
+  await page.hover('[data-ui-check="search-button"]');
+  await expect(page.locator('.katana-cursor')).toHaveCount(0);
 });
 
 test('query flow renders result cards from /api/search response', async ({ page }) => {

@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="shaft" x1="12" y1="54" x2="56" y2="12" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#8f0f0f"/>
+      <stop offset="0.52" stop-color="#d9472f"/>
+      <stop offset="1" stop-color="#ffd2a1"/>
+    </linearGradient>
+    <linearGradient id="shine" x1="14" y1="50" x2="50" y2="18" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0.45"/>
+    </linearGradient>
+  </defs>
+  <path
+    d="M15 51L42 24"
+    stroke="url(#shaft)"
+    stroke-width="8"
+    stroke-linecap="round"
+    stroke-linejoin="round"/>
+  <path
+    d="M43 24C49 18 55 17 58 20C60 23 58 29 51 34"
+    stroke="url(#shaft)"
+    stroke-width="8"
+    stroke-linecap="round"
+    stroke-linejoin="round"/>
+  <path
+    d="M17 49L44 22"
+    stroke="url(#shine)"
+    stroke-width="2.2"
+    stroke-linecap="round"/>
+</svg>

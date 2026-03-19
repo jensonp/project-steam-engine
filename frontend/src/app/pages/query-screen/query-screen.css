@@ -613,9 +613,9 @@ button:focus-visible,
   justify-content: center;
 }
 
-.search-button.katana-active,
-.search-button.katana-active * {
-  cursor: none !important;
+.search-button:not(:disabled),
+.search-button:not(:disabled) * {
+  cursor: url('/crowbar-cursor.svg') 48 18, pointer !important;
 }
 
 .search-button:hover::before {
@@ -823,59 +823,6 @@ button:focus-visible,
   letter-spacing: 0.02em;
 }
 
-.katana-cursor {
-  position: fixed;
-  width: 70px;
-  height: 70px;
-  transform: translate(-14px, -42px) rotate(-16deg);
-  pointer-events: none;
-  z-index: 99999;
-  mix-blend-mode: screen;
-  background: url('/katana-cursor.png') center center / contain no-repeat;
-  filter:
-    drop-shadow(0 0 8px rgba(255, 74, 74, 0.8))
-    drop-shadow(0 0 16px rgba(255, 200, 60, 0.65))
-    drop-shadow(0 0 24px rgba(90, 220, 255, 0.65));
-  animation: katana-rainbow 1.4s linear infinite, katana-float 700ms ease-in-out infinite alternate;
-}
-
-.katana-cursor::after {
-  content: '';
-  position: absolute;
-  inset: 14px 10px 14px 22px;
-  border-radius: 999px;
-  background: linear-gradient(
-    180deg,
-    rgba(255, 90, 90, 0.45),
-    rgba(255, 218, 107, 0.4),
-    rgba(68, 247, 191, 0.38),
-    rgba(113, 190, 255, 0.38),
-    rgba(202, 120, 255, 0.4)
-  );
-  filter: blur(6px);
-  opacity: 0.9;
-  z-index: -1;
-}
-
-@keyframes katana-rainbow {
-  0% {
-    filter:
-      hue-rotate(0deg)
-      saturate(1.15)
-      drop-shadow(0 0 8px rgba(255, 74, 74, 0.8))
-      drop-shadow(0 0 16px rgba(255, 200, 60, 0.65))
-      drop-shadow(0 0 24px rgba(90, 220, 255, 0.65));
-  }
-  100% {
-    filter:
-      hue-rotate(360deg)
-      saturate(1.15)
-      drop-shadow(0 0 8px rgba(255, 74, 74, 0.8))
-      drop-shadow(0 0 16px rgba(255, 200, 60, 0.65))
-      drop-shadow(0 0 24px rgba(90, 220, 255, 0.65));
-  }
-}
-
 @keyframes valve-flat-spin {
   from {
     transform: rotate(0deg);
@@ -915,15 +862,6 @@ button:focus-visible,
   }
   100% {
     transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg) scale(1);
-  }
-}
-
-@keyframes katana-float {
-  from {
-    transform: translate(-14px, -42px) rotate(-16deg) scale(0.97);
-  }
-  to {
-    transform: translate(-12px, -44px) rotate(-12deg) scale(1.03);
   }
 }
 
@@ -1386,10 +1324,6 @@ button:focus-visible,
 
   .valve-model,
   .valve-model-shell {
-    animation: none !important;
-  }
-
-  .katana-cursor {
     animation: none !important;
   }
 

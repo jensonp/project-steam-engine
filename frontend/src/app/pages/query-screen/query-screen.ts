@@ -81,21 +81,14 @@ export class QueryScreen implements OnInit, OnDestroy {
   mouseCoordinates = '35.6762 N / 139.6503 E';
   private lastCoordinateUpdate = 0;
   prefersReducedMotion = false;
-  isKatanaCursorVisible = false;
-  katanaCursorX = 0;
-  katanaCursorY = 0;
   isProfileClearing = false;
   valveBackdropEnabled = true;
   valveSpinMode: ValveSpinMode = 'flat';
   valveOpacity = 0.84;
   private focusUpdateTimeoutId: number | null = null;
   private valveScrollRafId: number | null = null;
-  private katanaCursorRafId: number | null = null;
-  private pendingKatanaCursorX = 0;
-  private pendingKatanaCursorY = 0;
   private removePointerMoveListener: (() => void) | null = null;
   private removeScrollListener: (() => void) | null = null;
-  private removeKatanaPointerMoveListener: (() => void) | null = null;
   private readonly valveStorageKey = 'ui.query.valveEnabled';
   private readonly valveBackdropEventName = 'pse:valveBackdropChanged';
   private readonly valveSpinModeStorageKey = 'ui.query.valveSpinMode';
@@ -243,16 +236,10 @@ export class QueryScreen implements OnInit, OnDestroy {
       window.cancelAnimationFrame(this.valveScrollRafId);
       this.valveScrollRafId = null;
     }
-    if (this.katanaCursorRafId !== null && typeof window !== 'undefined') {
-      window.cancelAnimationFrame(this.katanaCursorRafId);
-      this.katanaCursorRafId = null;
-    }
     this.removePointerMoveListener?.();
     this.removeScrollListener?.();
-    this.removeKatanaPointerMoveListener?.();
     this.removePointerMoveListener = null;
     this.removeScrollListener = null;
-    this.removeKatanaPointerMoveListener = null;
     this.subs.unsubscribe();
     this.clearFocusUpdateTimeout();
   }
@@ -347,25 +334,6 @@ export class QueryScreen implements OnInit, OnDestroy {
     this.scrollToCenter('app-game-list');
   }
 
-  onSearchButtonHoverEnter(event: MouseEvent | PointerEvent): void {
-    if (this.isTouchLikePointer(event)) return;
-    this.isKatanaCursorVisible = true;
-    this.startKatanaPointerTracking();
-    this.queueKatanaCursorUpdate(event);
-  }
-
-  onSearchButtonHoverMove(event: MouseEvent | PointerEvent): void {
-    if (this.isTouchLikePointer(event)) return;
-    if (!this.isKatanaCursorVisible) return;
-    this.queueKatanaCursorUpdate(event);
-  }
-
-  onSearchButtonHoverLeave(): void {
-    this.isKatanaCursorVisible = false;
-    this.removeKatanaPointerMoveListener?.();
-    this.removeKatanaPointerMoveListener = null;
-  }
-
   private clearFocusUpdateTimeout(): void {
     if (this.focusUpdateTimeoutId !== null && typeof window !== 'undefined') {
       window.clearTimeout(this.focusUpdateTimeoutId);
@@ -428,62 +396,6 @@ export class QueryScreen implements OnInit, OnDestroy {
       window.addEventListener('scroll', handleWindowScroll, { passive: true });
       this.removeScrollListener = () => window.removeEventListener('scroll', handleWindowScroll);
     });
-  }
-
-  private queueKatanaCursorUpdate(event: MouseEvent | PointerEvent): void {
-    this.pendingKatanaCursorX = event.clientX;
-    this.pendingKatanaCursorY = event.clientY;
-
-    if (typeof window === 'undefined') {
-      this.katanaCursorX = this.pendingKatanaCursorX;
-      this.katanaCursorY = this.pendingKatanaCursorY;
-      return;
-    }
-
-    if (this.katanaCursorRafId !== null) return;
-
-    this.ngZone.runOutsideAngular(() => {
-      this.katanaCursorRafId = window.requestAnimationFrame(() => {
-        this.katanaCursorRafId = null;
-        const nextX = this.pendingKatanaCursorX;
-        const nextY = this.pendingKatanaCursorY;
-        this.ngZone.run(() => {
-          this.katanaCursorX = nextX;
-          this.katanaCursorY = nextY;
-        });
-      });
-    });
-  }
-
-  private startKatanaPointerTracking(): void {
-    if (this.removeKatanaPointerMoveListener || typeof window === 'undefined') return;
-
-    this.ngZone.runOutsideAngular(() => {
-      const handleMove = (event: MouseEvent | PointerEvent) => {
-        if (!this.isKatanaCursorVisible) return;
-        if ('pointerType' in event && (event.pointerType === 'touch' || event.pointerType === 'pen')) return;
-        this.queueKatanaCursorUpdate(event);
-      };
-
-      if ('PointerEvent' in window) {
-        document.addEventListener('pointermove', handleMove as EventListener, { passive: true });
-        this.removeKatanaPointerMoveListener = () =>
-          document.removeEventListener('pointermove', handleMove as EventListener);
-        return;
-      }
-
-      document.addEventListener('mousemove', handleMove as EventListener, { passive: true });
-      this.removeKatanaPointerMoveListener = () =>
-        document.removeEventListener('mousemove', handleMove as EventListener);
-    });
-  }
-
-  private isPointerEvent(event: Event): event is PointerEvent {
-    return 'clientX' in event && 'pointerType' in event;
-  }
-
-  private isTouchLikePointer(event: MouseEvent | PointerEvent): boolean {
-    return 'pointerType' in event && (event.pointerType === 'touch' || event.pointerType === 'pen');
   }
 
   private prefetchResultsScreen(): void {
