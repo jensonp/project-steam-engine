@@ -139,6 +139,9 @@
                         [(ngModel)]="selected_genre"
                         panelClass="topunit"
                         [disableOptionCentering]="true">
+                        <mat-select-trigger>
+                            {{ selected_genre.length > 0 ? selected_genre.join(', ') : 'Any' }}
+                        </mat-select-trigger>
                         @for (genre of genres; track genre) {
                             <mat-option [value]="genre"
                                         [class.action-genre]="genre === 'Action'"
