@@ -319,13 +319,18 @@ export class QueryScreen implements OnInit, OnDestroy {
 
   onQuery(): void {
     const steamId = this.steamId_input || this.backendService.getSteamId();
-    const usePersonalizedMode = !!(this.userProfile && steamId && !this.hasExplicitSearchFilters());
+    const usePersonalizedMode = !!(this.userProfile && steamId);
 
     if (usePersonalizedMode) {
       this.awaitingRecommendationResults = true;
       this.awaitingSearchResults = false;
       this.backendService.setSteamId(steamId);
-      this.backendService.loadPersonalizedRecommendations(10);
+      this.backendService.loadPersonalizedRecommendations(10, {
+        genres: this.selected_genre,
+        keyword: this.keyword_input,
+        playerCount: this.selected_player_count,
+        os: this.selected_os || undefined,
+      });
     } else {
       this.awaitingSearchResults = true;
       this.awaitingRecommendationResults = false;

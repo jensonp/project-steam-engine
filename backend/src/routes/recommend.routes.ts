@@ -20,12 +20,157 @@ interface FallbackRow {
   positive_votes: number | null;
 }
 
+interface RecommendationFilters {
+  genres: string[];
+  keyword: string;
+  playerCount: string;
+  os?: 'windows' | 'mac' | 'linux';
+}
+
 function splitTokens(value: string | null | undefined): string[] {
   if (!value) return [];
   return value
     .split(',')
     .map((entry) => entry.trim().toLowerCase())
     .filter(Boolean);
+}
+
+function normalizeToken(value: string): string {
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]+/g, '')
+    .replace(/\s+/g, ' ');
+}
+
+function parseCsvList(value: string | undefined): string[] {
+  if (!value) return [];
+  return value
+    .split(',')
+    .map((entry) => normalizeToken(entry))
+    .filter(Boolean);
+}
+
+function extractRecommendationFilters(query: {
+  genres?: string;
+  keyword?: string;
+  playerCount?: string;
+  os?: 'windows' | 'mac' | 'linux';
+}): RecommendationFilters {
+  return {
+    genres: parseCsvList(query.genres),
+    keyword: normalizeToken(query.keyword || ''),
+    playerCount: query.playerCount || 'Any',
+    os: query.os,
+  };
+}
+
+function matchesGenreFilters(rec: ScoredRecommendation, genres: string[]): boolean {
+  if (genres.length === 0) return true;
+
+  const tokens = [
+    ...rec.genres,
+    ...rec.tags,
+  ].map((token) => normalizeToken(token));
+
+  return genres.every((wantedGenre) =>
+    tokens.some(
+      (token) =>
+        token === wantedGenre ||
+        token.includes(wantedGenre) ||
+        wantedGenre.includes(token)
+    )
+  );
+}
+
+function matchesKeywordFilter(rec: ScoredRecommendation, keyword: string): boolean {
+  if (!keyword) return true;
+
+  const terms = keyword.split(/\s+/).map(normalizeToken).filter(Boolean);
+  if (terms.length === 0) return true;
+
+  const searchableBlob = normalizeToken(
+    [
+      rec.name,
+      rec.description || '',
+      rec.genres.join(' '),
+      rec.tags.join(' '),
+    ].join(' ')
+  );
+
+  return terms.every((term) => searchableBlob.includes(term));
+}
+
+function matchesPlayerCountFilter(rec: ScoredRecommendation, playerCount: string): boolean {
+  if (!playerCount || playerCount === 'Any') return true;
+
+  const haystack = normalizeToken(
+    [
+      rec.name,
+      rec.description || '',
+      rec.genres.join(' '),
+      rec.tags.join(' '),
+    ].join(' ')
+  );
+
+  const normalized = normalizeToken(playerCount);
+  const checksByMode: Record<string, string[]> = {
+    'single-player': ['single-player', 'singleplayer', 'solo'],
+    multiplayer: ['multiplayer', 'multi-player', 'online pvp', 'online co-op'],
+    'co-op': ['co-op', 'coop', 'online co-op', 'local co-op'],
+    online: ['online', 'online pvp', 'online co-op', 'multiplayer'],
+  };
+
+  const matchTerms = checksByMode[normalized] ?? [normalized];
+  return matchTerms.some((term) => haystack.includes(term));
+}
+
+async function applyOsFilter(
+  recommendations: ScoredRecommendation[],
+  os: 'windows' | 'mac' | 'linux' | undefined
+): Promise<ScoredRecommendation[]> {
+  if (!os || recommendations.length === 0) return recommendations;
+
+  const appIds = recommendations.map((rec) => rec.appId);
+  const osColumn =
+    os === 'windows'
+      ? 'windows_support'
+      : os === 'mac'
+      ? 'mac_support'
+      : 'linux_support';
+
+  try {
+    const result = await query<{ app_id: number }>(
+      `SELECT app_id FROM games WHERE app_id = ANY($1::int[]) AND ${osColumn} = TRUE`,
+      [appIds]
+    );
+    const allowed = new Set(result.rows.map((row) => row.app_id));
+    return recommendations.filter((rec) => allowed.has(rec.appId));
+  } catch (error: any) {
+    // Older local schemas may not include OS support columns yet.
+    // In that case, skip OS filtering instead of failing the whole recommendation request.
+    if (error?.code === '42703') {
+      console.warn(
+        `[recommend.routes] OS filter skipped: missing column ${osColumn}. Returning unfiltered recommendations.`
+      );
+      return recommendations;
+    }
+    throw error;
+  }
+}
+
+async function applyRecommendationFilters(
+  recommendations: ScoredRecommendation[],
+  filters: RecommendationFilters
+): Promise<ScoredRecommendation[]> {
+  const filtered = recommendations.filter((rec) => {
+    if (!matchesGenreFilters(rec, filters.genres)) return false;
+    if (!matchesKeywordFilter(rec, filters.keyword)) return false;
+    if (!matchesPlayerCountFilter(rec, filters.playerCount)) return false;
+    return true;
+  });
+
+  return applyOsFilter(filtered, filters.os);
 }
 
 const THEME_TERM_ALIASES: Record<string, string[]> = {
@@ -165,6 +310,10 @@ const userRecommendationsSchema = z.object({
   }),
   query: z.object({
     limit: z.string().regex(/^\d+$/, 'limit must be a positive integer').optional(),
+    genres: z.string().optional(),
+    keyword: z.string().optional(),
+    playerCount: z.string().optional(),
+    os: z.enum(['windows', 'mac', 'linux']).optional(),
   }),
 });
 
@@ -244,6 +393,12 @@ router.get(
 
       const steamId = req.params.steamId;
       const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 10;
+      const filters = extractRecommendationFilters({
+        genres: typeof req.query.genres === 'string' ? req.query.genres : undefined,
+        keyword: typeof req.query.keyword === 'string' ? req.query.keyword : undefined,
+        playerCount: typeof req.query.playerCount === 'string' ? req.query.playerCount : undefined,
+        os: req.query.os as 'windows' | 'mac' | 'linux' | undefined,
+      });
 
       // Build a full user profile (playtime vector + friend graph)
       const profile = await buildUserProfile(steamId);
@@ -257,15 +412,19 @@ router.get(
 
       // Score candidates using the 3-signal composite engine.
       // This now supports runtime similarity fallback even if offline index files are missing.
-      const recommendations = await scoreWithUserContext(steamId, profile, limit);
-      if (recommendations.length > 0) {
-        res.json(recommendations);
+      const candidatePoolLimit = Math.max(limit * 8, 80);
+      const recommendations = await scoreWithUserContext(steamId, profile, candidatePoolLimit);
+      const filteredRecommendations = await applyRecommendationFilters(recommendations, filters);
+      if (filteredRecommendations.length > 0) {
+        res.json(filteredRecommendations.slice(0, limit));
         return;
       }
 
       // Final fallback if no candidates can be built.
-      const fallbackRecommendations = await getFallbackPopularRecommendations(profile, limit);
-      res.json(fallbackRecommendations);
+      const fallbackPoolLimit = Math.max(limit * 8, 80);
+      const fallbackRecommendations = await getFallbackPopularRecommendations(profile, fallbackPoolLimit);
+      const filteredFallback = await applyRecommendationFilters(fallbackRecommendations, filters);
+      res.json(filteredFallback.slice(0, limit));
 
     } catch (error: any) {
       console.error('User recommendation error:', error);

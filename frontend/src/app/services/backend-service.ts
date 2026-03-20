@@ -20,6 +20,13 @@ interface AppState {
   error: string | null;
 }
 
+interface PersonalizedRecommendationFilters {
+  genres?: string[];
+  keyword?: string;
+  playerCount?: string;
+  os?: string;
+}
+
 const defaultState: AppState = {
   steamId: '',
   userProfile: null,
@@ -164,7 +171,7 @@ export class BackendService {
   }
 
   // Command: Fetch personalized recommendations
-  loadPersonalizedRecommendations(limit: number = 10): void {
+  loadPersonalizedRecommendations(limit: number = 10, filters?: PersonalizedRecommendationFilters): void {
     const currentState = this.state.value;
     if (!currentState.steamId) {
       this.patchState({ error: 'Please set a Steam ID first.' });
@@ -179,7 +186,19 @@ export class BackendService {
     });
 
     const url = `${this.backendUrl}/api/recommend/user/${encodeURIComponent(currentState.steamId)}`;
-    const params = new HttpParams().set('limit', limit.toString());
+    let params = new HttpParams().set('limit', limit.toString());
+    if (filters?.genres && filters.genres.length > 0) {
+      params = params.set('genres', filters.genres.join(','));
+    }
+    if (filters?.keyword && filters.keyword.trim().length > 0) {
+      params = params.set('keyword', filters.keyword.trim());
+    }
+    if (filters?.playerCount && filters.playerCount !== 'Any') {
+      params = params.set('playerCount', filters.playerCount);
+    }
+    if (filters?.os) {
+      params = params.set('os', filters.os);
+    }
 
     this.http.get<ScoredRecommendation[]>(url, { params }).pipe(
       tap(recommendations => this.patchState({ recommendations })),
