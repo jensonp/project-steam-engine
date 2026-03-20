@@ -34,10 +34,18 @@ export class ResultScreen implements OnInit, OnDestroy {
     private backendService: BackendService,
     private cdr: ChangeDetectorRef
   ) {
-    // Fallback: Check router state first in case page was reloaded manually.
-    const state = this.router.getCurrentNavigation()?.extras.state as
+    // Hydrate from router navigation state when available.
+    const navigationState = this.router.getCurrentNavigation()?.extras.state as
       | { results?: Game[]; source?: ResultSource }
       | undefined;
+    // On browser back/forward or reload, getCurrentNavigation() can be null.
+    // In that case, recover state from history to avoid empty "0 titles" screens.
+    const historyState =
+      typeof window !== 'undefined'
+        ? (window.history.state as { results?: Game[]; source?: ResultSource } | null)
+        : null;
+    const state = navigationState ?? historyState ?? undefined;
+
     if (state?.source === 'search' || state?.source === 'recommendations') {
       this.activeResultSource = state.source;
     }
