@@ -168,9 +168,10 @@ const byTagsSchema = z.object({
 router.get('/status', (req: Request, res: Response): void => {
   try {
     const recommender = getRecommenderService();
+    const indexReady = recommender.isReady();
     res.json({
-      ready: recommender.isReady(),
-      status: recommender.isReady() ? 'Online' : 'Loading or error',
+      ready: indexReady,
+      status: indexReady ? 'Online' : 'Runtime fallback mode (index unavailable)',
     });
   } catch (error: any) {
     res.status(503).json({
@@ -194,16 +195,11 @@ router.get(
   async (req: Request, res: Response): Promise<void> => {
     try {
       const recommender = getRecommenderService();
-      
-      if (!recommender.isReady()) {
-        res.status(503).json({ error: 'Recommendation engine not ready' });
-        return;
-      }
 
       const appId = parseInt(req.params.appId, 10);
       const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 10;
 
-      const recommendations = recommender.getSimilarGames(appId, limit);
+      const recommendations = await recommender.getSimilarGamesSmart(appId, limit);
       
       if (recommendations.length === 0) {
         res.status(404).json({ error: `No recommendations found for app ID ${appId}` });
@@ -244,15 +240,17 @@ router.get(
         return;
       }
 
-      if (!recommender.isReady()) {
-        const fallbackRecommendations = await getFallbackPopularRecommendations(profile, limit);
-        res.json(fallbackRecommendations);
+      // Score candidates using the 3-signal composite engine.
+      // This now supports runtime similarity fallback even if offline index files are missing.
+      const recommendations = await scoreWithUserContext(steamId, profile, limit);
+      if (recommendations.length > 0) {
+        res.json(recommendations);
         return;
       }
 
-      // Score candidates using the 3-signal composite engine
-      const recommendations = await scoreWithUserContext(steamId, profile, limit);
-      res.json(recommendations);
+      // Final fallback if no candidates can be built.
+      const fallbackRecommendations = await getFallbackPopularRecommendations(profile, limit);
+      res.json(fallbackRecommendations);
 
     } catch (error: any) {
       console.error('User recommendation error:', error);

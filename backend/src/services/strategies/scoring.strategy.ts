@@ -15,9 +15,12 @@ export class RecommendationScoringStrategy {
   ): Promise<ScoredRecommendation[]> {
     const recommender = getRecommenderService();
     const candidateScores = new Map<number, { jaccardScore: number; name: string }>();
+    const anchorGames = [...profile.library]
+      .sort((a, b) => b.playtimeMinutes - a.playtimeMinutes)
+      .slice(0, 35);
 
-    for (const game of profile.library) {
-      const similar = recommender.getSimilarGames(game.appId, 30);
+    for (const game of anchorGames) {
+      const similar = await recommender.getSimilarGamesSmart(game.appId, 30);
       for (const s of similar) {
         if (profile.ownedAppIds.has(s.appId)) continue;
         const existing = candidateScores.get(s.appId);

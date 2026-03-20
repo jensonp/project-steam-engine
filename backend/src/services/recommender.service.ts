@@ -7,6 +7,7 @@
 
 import fs from 'fs';
 import path from 'path';
+import { query } from '../config/db';
 
 const DATA_DIR = path.join(__dirname, '../../data/processed');
 const RECOMMENDER_DIR = path.join(DATA_DIR, 'recommender');
@@ -33,6 +34,7 @@ interface RecommendationResult {
 
 export class RecommenderService {
   private similarityIndex: Map<number, SimilarGame[]> = new Map();
+  private runtimeSimilarityCache: Map<number, SimilarGame[]> = new Map();
   private gameVectors: Map<number, GameVector> = new Map();
   private idf: Map<string, number> = new Map();
   private isLoaded: boolean = false;
@@ -97,6 +99,94 @@ export class RecommenderService {
     const similar = this.similarityIndex.get(appId);
     if (!similar) return [];
     return similar.slice(0, limit);
+  }
+
+  /**
+   * Smart similarity lookup:
+   * 1) Use precomputed index when available.
+   * 2) Fallback to DB runtime similarity when index is unavailable.
+   */
+  async getSimilarGamesSmart(appId: number, limit: number = 10): Promise<SimilarGame[]> {
+    const indexed = this.getSimilarGames(appId, limit);
+    if (indexed.length > 0) {
+      return indexed;
+    }
+
+    const cached = this.runtimeSimilarityCache.get(appId);
+    if (cached && cached.length > 0) {
+      return cached.slice(0, limit);
+    }
+
+    const computed = await this.queryRuntimeSimilarGames(appId, Math.max(limit, 30));
+    if (computed.length > 0) {
+      this.runtimeSimilarityCache.set(appId, computed);
+      // Keep cache bounded in memory.
+      if (this.runtimeSimilarityCache.size > 800) {
+        const firstKey = this.runtimeSimilarityCache.keys().next().value as number | undefined;
+        if (typeof firstKey === 'number') this.runtimeSimilarityCache.delete(firstKey);
+      }
+    }
+
+    return computed.slice(0, limit);
+  }
+
+  private async queryRuntimeSimilarGames(appId: number, limit: number): Promise<SimilarGame[]> {
+    try {
+      const sql = `
+        WITH base AS (
+          SELECT
+            app_id,
+            COALESCE(game_name, '') AS game_name,
+            COALESCE(genres, '') AS genres,
+            COALESCE(tags, '') AS tags,
+            COALESCE(categories, '') AS categories,
+            COALESCE(price, 0)::numeric AS price
+          FROM games
+          WHERE app_id = $1
+        )
+        SELECT
+          g.app_id AS "appId",
+          g.game_name AS "name",
+          (
+            0.46 * GREATEST(similarity(COALESCE(g.tags, ''), b.tags), 0) +
+            0.34 * GREATEST(similarity(COALESCE(g.genres, ''), b.genres), 0) +
+            0.14 * GREATEST(similarity(COALESCE(g.categories, ''), b.categories), 0) +
+            0.06 * (
+              1 - LEAST(
+                ABS(COALESCE(g.price, 0)::numeric - b.price) / GREATEST(b.price, 1),
+                1
+              )
+            )
+          ) AS "similarity"
+        FROM games g
+        CROSS JOIN base b
+        WHERE g.app_id <> b.app_id
+          AND (
+            (b.tags <> '' AND COALESCE(g.tags, '') % b.tags) OR
+            (b.genres <> '' AND COALESCE(g.genres, '') % b.genres) OR
+            (b.categories <> '' AND COALESCE(g.categories, '') % b.categories)
+          )
+        ORDER BY "similarity" DESC, COALESCE(g.positive_votes, 0) DESC
+        LIMIT $2
+      `;
+
+      const result = await query<{ appId: number; name: string; similarity: string | number }>(sql, [
+        appId,
+        limit,
+      ]);
+
+      return result.rows
+        .map((row) => ({
+          appId: row.appId,
+          name: row.name,
+          similarity: typeof row.similarity === 'number' ? row.similarity : parseFloat(row.similarity),
+        }))
+        .filter((row) => Number.isFinite(row.similarity) && row.similarity > 0);
+    } catch (error) {
+      // Runtime fallback failure should not crash request paths.
+      console.warn(`[RecommenderService] Runtime similarity fallback failed for app ${appId}:`, error);
+      return [];
+    }
   }
 
   /**
