@@ -319,7 +319,7 @@ export class QueryScreen implements OnInit, OnDestroy {
       this.awaitingRecommendationResults = true;
       this.awaitingSearchResults = false;
       this.backendService.setSteamId(steamId);
-      this.backendService.loadPersonalizedRecommendations(20);
+      this.backendService.loadPersonalizedRecommendations(10);
     } else {
       this.awaitingSearchResults = true;
       this.awaitingRecommendationResults = false;

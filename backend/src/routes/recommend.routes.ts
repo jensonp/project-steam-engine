@@ -232,7 +232,7 @@ router.get(
       const recommender = getRecommenderService();
 
       const steamId = req.params.steamId;
-      const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 20;
+      const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 10;
 
       // Build a full user profile (playtime vector + friend graph)
       const profile = await buildUserProfile(steamId);

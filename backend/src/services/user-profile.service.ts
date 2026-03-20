@@ -105,7 +105,7 @@ export async function buildUserProfile(steamId: string): Promise<UserProfile> {
 export async function scoreWithUserContext(
   steamId: string,
   profile: UserProfile,
-  limit: number = 20
+  limit: number = 10
 ): Promise<ScoredRecommendation[]> {
   const repo = new PostgresGameMetadataRepository();
   const scoringStrategy = new RecommendationScoringStrategy(repo);

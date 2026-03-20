@@ -137,7 +137,7 @@ export class BackendService {
   }
 
   // Command: Fetch personalized recommendations
-  loadPersonalizedRecommendations(limit: number = 20): void {
+  loadPersonalizedRecommendations(limit: number = 10): void {
     const currentState = this.state.value;
     if (!currentState.steamId) {
       this.patchState({ error: 'Please set a Steam ID first.' });
