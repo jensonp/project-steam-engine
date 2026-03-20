@@ -40,7 +40,15 @@ const loadInitialState = (): AppState => {
     }
 
     const parsedState = JSON.parse(savedState) as Partial<AppState>;
-    return { ...defaultState, ...parsedState };
+    // Never restore transient loading/error flags from persisted state.
+    return {
+      ...defaultState,
+      ...parsedState,
+      isLoadingProfile: false,
+      isLoadingRecommendations: false,
+      isLoadingSearch: false,
+      error: null,
+    };
   } catch (error) {
     console.warn('Failed to load app state from localStorage, using defaults.');
     return { ...defaultState };
@@ -93,6 +101,25 @@ export class BackendService {
 
   clearUserProfile(): void {
     this.patchState({ steamId: '', userProfile: null, error: null });
+  }
+
+  clearTransientUiState(): void {
+    const currentState = this.state.value;
+    if (
+      !currentState.isLoadingProfile &&
+      !currentState.isLoadingRecommendations &&
+      !currentState.isLoadingSearch &&
+      currentState.error === null
+    ) {
+      return;
+    }
+
+    this.patchState({
+      isLoadingProfile: false,
+      isLoadingRecommendations: false,
+      isLoadingSearch: false,
+      error: null,
+    });
   }
 
   private getErrorMessage(error: unknown, fallback: string): string {

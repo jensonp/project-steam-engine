@@ -142,6 +142,9 @@ export class QueryScreen implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    // Defensive reset: prevents stale persisted loading flags from locking the overlay.
+    this.backendService.clearTransientUiState();
+
     this.prefersReducedMotion =
       typeof window !== 'undefined' &&
       window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true;
