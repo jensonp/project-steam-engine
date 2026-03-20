@@ -26,6 +26,27 @@ import {
 
 // Maximum friends to batch-fetch libraries for (Steam API rate limit consideration)
 const MAX_FRIENDS_TO_ANALYZE = 10;
+const PROFILE_CACHE_TTL_MS = 5 * 60 * 1000;
+
+const profileCache = new Map<string, { profile: UserProfile; expiresAt: number }>();
+const inflightProfileBuilds = new Map<string, Promise<UserProfile>>();
+
+function getCachedProfile(steamId: string): UserProfile | null {
+  const cached = profileCache.get(steamId);
+  if (!cached) return null;
+  if (cached.expiresAt <= Date.now()) {
+    profileCache.delete(steamId);
+    return null;
+  }
+  return cached.profile;
+}
+
+function cacheProfile(steamId: string, profile: UserProfile): void {
+  profileCache.set(steamId, {
+    profile,
+    expiresAt: Date.now() + PROFILE_CACHE_TTL_MS,
+  });
+}
 
 // ─── Core Profile Builder ─────────────────────────────────────────────────────
 
@@ -34,6 +55,29 @@ const MAX_FRIENDS_TO_ANALYZE = 10;
  * All I/O phases use parallel execution.
  */
 export async function buildUserProfile(steamId: string): Promise<UserProfile> {
+  const cachedProfile = getCachedProfile(steamId);
+  if (cachedProfile) {
+    return cachedProfile;
+  }
+
+  const inflight = inflightProfileBuilds.get(steamId);
+  if (inflight) {
+    return inflight;
+  }
+
+  const buildPromise = buildFreshUserProfile(steamId);
+  inflightProfileBuilds.set(steamId, buildPromise);
+
+  try {
+    const profile = await buildPromise;
+    cacheProfile(steamId, profile);
+    return profile;
+  } finally {
+    inflightProfileBuilds.delete(steamId);
+  }
+}
+
+async function buildFreshUserProfile(steamId: string): Promise<UserProfile> {
   const steamService = getSteamService();
 
   // ── Phase 1: Parallel I/O ──────────────────────────────────────────────────

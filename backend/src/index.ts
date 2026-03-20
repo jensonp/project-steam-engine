@@ -26,13 +26,26 @@ app.use(express.json());
 // (like express-rate-limit) behaves correctly.
 app.set('trust proxy', 1);
 
+function shouldSkipApiRateLimit(req: express.Request): boolean {
+  const forwardedFor = req.headers['x-forwarded-for'];
+  const forwarded = Array.isArray(forwardedFor) ? forwardedFor.join(',') : forwardedFor || '';
+  const candidate = `${req.ip} ${forwarded}`.toLowerCase();
+  return (
+    process.env.NODE_ENV !== 'production' ||
+    candidate.includes('127.0.0.1') ||
+    candidate.includes('::1') ||
+    candidate.includes('localhost')
+  );
+}
+
 // Apply rate limiting to all requests
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-  message: { error: 'Too many requests, please try again later.' }
+  message: { error: 'Too many requests, please try again later.' },
+  skip: shouldSkipApiRateLimit,
 });
 
 app.use('/api/', limiter);

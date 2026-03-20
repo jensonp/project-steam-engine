@@ -23,23 +23,24 @@ export class SearchService {
     genres: string[],
     keyword?: string,
     playerCount?: string,
-    os?: string
+    os?: string,
+    limit: number = 10
   ): Promise<GameSearchResult[]> {
     const repo = new PostgresGameMetadataRepository();
-    const primaryQuery = this.buildSearchQuery(genres, keyword, playerCount, os, true);
+    const primaryQuery = this.buildSearchQuery(genres, keyword, playerCount, os, limit, true);
 
     try {
       const rows = await repo.searchGames(primaryQuery.sqlQuery, primaryQuery.params);
-      return this.mapRows(rows);
+      return this.mapRows(rows, limit);
     } catch (error: any) {
       if (os && this.isMissingOsSupportColumnError(error)) {
         console.warn(
           '[SearchService] OS support columns missing in games table. Retrying search without OS filter.'
         );
 
-        const fallbackQuery = this.buildSearchQuery(genres, keyword, playerCount, os, false);
+        const fallbackQuery = this.buildSearchQuery(genres, keyword, playerCount, os, limit, false);
         const rows = await repo.searchGames(fallbackQuery.sqlQuery, fallbackQuery.params);
-        return this.mapRows(rows);
+        return this.mapRows(rows, limit);
       }
 
       throw error;
@@ -51,6 +52,7 @@ export class SearchService {
     keyword?: string,
     playerCount?: string,
     os?: string,
+    limit: number = 10,
     includeOsFilter = true
   ): { sqlQuery: string; params: any[] } {
     const whereClauses: string[] = [];
@@ -105,6 +107,11 @@ export class SearchService {
     // Construct the final WHERE clause dynamically
     const whereString = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
 
+    const sqlLimit =
+      limit <= 20
+        ? Math.max(limit * 4, 40)
+        : Math.min(Math.max(limit * 2, 80), 240);
+
     const sqlQuery = `
       SELECT app_id, game_name, genres, price, header_image
       FROM games
@@ -112,7 +119,7 @@ export class SearchService {
       ${keyword 
         ? `ORDER BY ts_rank_cd((${SearchService.FULL_TEXT_VECTOR_SQL}), plainto_tsquery('english', $${keywordParamIndex})) DESC, positive_votes DESC` 
         : `ORDER BY positive_votes DESC`}
-      LIMIT 40
+      LIMIT ${sqlLimit}
     `;
 
     return { sqlQuery, params };
@@ -131,7 +138,7 @@ export class SearchService {
   /**
    * Helper to map raw database rows into strongly-typed frontend objects
    */
-  private mapRows(rows: any[]): GameSearchResult[] {
+  private mapRows(rows: any[], limit: number): GameSearchResult[] {
     const deduped: GameSearchResult[] = [];
     const seenCanonicalIds = new Set<number>();
 
@@ -149,7 +156,7 @@ export class SearchService {
         isFree: parseFloat(row.price) === 0
       });
 
-      if (deduped.length >= 10) break;
+      if (deduped.length >= limit) break;
     }
 
     return deduped;

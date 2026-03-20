@@ -6,8 +6,11 @@ import { validate } from '../middleware/validate.middleware';
 import { query } from '../config/db';
 import { ScoredRecommendation, UserProfile } from '../types/steam.types';
 import { canonicalizeAppId } from '../utils/canonical-app-id';
+import { PostgresGameMetadataRepository } from '../repositories/game.repository';
+import { SearchService } from '../services/search.service';
 
 const router = Router();
+const searchService = new SearchService();
 
 interface FallbackRow {
   app_id: number;
@@ -49,6 +52,31 @@ function parseCsvList(value: string | undefined): string[] {
     .split(',')
     .map((entry) => normalizeToken(entry))
     .filter(Boolean);
+}
+
+function hasExplicitRecommendationFilters(filters: RecommendationFilters): boolean {
+  return (
+    filters.genres.length > 0 ||
+    filters.keyword.length > 0 ||
+    (!!filters.playerCount && filters.playerCount !== 'Any') ||
+    !!filters.os
+  );
+}
+
+function computeRecommendationCandidatePoolLimit(
+  limit: number,
+  filters: RecommendationFilters
+): number {
+  if (!hasExplicitRecommendationFilters(filters)) {
+    return Math.max(limit * 8, 80);
+  }
+
+  let pool = Math.max(limit * 10, 120);
+  if (filters.genres.length >= 2) pool += 40;
+  if (filters.keyword) pool += 30;
+  if (filters.playerCount && filters.playerCount !== 'Any') pool += 20;
+  if (filters.os) pool += 20;
+  return pool;
 }
 
 function extractRecommendationFilters(query: {
@@ -179,38 +207,48 @@ const THEME_TERM_ALIASES: Record<string, string[]> = {
   survival: ['survival', 'survival horror', 'post-apocalyptic'],
 };
 
-export function scoreFallbackCandidate(
-  row: FallbackRow,
-  profile: UserProfile,
-  maxPositiveVotes: number
-): { score: number; matchedSignals: string[] } {
-  const tokens = new Set<string>([
-    ...splitTokens(row.genres),
-    ...splitTokens(row.tags),
-  ]);
+function collectNormalizedTokens(genres: string[], tags: string[]): string[] {
+  return [...new Set([...genres, ...tags].map((token) => normalizeToken(token)).filter(Boolean))];
+}
 
-  let profileAlignment = 0;
+function scoreProfileSignalAlignment(tokens: string[], profile: UserProfile): {
+  profileAlignment: number;
+  thematicBoost: number;
+  matchedSignals: string[];
+} {
+  const tokenSet = new Set(tokens);
   const matchedSignals: string[] = [];
+  let profileAlignment = 0;
+
   for (const [signal, weight] of profile.genreVector.entries()) {
-    if (!tokens.has(signal)) continue;
+    if (!tokenSet.has(signal)) continue;
     profileAlignment += weight;
     if (matchedSignals.length < 3) matchedSignals.push(signal);
   }
 
   let thematicBoost = 0;
   for (const aliasTerms of Object.values(THEME_TERM_ALIASES)) {
-    const hasSignal = aliasTerms.some((term) => (profile.genreVector.get(term) ?? 0) > 0);
-    if (!hasSignal) continue;
-    const hasCandidateMatch = aliasTerms.some((term) => tokens.has(term));
-    if (hasCandidateMatch) {
-      thematicBoost += 0.14;
-      for (const term of aliasTerms) {
-        if (tokens.has(term) && matchedSignals.length < 3 && !matchedSignals.includes(term)) {
-          matchedSignals.push(term);
-        }
+    const hasProfileSignal = aliasTerms.some((term) => (profile.genreVector.get(term) ?? 0) > 0);
+    if (!hasProfileSignal) continue;
+    if (!aliasTerms.some((term) => tokenSet.has(term))) continue;
+    thematicBoost += 0.14;
+    for (const term of aliasTerms) {
+      if (tokenSet.has(term) && matchedSignals.length < 3 && !matchedSignals.includes(term)) {
+        matchedSignals.push(term);
       }
     }
   }
+
+  return { profileAlignment, thematicBoost, matchedSignals };
+}
+
+export function scoreFallbackCandidate(
+  row: FallbackRow,
+  profile: UserProfile,
+  maxPositiveVotes: number
+): { score: number; matchedSignals: string[] } {
+  const tokens = collectNormalizedTokens(splitTokens(row.genres), splitTokens(row.tags));
+  const { profileAlignment, thematicBoost, matchedSignals } = scoreProfileSignalAlignment(tokens, profile);
 
   const positiveVotes = row.positive_votes ?? 0;
   const popularityScore =
@@ -218,6 +256,120 @@ export function scoreFallbackCandidate(
 
   const score = profileAlignment * 0.78 + thematicBoost * 0.17 + popularityScore * 0.05;
   return { score, matchedSignals };
+}
+
+async function rerankFilteredStorefrontCandidates(
+  profile: UserProfile,
+  filters: RecommendationFilters,
+  limit: number,
+  existingRecommendations: ScoredRecommendation[]
+): Promise<ScoredRecommendation[]> {
+  if (!hasExplicitRecommendationFilters(filters)) return [];
+
+  const storefrontCandidates = await searchService.searchByGenres(
+    filters.genres,
+    filters.keyword,
+    filters.playerCount,
+    filters.os,
+    Math.max(limit * 8, 80)
+  );
+
+  if (storefrontCandidates.length === 0) return [];
+
+  const existingCanonicalIds = new Set<number>(
+    existingRecommendations.map((rec) => canonicalizeAppId(rec.appId, rec.headerImage))
+  );
+  const filteredCandidates = storefrontCandidates.filter((candidate) => {
+    const canonicalId = canonicalizeAppId(candidate.appId, candidate.headerImage);
+    return !profile.ownedAppIds.has(canonicalId) && !existingCanonicalIds.has(canonicalId);
+  });
+
+  if (filteredCandidates.length === 0) return [];
+
+  const repo = new PostgresGameMetadataRepository();
+  const metadataRows = await repo.getFullMetadataForCandidates(filteredCandidates.map((candidate) => candidate.appId));
+  const metadataByCanonicalId = new Map(
+    metadataRows.map((row) => [canonicalizeAppId(row.app_id, row.header_image), row] as const)
+  );
+
+  return filteredCandidates
+    .map((candidate, index, all) => {
+      const canonicalId = canonicalizeAppId(candidate.appId, candidate.headerImage);
+      const meta = metadataByCanonicalId.get(canonicalId);
+      const displayGenres = meta?.genres
+        ? meta.genres.split(',').map((entry) => entry.trim()).filter(Boolean)
+        : candidate.genres;
+      const displayTags = meta?.tags
+        ? meta.tags.split(',').map((entry) => entry.trim()).filter(Boolean)
+        : [];
+      const tokens = collectNormalizedTokens(displayGenres, displayTags);
+      const { profileAlignment, thematicBoost, matchedSignals } = scoreProfileSignalAlignment(tokens, profile);
+      const socialScore = profile.friendOverlapSet.has(canonicalId) ? 1 : 0;
+      const storefrontRankScore = all.length <= 1 ? 1 : 1 - index / (all.length - 1);
+      const finalScore =
+        profileAlignment * 0.58 +
+        thematicBoost * 0.12 +
+        socialScore * 0.15 +
+        storefrontRankScore * 0.15;
+
+      const reasons: string[] = ['Matches your current filters'];
+      if (matchedSignals.length > 0) {
+        reasons.push(`Aligned with your profile: ${matchedSignals.join(', ')}`);
+      } else {
+        reasons.push('Reranked for your library profile');
+      }
+      if (socialScore > 0) {
+        reasons.push('Popular among your friends');
+      }
+
+      return {
+        appId: canonicalId,
+        name: candidate.name,
+        score: parseFloat(finalScore.toFixed(6)),
+        jaccardScore: 0,
+        genreAlignmentScore: parseFloat(profileAlignment.toFixed(4)),
+        socialScore,
+        reason: reasons.join(' · '),
+        headerImage: meta?.header_image ?? candidate.headerImage ?? null,
+        genres: displayGenres,
+        tags: displayTags,
+        description: meta?.short_description ?? null,
+        price: meta?.price != null ? parseFloat(meta.price) : candidate.price,
+        isFree:
+          meta?.price != null
+            ? parseFloat(meta.price) === 0
+            : candidate.price !== null
+            ? candidate.price === 0
+            : false,
+        developers: [],
+        publishers: [],
+        releaseDate: null,
+      } satisfies ScoredRecommendation;
+    })
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit);
+}
+
+function mergeRecommendations(
+  primary: ScoredRecommendation[],
+  backfill: ScoredRecommendation[],
+  limit: number
+): ScoredRecommendation[] {
+  const merged: ScoredRecommendation[] = [];
+  const seenCanonicalIds = new Set<number>();
+
+  for (const rec of [...primary, ...backfill]) {
+    const canonicalId = canonicalizeAppId(rec.appId, rec.headerImage);
+    if (seenCanonicalIds.has(canonicalId)) continue;
+    if (canonicalId !== rec.appId) {
+      rec.appId = canonicalId;
+    }
+    seenCanonicalIds.add(canonicalId);
+    merged.push(rec);
+    if (merged.length >= limit) break;
+  }
+
+  return merged;
 }
 
 async function getFallbackPopularRecommendations(
@@ -412,16 +564,30 @@ router.get(
 
       // Score candidates using the 3-signal composite engine.
       // This now supports runtime similarity fallback even if offline index files are missing.
-      const candidatePoolLimit = Math.max(limit * 8, 80);
+      const candidatePoolLimit = computeRecommendationCandidatePoolLimit(limit, filters);
       const recommendations = await scoreWithUserContext(steamId, profile, candidatePoolLimit);
       const filteredRecommendations = await applyRecommendationFilters(recommendations, filters);
-      if (filteredRecommendations.length > 0) {
-        res.json(filteredRecommendations.slice(0, limit));
+      const primaryRecommendations = filteredRecommendations.slice(0, limit);
+
+      if (primaryRecommendations.length >= limit || !hasExplicitRecommendationFilters(filters)) {
+        res.json(primaryRecommendations);
+        return;
+      }
+
+      const storefrontBackfill = await rerankFilteredStorefrontCandidates(
+        profile,
+        filters,
+        limit,
+        primaryRecommendations
+      );
+      const combinedRecommendations = mergeRecommendations(primaryRecommendations, storefrontBackfill, limit);
+      if (combinedRecommendations.length > 0) {
+        res.json(combinedRecommendations);
         return;
       }
 
       // Final fallback if no candidates can be built.
-      const fallbackPoolLimit = Math.max(limit * 8, 80);
+      const fallbackPoolLimit = computeRecommendationCandidatePoolLimit(limit, filters);
       const fallbackRecommendations = await getFallbackPopularRecommendations(profile, fallbackPoolLimit);
       const filteredFallback = await applyRecommendationFilters(fallbackRecommendations, filters);
       res.json(filteredFallback.slice(0, limit));
