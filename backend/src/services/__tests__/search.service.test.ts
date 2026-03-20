@@ -95,4 +95,29 @@ describe('SearchService', () => {
     expect(firstSql).toContain('mac_support = TRUE');
     expect(secondSql).not.toContain('mac_support = TRUE');
   });
+
+  it('should collapse alias app IDs that resolve to the same canonical Steam app', async () => {
+    (query as jest.Mock).mockResolvedValue({
+      rows: [
+        {
+          app_id: 10180,
+          game_name: 'Call of Duty®: Modern Warfare® 2 (2009)',
+          genres: 'Action',
+          header_image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/10180/header.jpg',
+          price: '14.99',
+        },
+        {
+          app_id: 10190,
+          game_name: 'Call of Duty®: Modern Warfare® 2 (2009)',
+          genres: 'Action',
+          header_image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/10180/header.jpg',
+          price: '14.99',
+        },
+      ],
+    });
+
+    const results = await searchService.searchByGenres(['Action']);
+    expect(results).toHaveLength(1);
+    expect(results[0].appId).toBe(10180);
+  });
 });

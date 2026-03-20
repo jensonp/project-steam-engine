@@ -1,4 +1,5 @@
 import { PostgresGameMetadataRepository } from '../repositories/game.repository';
+import { canonicalizeAppId } from '../utils/canonical-app-id';
 
 export interface GameSearchResult {
   appId: number;
@@ -111,7 +112,7 @@ export class SearchService {
       ${keyword 
         ? `ORDER BY ts_rank_cd((${SearchService.FULL_TEXT_VECTOR_SQL}), plainto_tsquery('english', $${keywordParamIndex})) DESC, positive_votes DESC` 
         : `ORDER BY positive_votes DESC`}
-      LIMIT 10
+      LIMIT 40
     `;
 
     return { sqlQuery, params };
@@ -131,13 +132,26 @@ export class SearchService {
    * Helper to map raw database rows into strongly-typed frontend objects
    */
   private mapRows(rows: any[]): GameSearchResult[] {
-    return rows.map(row => ({
-      appId: row.app_id,
-      name: row.game_name,
-      genres: row.genres ? row.genres.split(',') : [],
-      headerImage: row.header_image,
-      price: row.price ? parseFloat(row.price) : null,
-      isFree: parseFloat(row.price) === 0
-    }));
+    const deduped: GameSearchResult[] = [];
+    const seenCanonicalIds = new Set<number>();
+
+    for (const row of rows) {
+      const canonicalAppId = canonicalizeAppId(row.app_id, row.header_image);
+      if (seenCanonicalIds.has(canonicalAppId)) continue;
+      seenCanonicalIds.add(canonicalAppId);
+
+      deduped.push({
+        appId: canonicalAppId,
+        name: row.game_name,
+        genres: row.genres ? row.genres.split(',') : [],
+        headerImage: row.header_image,
+        price: row.price ? parseFloat(row.price) : null,
+        isFree: parseFloat(row.price) === 0
+      });
+
+      if (deduped.length >= 10) break;
+    }
+
+    return deduped;
   }
 }

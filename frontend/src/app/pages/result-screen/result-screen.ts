@@ -90,7 +90,7 @@ export class ResultScreen implements OnInit, OnDestroy {
 
   private setResults(nextResults: Game[]): void {
     this.cancelRenderFrame();
-    this.results = Array.isArray(nextResults) ? nextResults : [];
+    this.results = this.dedupeResults(Array.isArray(nextResults) ? nextResults : []);
     this.visibleResults = [];
 
     if (!this.results.length) {
@@ -151,5 +151,36 @@ export class ResultScreen implements OnInit, OnDestroy {
   private shouldAcceptSource(source: ResultSource): boolean {
     if (!this.activeResultSource) return true;
     return this.activeResultSource === source;
+  }
+
+  private dedupeResults(nextResults: Game[]): Game[] {
+    const seenCanonicalIds = new Set<number>();
+    const deduped: Game[] = [];
+
+    for (const game of nextResults) {
+      const canonicalAppId = this.getCanonicalAppIdFromImage(game);
+      if (seenCanonicalIds.has(canonicalAppId)) continue;
+      seenCanonicalIds.add(canonicalAppId);
+
+      if (canonicalAppId !== game.appId) {
+        deduped.push({ ...game, appId: canonicalAppId });
+      } else {
+        deduped.push(game);
+      }
+    }
+
+    return deduped;
+  }
+
+  private getCanonicalAppIdFromImage(game: Game): number {
+    const fallback = Number.isFinite(game.appId) ? game.appId : 0;
+    const imageUrl = game.headerImage;
+    if (typeof imageUrl !== 'string') return fallback;
+
+    const match = /\/apps\/(\d+)\//i.exec(imageUrl);
+    if (!match) return fallback;
+
+    const parsed = Number.parseInt(match[1], 10);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
   }
 }

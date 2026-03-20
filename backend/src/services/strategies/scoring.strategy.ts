@@ -1,6 +1,7 @@
 import { getRecommenderService } from '../recommender.service';
 import { UserProfile, ScoredRecommendation } from '../../types/steam.types';
 import { IGameMetadataRepository } from '../../repositories/interfaces';
+import { canonicalizeAppId } from '../../utils/canonical-app-id';
 
 const WEIGHT_JACCARD  = 0.50;
 const WEIGHT_GENRE    = 0.30;
@@ -95,6 +96,25 @@ export class RecommendationScoringStrategy {
     }
 
     scored.sort((a, b) => b.score - a.score);
-    return scored.slice(0, limit);
+
+    // Steam can expose alias app IDs for the same canonical title.
+    // Collapse those aliases so users do not see duplicate cards.
+    const deduped: ScoredRecommendation[] = [];
+    const seenCanonicalIds = new Set<number>();
+    for (const recommendation of scored) {
+      const canonicalAppId = canonicalizeAppId(recommendation.appId, recommendation.headerImage);
+      if (profile.ownedAppIds.has(canonicalAppId)) continue;
+      if (seenCanonicalIds.has(canonicalAppId)) continue;
+
+      if (canonicalAppId !== recommendation.appId) {
+        recommendation.appId = canonicalAppId;
+      }
+
+      seenCanonicalIds.add(canonicalAppId);
+      deduped.push(recommendation);
+      if (deduped.length >= limit) break;
+    }
+
+    return deduped;
   }
 }

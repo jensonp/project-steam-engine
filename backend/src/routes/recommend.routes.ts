@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { validate } from '../middleware/validate.middleware';
 import { query } from '../config/db';
 import { ScoredRecommendation, UserProfile } from '../types/steam.types';
+import { canonicalizeAppId } from '../utils/canonical-app-id';
 
 const router = Router();
 
@@ -98,10 +99,24 @@ async function getFallbackPopularRecommendations(
       const scored = scoreFallbackCandidate(row, profile, maxPositiveVotes);
       return { row, score: scored.score, matchedSignals: scored.matchedSignals };
     })
-    .sort((a, b) => b.score - a.score)
-    .slice(0, limit);
+    .sort((a, b) => b.score - a.score);
 
-  return ranked.map(({ row, score, matchedSignals }) => {
+  const deduped: { row: FallbackRow; score: number; matchedSignals: string[] }[] = [];
+  const seenCanonicalIds = new Set<number>();
+  for (const entry of ranked) {
+    const canonicalAppId = canonicalizeAppId(entry.row.app_id, entry.row.header_image);
+    if (profile.ownedAppIds.has(canonicalAppId)) continue;
+    if (seenCanonicalIds.has(canonicalAppId)) continue;
+    seenCanonicalIds.add(canonicalAppId);
+
+    if (canonicalAppId !== entry.row.app_id) {
+      entry.row = { ...entry.row, app_id: canonicalAppId };
+    }
+    deduped.push(entry);
+    if (deduped.length >= limit) break;
+  }
+
+  return deduped.map(({ row, score, matchedSignals }) => {
     const priceValue = row.price === null ? null : Number(row.price);
     const isFree = priceValue !== null ? priceValue === 0 : false;
     const reasonSuffix =
