@@ -16,6 +16,62 @@ interface FallbackRow {
   header_image: string | null;
   short_description: string | null;
   price: string | null;
+  positive_votes: number | null;
+}
+
+function splitTokens(value: string | null | undefined): string[] {
+  if (!value) return [];
+  return value
+    .split(',')
+    .map((entry) => entry.trim().toLowerCase())
+    .filter(Boolean);
+}
+
+const THEME_TERM_ALIASES: Record<string, string[]> = {
+  zombie: ['zombie', 'zombies', 'undead'],
+  horror: ['horror', 'survival horror'],
+  survival: ['survival', 'survival horror', 'post-apocalyptic'],
+};
+
+export function scoreFallbackCandidate(
+  row: FallbackRow,
+  profile: UserProfile,
+  maxPositiveVotes: number
+): { score: number; matchedSignals: string[] } {
+  const tokens = new Set<string>([
+    ...splitTokens(row.genres),
+    ...splitTokens(row.tags),
+  ]);
+
+  let profileAlignment = 0;
+  const matchedSignals: string[] = [];
+  for (const [signal, weight] of profile.genreVector.entries()) {
+    if (!tokens.has(signal)) continue;
+    profileAlignment += weight;
+    if (matchedSignals.length < 3) matchedSignals.push(signal);
+  }
+
+  let thematicBoost = 0;
+  for (const aliasTerms of Object.values(THEME_TERM_ALIASES)) {
+    const hasSignal = aliasTerms.some((term) => (profile.genreVector.get(term) ?? 0) > 0);
+    if (!hasSignal) continue;
+    const hasCandidateMatch = aliasTerms.some((term) => tokens.has(term));
+    if (hasCandidateMatch) {
+      thematicBoost += 0.14;
+      for (const term of aliasTerms) {
+        if (tokens.has(term) && matchedSignals.length < 3 && !matchedSignals.includes(term)) {
+          matchedSignals.push(term);
+        }
+      }
+    }
+  }
+
+  const positiveVotes = row.positive_votes ?? 0;
+  const popularityScore =
+    maxPositiveVotes > 0 ? Math.log1p(positiveVotes) / Math.log1p(maxPositiveVotes) : 0;
+
+  const score = profileAlignment * 0.78 + thematicBoost * 0.17 + popularityScore * 0.05;
+  return { score, matchedSignals };
 }
 
 async function getFallbackPopularRecommendations(
@@ -24,27 +80,43 @@ async function getFallbackPopularRecommendations(
 ): Promise<ScoredRecommendation[]> {
   const ownedAppIds = profile.library.map((g) => g.appId);
   const sql = `
-    SELECT app_id, game_name, genres, tags, header_image, short_description, price
+    SELECT app_id, game_name, genres, tags, header_image, short_description, price, positive_votes
     FROM games
     WHERE NOT (app_id = ANY($1::int[]))
     ORDER BY positive_votes DESC
-    LIMIT $2
+    LIMIT GREATEST($2 * 40, 400)
   `;
 
   const result = await query<FallbackRow>(sql, [ownedAppIds, limit]);
+  const maxPositiveVotes = result.rows.reduce((max, row) => {
+    const votes = row.positive_votes ?? 0;
+    return votes > max ? votes : max;
+  }, 0);
 
-  return result.rows.map((row) => {
+  const ranked = result.rows
+    .map((row) => {
+      const scored = scoreFallbackCandidate(row, profile, maxPositiveVotes);
+      return { row, score: scored.score, matchedSignals: scored.matchedSignals };
+    })
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit);
+
+  return ranked.map(({ row, score, matchedSignals }) => {
     const priceValue = row.price === null ? null : Number(row.price);
     const isFree = priceValue !== null ? priceValue === 0 : false;
+    const reasonSuffix =
+      matchedSignals.length > 0
+        ? `Matched your profile signals: ${matchedSignals.join(', ')}`
+        : 'Matched your profile and popularity baseline';
 
     return {
       appId: row.app_id,
       name: row.game_name,
-      score: 0,
+      score: parseFloat(score.toFixed(6)),
       jaccardScore: 0,
-      genreAlignmentScore: 0,
+      genreAlignmentScore: parseFloat(score.toFixed(4)),
       socialScore: 0,
-      reason: 'Popular on Steam (fallback while personalized engine is initializing)',
+      reason: `Personalized fallback while engine initializes. ${reasonSuffix}`,
       headerImage: row.header_image,
       genres: row.genres ? row.genres.split(',').map((g) => g.trim()).filter(Boolean) : [],
       tags: row.tags ? row.tags.split(',').map((t) => t.trim()).filter(Boolean) : [],
